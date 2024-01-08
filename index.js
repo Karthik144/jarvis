@@ -1,30 +1,12 @@
 const { OpenAI } = require('openai');
 const readline = require('readline');
-require('dotenv').config();
+const axios = require("axios");
 const TavilySearchAPIRetriever = require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
+require('dotenv').config();
 
 
 const client = new OpenAI();
 
-// Test 1 
-
-// async function main() {
-//   try {
-//     const response = await openai.chat.completions.create({
-//       model: "gpt-3.5-turbo",
-//       messages: [
-//         {"role": "system", "content": "You are a helpful assistant."}, // Optional, but sets context for upcoming convo
-//         {"role": "user", "content": "Who won the world series in 2020?"} // All past user questions and assitant reponses must be stored since the model doesn't have memory
-//       ]
-//     });
-
-//     console.log(response.choices[0]);
-//   } catch (error) {
-//     console.error('Error:', error);
-//   }
-// }
-
-// Test 2 
 async function main() {
 
   const assistantDescription = "You are a crypto trading advisor. Your goal is to provide insightful finance and technology related answers in the context of crypto and blockchain. You must use the provided Tavily search API function to find relevant online information. Please include relevant url sources in the end of your answers."; 
@@ -33,20 +15,44 @@ async function main() {
     name: "Crypto Trading Advisor",
     description: assistantDescription, 
     model: "gpt-4-1106-preview",
-    tools: [{
-      "type": "function",
-      "function": {
-          "name": "tavily_search",
-          "description": "Get information on recent events from the web.",
-          "parameters": {
-              "type": "object",
-              "properties": {
-                  "query": {"type": "string", "description": "The search query to use. For example: 'Latest news on Bitcoin applications'"},
-              },
-              "required": ["query"]
+    tools: [
+
+      // First function 
+      {
+        "type": "function",
+        "function": {
+            "name": "tavily_search",
+            "description": "Get information on recent events from the web.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "The search query to use. For example: 'Latest news on Bitcoin applications'"},
+                },
+                "required": ["query"]
+            }
           }
-      }
-  }]
+      }, 
+
+      // Second function 
+      {
+        "type": "function", 
+        "function": {
+          "name": "coin_market_data", 
+          "description": "Get a user-requested coin's live market data (price, market cap, volume).", 
+          "parameters": {
+            "type": "object", 
+            "properties": {
+              "symbol": {
+                "type": "string", 
+                "description": "The trading symbol of the coin, e.g. BTC or ETH", 
+              }
+            },
+            "required": ["symbol"]
+          }
+        }
+
+      }, 
+    ]
   });
 
   // Create a thread 
@@ -131,6 +137,48 @@ const waitForRunCompletion = async (thread_id, run_id) => {
   });
 };
 
+async function retrieveCoinMarketData(symbol) {
+
+  // console.log("Token Symbol:", symbol.symbol); 
+  let parsedTokenSymbol = JSON.parse(symbol);
+  const coinList = await fetchAllCoins(); 
+
+  for (const coin of coinList) {
+    if (parsedTokenSymbol.symbol.toLowerCase() === coin.symbol) {
+      // Found a match based on user input 
+      const marketData = await fetchCoinMarketData(coin.id); 
+      return marketData; 
+    } 
+  }
+}
+
+// Lists all supported coins (id, symbol, name) by CoinGecko
+async function fetchAllCoins() {
+  try {
+    const requestURL =
+      "https://api.coingecko.com/api/v3/coins/list";
+    const response = await axios.get(requestURL);
+    const coins = response.data;
+    return coins;
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+}
+
+// Retrieve coin market data 
+async function fetchCoinMarketData(coinId) {
+  try {
+    const requestURL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`;
+    const response = await axios.get(requestURL);
+    const data = response.data;
+    return data; 
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+}
+
 async function tavilySearch(query) {
 
   const retriever = new TavilySearchAPIRetriever({
@@ -156,6 +204,9 @@ async function submitToolOutputs(thread_id, run_id, tools_to_call) {
       if (function_name === "tavily_search") {
         console.log("INSIDE TAVILY SEARCH"); 
         output = await tavilySearch(JSON.parse(function_args).query);
+      } else if (function_name === "coin_market_data") {
+        console.log("INSIDE MARKET DATA FUNC"); 
+        output = await retrieveCoinMarketData(function_args); 
       }
 
       // Convert output to a string
