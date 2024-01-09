@@ -13,46 +13,59 @@ async function main() {
 
   const assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
-    description: assistantDescription, 
+    description: assistantDescription,
     model: "gpt-4-1106-preview",
     tools: [
-
-      // First function 
+      // First function - web search
       {
-        "type": "function",
-        "function": {
-            "name": "tavily_search",
-            "description": "Get information on recent events from the web.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {"type": "string", "description": "The search query to use. For example: 'Latest news on Bitcoin applications'"},
-                },
-                "required": ["query"]
-            }
-          }
-      }, 
-
-      // Second function 
-      {
-        "type": "function", 
-        "function": {
-          "name": "coin_market_data", 
-          "description": "Get a user-requested coin's live market data (price, market cap, volume).", 
-          "parameters": {
-            "type": "object", 
-            "properties": {
-              "symbol": {
-                "type": "string", 
-                "description": "The trading symbol of the coin, e.g. BTC or ETH", 
-              }
+        type: "function",
+        function: {
+          name: "tavily_search",
+          description: "Get information on recent events from the web.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description:
+                  "The search query to use. For example: 'Latest news on Bitcoin applications'",
+              },
             },
-            "required": ["symbol"]
-          }
-        }
+            required: ["query"],
+          },
+        },
+      },
 
-      }, 
-    ]
+      // Second function - retrieve coin market data
+      {
+        type: "function",
+        function: {
+          name: "coin_market_data",
+          description:
+            "Get a user-requested coin's live market data (price, market cap, volume).",
+          parameters: {
+            type: "object",
+            properties: {
+              symbol: {
+                type: "string",
+                description: "The trading symbol of the coin, e.g. BTC or ETH",
+              },
+            },
+            required: ["symbol"],
+          },
+        },
+      },
+
+      // Third function - retrieve trending coins data
+      {
+        type: "function",
+        function: {
+          name: "top_coins_data",
+          description:
+            "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
+        },
+      },
+    ],
   });
 
   // Create a thread 
@@ -66,25 +79,16 @@ async function main() {
       break;
     }
 
-    console.log("Before creating a message"); 
-
-    console.log("Thread ID:", thread.id); 
-    console.log("User input:", userInput); 
-
     // Create a message 
     await client.beta.threads.messages.create(thread.id, {
       role: "user",
       content: userInput,
     });
 
-    console.log("After creating a message and before creating a run"); 
-
     // Create a run 
     let run = await client.beta.threads.runs.create(thread.id, {
       assistant_id: assistant.id,
     });
-
-    console.log("Run ID:", run.id); 
 
     run = await waitForRunCompletion(thread.id, run.id);
 
@@ -137,9 +141,50 @@ const waitForRunCompletion = async (thread_id, run_id) => {
   });
 };
 
+// Retrieve list of tokens in a user specified category
+
+// Retrieve list of all categories from coin gecko
+async function retrieveCategories() {
+  try {
+    const requestURL = "https://api.coingecko.com/api/v3/coins/categories/list";
+    const response = await axios.get(requestURL);
+    const categories = response.data;
+    return categories;
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+}
+
+// Retrieve list of tokens from category name 
+// NOTE: NEED TO COMPLETE
+async function retrieveTokensInCategory(categoryId) {
+  try {
+    const requestURL = "https://api.coingecko.com/api/v3/coins/categories/list";
+    const response = await axios.get(requestURL);
+    const categories = response.data;
+    return categories;
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+}
+
+// Retrieve trending tokens from coin gecko 
+async function retrieveTrendingCoins() {
+  try {
+    const requestURL = "https://api.coingecko.com/api/v3/search/trending";
+    const response = await axios.get(requestURL);
+    const trendingCoins = response.data;
+    return trendingCoins;
+  } catch (error) {
+    console.error("Error:", error);
+    return [];
+  }
+}
+
 async function retrieveCoinMarketData(symbol) {
 
-  // console.log("Token Symbol:", symbol.symbol); 
   let parsedTokenSymbol = JSON.parse(symbol);
   const coinList = await fetchAllCoins(); 
 
@@ -207,6 +252,9 @@ async function submitToolOutputs(thread_id, run_id, tools_to_call) {
       } else if (function_name === "coin_market_data") {
         console.log("INSIDE MARKET DATA FUNC"); 
         output = await retrieveCoinMarketData(function_args); 
+      } else if (function_name === "top_coins_data") {
+        console.log("INSIDE TOP COINS FUNC"); 
+        output = await retrieveTrendingCoins(); 
       }
 
       // Convert output to a string
