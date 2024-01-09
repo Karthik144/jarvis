@@ -9,7 +9,8 @@ const client = new OpenAI();
 
 async function main() {
 
-  const assistantDescription = "You are a crypto trading advisor. Your goal is to provide insightful finance and technology related answers in the context of crypto and blockchain. You must use the provided Tavily search API function to find relevant online information. Please include relevant url sources in the end of your answers."; 
+  const assistantDescription =
+    "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis)."; 
 
   const assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
@@ -21,7 +22,8 @@ async function main() {
         type: "function",
         function: {
           name: "tavily_search",
-          description: "Get information on recent events from the web.",
+          description:
+            "Get information on recent crypto/blockchain related events from the web.",
           parameters: {
             type: "object",
             properties: {
@@ -65,6 +67,26 @@ async function main() {
             "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
         },
       },
+
+      // Fourth function - analyze coin data and provide insight based on RSI
+      {
+        type: "function",
+        function: {
+          name: "rsi_analysis",
+          description:
+            "Calculate the Relative Strength Index (RSI) for a given token based on a 14 day period with closing prices for each day in the period.",
+          parameters: {
+            type: "object",
+            properties: {
+              symbol: {
+                type: "string",
+                description: "The trading symbol of the coin, e.g. BTC or ETH",
+              },
+            },
+            required: ["symbol"],
+          },
+        },
+      },
     ],
   });
 
@@ -101,7 +123,7 @@ async function main() {
       run = await waitForRunCompletion(thread.id, run.id);
     }
 
-    await print_messages_from_thread(thread.id, run.id);
+    await printMessagesFromThread(thread.id, run.id);
   }
 }
 
@@ -140,6 +162,93 @@ const waitForRunCompletion = async (thread_id, run_id) => {
       }, 1000); 
   });
 };
+
+// Calculate Relative Strength Index (RSI)
+async function calcRSI(symbol) {
+
+  console.log("Coin ID in symbol:", symbol);
+
+  let parsedTokenSymbol = JSON.parse(symbol);
+  const coinList = await fetchAllCoins();
+  let coinId = ""; 
+  
+  // Get correct id to use for coin gecko api 
+  for (const coin of coinList) {
+    if (parsedTokenSymbol.symbol.toLowerCase() === coin.symbol) {
+      // Found a match based on user input
+      coinId = coin.id; 
+    }
+  }
+
+  let priceGains = [];
+  let priceLosses = [];
+
+  // Get previous 14 day price data from coin gecko
+  const currentDate = new Date();
+  let last14Days = [];
+  let previousPrices = [];
+
+  for (let i = 0; i < 14; i++) {
+    let previousDate = new Date();
+    previousDate.setDate(currentDate.getDate() - i);
+    // Format and add to the array
+    last14Days.push(formatDate(previousDate));
+  }
+
+  for (const day of last14Days) {
+    const previousDatePrice = await getPrice(day, coinId);
+    previousPrices.push(previousDatePrice);
+  }
+
+  // Subtract previous day's close from today's close to determine if it's a gain or loss or no change
+  for (let i = 1; i < previousPrices.length; i++) {
+    const priceDiff = previousPrices[i] - previousPrices[i - 1];
+    if (priceDiff > 0) {
+      priceGains.push(priceDiff);
+    } else if (priceDiff < 0) {
+      priceLosses.push(Math.abs(priceDiff));
+    }
+  }
+
+  // Calc the avg gain and avg loss for the past 14 days
+  const totalGain = priceGains.reduce((acc, gain) => acc + gain, 0);
+  const totalLoss = priceLosses.reduce((acc, loss) => acc + loss, 0);
+
+  const avgGain = totalGain / 14;
+  const avgLoss = totalLoss / 14;
+
+  // Calc RS by finding the ratio of avg. gain to avg. loss
+  const RS = avgGain / avgLoss;
+
+  // Calc RSI by doing 100 - (100 / (1+RS))
+  const RSI = 100 - 100 / (1 + RS);
+  return RSI;
+}
+
+async function getPrice(date, coinId) {
+  try {
+    const requestURL = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${date}&localization=false`;
+    const response = await axios.get(requestURL);
+    const price = response.data.market_data.current_price.usd;
+    return price;
+  
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+// Format given date to dd-mm-yyyy
+function formatDate(date) {
+    let day = date.getDate();
+    let month = date.getMonth() + 1; // Month is 0-indexed
+    let year = date.getFullYear();
+
+    // Add leading zero if day or month is less than 10
+    day = day < 10 ? '0' + day : day;
+    month = month < 10 ? '0' + month : month;
+
+    return `${day}-${month}-${year}`;
+}
 
 // Retrieve list of tokens in a user specified category
 
@@ -255,6 +364,9 @@ async function submitToolOutputs(thread_id, run_id, tools_to_call) {
       } else if (function_name === "top_coins_data") {
         console.log("INSIDE TOP COINS FUNC"); 
         output = await retrieveTrendingCoins(); 
+      } else if (function_name === "rsi_analysis") {
+        console.log("INSIDE RSI ANALYSIS FUNC")
+        output = await calcRSI(function_args);
       }
 
       // Convert output to a string
@@ -276,7 +388,7 @@ async function submitToolOutputs(thread_id, run_id, tools_to_call) {
 
 
 
-async function print_messages_from_thread(thread_id, run_id) {
+async function printMessagesFromThread(thread_id, run_id) {
   const messages = await client.beta.threads.messages.list(thread_id);
 
   // Find the last message for the current run

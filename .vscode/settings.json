@@ -6,6 +6,6 @@
     "editor.formatOnSave": false,
     "editor.autoClosingBrackets": "always",
     "editor.codeActionsOnSave": {
-      "notebook.formatOnSave.enabled": true
+      "notebook.formatOnSave.enabled": "explicit"
     }
 }
