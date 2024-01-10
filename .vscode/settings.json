@@ -1,0 +1,11 @@
+{
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "notebook.formatOnSave.enabled": true,
+    "editor.formatOnSave": false,
+    "editor.autoClosingBrackets": "always",
+    "editor.codeActionsOnSave": {
+      "notebook.formatOnSave.enabled": "explicit"
+    }
+}
