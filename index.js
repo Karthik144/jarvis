@@ -1,16 +1,15 @@
-const { OpenAI } = require('openai');
-const readline = require('readline');
+const { OpenAI } = require("openai");
+const readline = require("readline");
 const axios = require("axios");
-const TavilySearchAPIRetriever = require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
-require('dotenv').config();
-
+const TavilySearchAPIRetriever =
+  require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
+require("dotenv").config();
 
 const client = new OpenAI();
 
 async function main() {
-
   const assistantDescription =
-    "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis)."; 
+    "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
 
   const assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
@@ -90,36 +89,40 @@ async function main() {
     ],
   });
 
-  // Create a thread 
+  // Create a thread
   const thread = await client.beta.threads.create();
-  
-  // Ongoing convo 
+
+  // Ongoing convo
   while (true) {
     const userInput = await getUserInput();
 
-    if (userInput.toLowerCase() === 'exit') {
+    if (userInput.toLowerCase() === "exit") {
       break;
     }
 
-    // Create a message 
+    // Create a message
     await client.beta.threads.messages.create(thread.id, {
       role: "user",
       content: userInput,
     });
 
-    // Create a run 
+    // Create a run
     let run = await client.beta.threads.runs.create(thread.id, {
       assistant_id: assistant.id,
     });
 
     run = await waitForRunCompletion(thread.id, run.id);
 
-    if (run.status === 'failed') {
-      console.log("INSIDE RUN FAILED"); 
+    if (run.status === "failed") {
+      console.log("INSIDE RUN FAILED");
       console.log(run.error);
-    } else if (run.status === 'requires_action') {
-      console.log("INSIDE FUNCTION CALLED"); 
-      run = await submitToolOutputs(thread.id, run.id, run.required_action.submit_tool_outputs.tool_calls);
+    } else if (run.status === "requires_action") {
+      console.log("INSIDE FUNCTION CALLED");
+      run = await submitToolOutputs(
+        thread.id,
+        run.id,
+        run.required_action.submit_tool_outputs.tool_calls
+      );
       run = await waitForRunCompletion(thread.id, run.id);
     }
 
@@ -127,17 +130,16 @@ async function main() {
   }
 }
 
-
 main();
 
 async function getUserInput() {
   return new Promise((resolve) => {
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
-    rl.question('You: ', (input) => {
+    rl.question("You: ", (input) => {
       rl.close();
       resolve(input);
     });
@@ -146,29 +148,29 @@ async function getUserInput() {
 
 const waitForRunCompletion = async (thread_id, run_id) => {
   return new Promise((resolve, reject) => {
-      const interval = setInterval(async () => {
-          try {
-              const run = await client.beta.threads.runs.retrieve(thread_id, run_id);
-              console.log(`Current run status: ${run.status}`);
+    const interval = setInterval(async () => {
+      try {
+        const run = await client.beta.threads.runs.retrieve(thread_id, run_id);
+        console.log(`Current run status: ${run.status}`);
 
-              if (['completed', 'failed', 'requires_action'].includes(run.status)) {
-                  clearInterval(interval);
-                  resolve(run);
-              }
-          } catch (error) {
-              clearInterval(interval);
-              reject(error);
-          }
-      }, 1000); 
+        if (["completed", "failed", "requires_action"].includes(run.status)) {
+          clearInterval(interval);
+          resolve(run);
+        }
+      } catch (error) {
+        clearInterval(interval);
+        reject(error);
+      }
+    }, 1000);
   });
 };
 
 // Calculate Relative Strength Index (RSI)
 async function calcRSI(symbol) {
   const parsedSymbol = JSON.parse(symbol).symbol;
-  console.log("Coin Symbol in calcRSI:", parsedSymbol); 
+  console.log("Coin Symbol in calcRSI:", parsedSymbol);
   const coinId = await fetchCoinId(parsedSymbol);
-  console.log("Coin ID in calcRSI:", coinId); 
+  console.log("Coin ID in calcRSI:", coinId);
 
   let priceGains = [];
   let priceLosses = [];
@@ -199,26 +201,24 @@ async function calcRSI(symbol) {
   // Calc RSI by doing 100 - (100 / (1+RS))
   const RSI = 100 - 100 / (1 + RS);
   return RSI;
-
 }
 
 async function getHistoricalPrices(coinId) {
-  console.log("Coin ID Inside Historical Prices:", coinId)
+  console.log("Coin ID Inside Historical Prices:", coinId);
   try {
     const requestURL = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=14&interval=daily`;
     const response = await axios.get(requestURL);
     // Note: Struct is an array of arrays (each sub array has unix timestamp and price)
     const queriedPrices = response.data.prices;
-    let prices = []; 
-    for (let i = 0; i < queriedPrices.length; i++){
-      const price = queriedPrices[i][1]; 
-      prices.push(price); 
+    let prices = [];
+    for (let i = 0; i < queriedPrices.length; i++) {
+      const price = queriedPrices[i][1];
+      prices.push(price);
     }
-    return prices; 
-
+    return prices;
   } catch (error) {
     console.error("Error:", error);
-    return []; 
+    return [];
   }
 }
 
@@ -250,7 +250,7 @@ async function retrieveCategories() {
   }
 }
 
-// Retrieve list of tokens from category name 
+// Retrieve list of tokens from category name
 // NOTE: NEED TO COMPLETE
 async function retrieveTokensInCategory(categoryId) {
   try {
@@ -264,7 +264,7 @@ async function retrieveTokensInCategory(categoryId) {
   }
 }
 
-// Retrieve trending tokens from coin gecko 
+// Retrieve trending tokens from coin gecko
 async function retrieveTrendingCoins() {
   try {
     const requestURL = "https://api.coingecko.com/api/v3/search/trending";
@@ -279,9 +279,9 @@ async function retrieveTrendingCoins() {
 
 async function retrieveCoinMarketData(symbol) {
   const parsedSymbol = JSON.parse(symbol).symbol;
-  const coinId = await fetchCoinId(parsedSymbol); 
-  const marketData = await fetchCoinMarketData(coinId); 
-  return marketData; 
+  const coinId = await fetchCoinId(parsedSymbol);
+  const marketData = await fetchCoinMarketData(coinId);
+  return marketData;
 }
 
 // Lists all supported coins (id, symbol, name) by CoinGecko
@@ -309,13 +309,13 @@ async function fetchCoinId(searchTerm) {
   }
 }
 
-// Retrieve coin market data 
+// Retrieve coin market data
 async function fetchCoinMarketData(coinId) {
   try {
     const requestURL = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}&order=market_cap_desc&per_page=100&page=1&sparkline=false&locale=en`;
     const response = await axios.get(requestURL);
     const data = response.data;
-    return data; 
+    return data;
   } catch (error) {
     console.error("Error:", error);
     return [];
@@ -323,11 +323,10 @@ async function fetchCoinMarketData(coinId) {
 }
 
 async function tavilySearch(query) {
-
   const retriever = new TavilySearchAPIRetriever({
     apiKey: process.env.TAVILY_API_KEY,
     k: 3,
-    searchDepth: 'advanced', 
+    searchDepth: "advanced",
   });
 
   const searchResult = await retriever.getRelevantDocuments(query);
@@ -339,55 +338,59 @@ async function submitToolOutputs(threadId, runId, toolsToCall) {
   const toolOutputArray = [];
 
   for (const tool of toolsToCall) {
-      let output = null;
-      const toolCallId = tool.id;
-      const functionName = tool.function.name;
-      const functionArgs = tool.function.arguments;
+    let output = null;
+    const toolCallId = tool.id;
+    const functionName = tool.function.name;
+    const functionArgs = tool.function.arguments;
 
-      if (functionName === "tavily_search") {
-        console.log("INSIDE TAVILY SEARCH"); 
-        output = await tavilySearch(JSON.parse(functionArgs).query);
-      } else if (functionName === "coin_market_data") {
-        console.log("INSIDE MARKET DATA FUNC"); 
-        output = await retrieveCoinMarketData(functionArgs); 
-      } else if (functionName === "top_coins_data") {
-        console.log("INSIDE TOP COINS FUNC"); 
-        output = await retrieveTrendingCoins(); 
-      } else if (functionName === "rsi_analysis") {
-        console.log("INSIDE RSI ANALYSIS FUNC")
-        output = await calcRSI(functionArgs);
-      }
+    if (functionName === "tavily_search") {
+      console.log("INSIDE TAVILY SEARCH");
+      output = await tavilySearch(JSON.parse(functionArgs).query);
+    } else if (functionName === "coin_market_data") {
+      console.log("INSIDE MARKET DATA FUNC");
+      output = await retrieveCoinMarketData(functionArgs);
+    } else if (functionName === "top_coins_data") {
+      console.log("INSIDE TOP COINS FUNC");
+      output = await retrieveTrendingCoins();
+    } else if (functionName === "rsi_analysis") {
+      console.log("INSIDE RSI ANALYSIS FUNC");
+      output = await calcRSI(functionArgs);
+    }
 
-      // Convert output to a string
-      if (output) {
-          const outputString = typeof output === 'string' ? output : JSON.stringify(output);
-          toolOutputArray.push({ tool_call_id: toolCallId, output: outputString });
-      }
-  }  
+    // Convert output to a string
+    if (output) {
+      const outputString =
+        typeof output === "string" ? output : JSON.stringify(output);
+      toolOutputArray.push({ tool_call_id: toolCallId, output: outputString });
+    }
+  }
 
   try {
-    const response = await client.beta.threads.runs.submitToolOutputs(threadId, runId, {
-      tool_outputs: toolOutputArray
-    });
+    const response = await client.beta.threads.runs.submitToolOutputs(
+      threadId,
+      runId,
+      {
+        tool_outputs: toolOutputArray,
+      }
+    );
     return response;
   } catch (error) {
     console.error("Error submitting tool outputs:", error);
   }
 }
 
-
-
 async function printMessagesFromThread(thread_id, run_id) {
   const messages = await client.beta.threads.messages.list(thread_id);
 
   // Find the last message for the current run
   const lastMessage = messages.data
-  .filter(message => message.run_id === run_id && message.role === "assistant")
-  .pop();
+    .filter(
+      (message) => message.run_id === run_id && message.role === "assistant"
+    )
+    .pop();
 
   // Print the last message coming from the assistant
   if (lastMessage) {
     console.log(lastMessage.content[0]["text"].value);
   }
-
 }
