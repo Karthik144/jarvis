@@ -20,12 +20,13 @@ const CustomButton = styled(Paper)(({ theme }) => ({
 }));
 
 
-export default function QuickAction({ text }) {
+export default function QuickAction({ text, onPress }) {
 
     return (
       <CustomButton
         role="button"
         tabIndex={0}
+        onClick={() => onPress(text)} 
       >
         <Typography variant="caption">{text}</Typography>
       </CustomButton>

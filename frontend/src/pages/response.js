@@ -63,21 +63,51 @@ const markdownToHtml = (text) => {
 export default function Response() {
   const [responseText, setResponseText] = useState("");
   const [userSearch, setUserSearch] = useState(""); 
+  const [threadId, setThreadId] = useState("");
+  const [runId, setRunId] = useState(""); 
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
-    await fetchResponse(query); 
+    await fetchFollowUp(query); 
   };
 
   async function fetchResponse(userQuery) {
     console.log("INSIDE FETCH RESPONSE");
     try {
+
       const response = await fetch("http://localhost:3001/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ userInput: userQuery }),
+      });
+  
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const formattedResponse = markdownToHtml(data.message);
+      console.log("Formatted response:", formattedResponse);
+
+      setResponseText(formattedResponse);
+      setThreadId(data.threadId);
+      setRunId(data.runId);
+    } catch (error) {
+      console.error("Error fetching response:", error);
+    }
+  }
+
+  async function fetchFollowUp(userQuery) {
+    try {
+      const response = await fetch("http://localhost:3001/followup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userInput: userQuery, threadId: threadId, runId: runId }),
       });
 
       if (!response.ok) {
@@ -92,7 +122,9 @@ export default function Response() {
     } catch (error) {
       console.error("Error fetching response:", error);
     }
+
   }
+
 
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");

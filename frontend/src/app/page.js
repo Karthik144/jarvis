@@ -13,17 +13,16 @@ export default function Home() {
   const router = useRouter();
 
 
-  const handleSubmit = async (query) => {
+  const handleSubmit = (query) => {
     console.log("handle submit called in page.js");
-    // setUserInput(query);
-    // console.log("userInput in page.js", userInput);
-    // Call the main function from Assistant.js and wait for the response
-    // const ids = await callAssistant(query);
-    // console.log("THREAD ID IN PAGE.JS", ids[0]);
-    // console.log("RUN ID IN PAGE.JS", ids[1]);
     localStorage.setItem("userQuery", JSON.stringify(query));
     router.push("/response");
   };
+
+  const handleQuickAction = async (query) => {
+    localStorage.setItem("userQuery", JSON.stringify(query));
+    router.push("/response");
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -34,10 +33,10 @@ export default function Home() {
 
       <Grid
         container
-        spacing={2} // Adjust the spacing to increase or decrease the space between items
+        spacing={2} 
         justifyContent="center"
         alignItems="center"
-        sx={{ pt: 4, maxWidth: 1200, margin: "0 auto" }} // Set a maxWidth to control the overall width
+        sx={{ pt: 4, maxWidth: 1200, margin: "0 auto" }} 
       >
         <Grid item>
           <Typography variant="body1" sx={{ fontWeight: "lighter" }}>
@@ -45,13 +44,22 @@ export default function Home() {
           </Typography>
         </Grid>
         <Grid item>
-          <QuickAction text="RSI Analysis on Bitcoin" />
+          <QuickAction
+            text="RSI Analysis on Bitcoin"
+            onPress={handleQuickAction}
+          />
         </Grid>
         <Grid item>
-          <QuickAction text="Latest updates to Ethereum" />
+          <QuickAction
+            text="Latest updates to Ethereum"
+            onPress={handleQuickAction}
+          />
         </Grid>
         <Grid item>
-          <QuickAction text="Most trending tokens" />
+          <QuickAction
+            text="Most trending tokens"
+            onPress={handleQuickAction}
+          />
         </Grid>
       </Grid>
     </div>
