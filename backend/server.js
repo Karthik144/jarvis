@@ -24,7 +24,7 @@ let client, assistant;
 async function initializeOpenAI() {
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const assistantDescription =
-    "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
+    "You are a crypto researcher. Provide a insightful report on a the given cryptocurrency, using the Tavily search API for additional information. Include URL sources in responses. When given a cryptocurrency symbol or name generate this report by calling the function (rsi_analysis).";
 
   assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
