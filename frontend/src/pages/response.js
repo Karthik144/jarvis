@@ -59,53 +59,48 @@ const markdownToHtml = (text) => {
 };
 
 
+
 export default function Response() {
   const [responseText, setResponseText] = useState("");
   const [userSearch, setUserSearch] = useState(""); 
 
-  // useEffect(() => {
-  //   const sessionIDs = localStorage.getItem("sessionIDs");
-  //   if (sessionIDs) {
-  //     const ids = JSON.parse(sessionIDs);
-  //     setThreadId(ids[0]);
-  //     setRunId(ids[1]);
-  //     // Clear the item from local storage
-  //     localStorage.removeItem("sessionIDs");
-  //   }
-  // }, []);
+  const handleSubmit = async (query) => {
+    console.log("handle submit called in response.js");
+    await fetchResponse(query); 
+  };
+
+  async function fetchResponse(userQuery) {
+    console.log("INSIDE FETCH RESPONSE");
+    try {
+      const response = await fetch("http://localhost:3001/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userInput: userQuery }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const formattedResponse = markdownToHtml(data.message);
+      console.log("Formatted response:", formattedResponse);
+
+      setResponseText(formattedResponse);
+    } catch (error) {
+      console.error("Error fetching response:", error);
+    }
+  }
 
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");
     const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
     setUserSearch(processedQuery); 
 
-    async function fetchResponse() {
-      console.log("INSIDE FETCH RESPONSE");
-      try {
-        const response = await fetch("http://localhost:3001/analyze", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ userInput: userQuery }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json(); 
-        const formattedResponse = markdownToHtml(data.message);
-        console.log("Formatted response:", formattedResponse);
-
-        setResponseText(formattedResponse);
-      } catch (error) {
-        console.error("Error fetching response:", error);
-      }
-    }
-
     console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
-    // fetchResponse();
+    fetchResponse(userQuery);
   }, []);
 
 
@@ -153,7 +148,7 @@ export default function Response() {
       />
 
       <div style={{ position: "fixed", bottom: 35, left: 0, right: 0 }}>
-        <FollowUpQuestionBar />
+        <FollowUpQuestionBar onSubmit={handleSubmit} />
       </div>
     </div>
   );

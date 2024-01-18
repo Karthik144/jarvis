@@ -5,10 +5,23 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import SendIcon from "@mui/icons-material/Send";
 
-export default function FollowUpQuestionBar() {
+export default function FollowUpQuestionBar({ onSubmit }) {
+  
+  const [inputValue, setInputValue] = React.useState("");
+  
+  const handleInputChange = (event) => {
+    setInputValue(event.target.value);
+  }
+
+  const handleFormSubmit = (event) => {
+    event.preventDefault();
+    onSubmit(inputValue);
+  }
+
   return (
     <Box
       component="form"
+      onSubmit={handleFormSubmit}
       sx={{
         display: "flex",
         alignItems: "center",
@@ -21,7 +34,8 @@ export default function FollowUpQuestionBar() {
         fullWidth
         id="outlined-helperText"
         placeholder="Ask a follow-up..."
-        defaultValue=""
+        value={inputValue}
+        onChange={handleInputChange}
         variant="outlined"
         InputProps={{
           endAdornment: (
