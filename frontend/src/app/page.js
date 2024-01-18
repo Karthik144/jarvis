@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import Typography from "@mui/material/Typography";
 import PromptBar from "../../../frontend/components/PromptBar";
 import QuickAction from "../../../frontend/components/QuickAction";
-import { main as callAssistant } from "../backend/Assistant"; 
+// import { main as callAssistant } from "../backend/Assistant"; 
 import Grid from "@mui/material/Grid";
 import { useRouter } from "next/navigation";
+
 
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   const router = useRouter();
+
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in page.js");
@@ -20,9 +22,8 @@ export default function Home() {
     // console.log("THREAD ID IN PAGE.JS", ids[0]);
     // console.log("RUN ID IN PAGE.JS", ids[1]);
     localStorage.setItem("userQuery", JSON.stringify(query));
-    router.push("/response"); 
+    router.push("/response");
   };
-
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
@@ -39,7 +40,7 @@ export default function Home() {
         sx={{ pt: 4, maxWidth: 1200, margin: "0 auto" }} // Set a maxWidth to control the overall width
       >
         <Grid item>
-          <Typography variant="body1" sx={{fontWeight: 'lighter'}}>
+          <Typography variant="body1" sx={{ fontWeight: "lighter" }}>
             Try asking...
           </Typography>
         </Grid>
