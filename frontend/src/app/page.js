@@ -45,19 +45,19 @@ export default function Home() {
         </Grid>
         <Grid item>
           <QuickAction
-            text="RSI Analysis on Bitcoin"
+            text="Bitcoin"
             onPress={handleQuickAction}
           />
         </Grid>
         <Grid item>
           <QuickAction
-            text="Latest updates to Ethereum"
+            text="Cosmos"
             onPress={handleQuickAction}
           />
         </Grid>
         <Grid item>
           <QuickAction
-            text="Most trending tokens"
+            text="Chainlink"
             onPress={handleQuickAction}
           />
         </Grid>
