@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const port = 3001; 
-require('dotenv').config();
+const port = 3001;
+require("dotenv").config();
 
 app.use(
   cors({
@@ -10,186 +10,183 @@ app.use(
   })
 );
 
-app.use(express.json()); 
+app.use(express.json());
 
 const { OpenAI } = require("openai");
 // const readline = require("readline");
 const axios = require("axios");
-const TavilySearchAPIRetriever = require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
+const TavilySearchAPIRetriever =
+  require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
 require("dotenv").config();
 
 let client, assistant;
 
-// Initialize the vars in an async IIFE
-(async () => {
-    client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    const assistantDescription =
-        "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
+async function initializeOpenAI() {
+  client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const assistantDescription =
+    "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
 
-    assistant = await client.beta.assistants.create({
-        name: "Crypto Trading Advisor",
-        description: assistantDescription,
-        model: "gpt-4-1106-preview",
-        tools: [
-        // First function - web search
-        {
-            type: "function",
-            function: {
-            name: "tavily_search",
-            description:
-                "Get information on recent crypto/blockchain related events from the web.",
-            parameters: {
-                type: "object",
-                properties: {
-                query: {
-                    type: "string",
-                    description:
-                    "The search query to use. For example: 'Latest news on Bitcoin applications'",
-                },
-                },
-                required: ["query"],
+  assistant = await client.beta.assistants.create({
+    name: "Crypto Trading Advisor",
+    description: assistantDescription,
+    model: "gpt-4-1106-preview",
+    tools: [
+      // First function - web search
+      {
+        type: "function",
+        function: {
+          name: "tavily_search",
+          description:
+            "Get information on recent crypto/blockchain related events from the web.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description:
+                  "The search query to use. For example: 'Latest news on Bitcoin applications'",
+              },
             },
-            },
+            required: ["query"],
+          },
         },
+      },
 
-        // Second function - retrieve coin market data
-        {
-            type: "function",
-            function: {
-            name: "coin_market_data",
-            description:
-                "Get a user-requested coin's live market data (price, market cap, volume).",
-            parameters: {
-                type: "object",
-                properties: {
-                symbol: {
-                    type: "string",
-                    description:
-                    "The trading symbol of the coin, e.g. BTC or ETH",
-                },
-                },
-                required: ["symbol"],
+      // Second function - retrieve coin market data
+      {
+        type: "function",
+        function: {
+          name: "coin_market_data",
+          description:
+            "Get a user-requested coin's live market data (price, market cap, volume).",
+          parameters: {
+            type: "object",
+            properties: {
+              symbol: {
+                type: "string",
+                description: "The trading symbol of the coin, e.g. BTC or ETH",
+              },
             },
-            },
+            required: ["symbol"],
+          },
         },
+      },
 
-        // Third function - retrieve trending coins data
-        {
-            type: "function",
-            function: {
-            name: "top_coins_data",
-            description:
-                "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
-            },
+      // Third function - retrieve trending coins data
+      {
+        type: "function",
+        function: {
+          name: "top_coins_data",
+          description:
+            "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
         },
+      },
 
-        // Fourth function - analyze coin data and provide insight based on RSI
-        {
-            type: "function",
-            function: {
-            name: "rsi_analysis",
-            description:
-                "Calculate the Relative Strength Index (RSI) for a given token based on a 14 day period with closing prices for each day in the period.",
-            parameters: {
-                type: "object",
-                properties: {
-                symbol: {
-                    type: "string",
-                    description:
-                    "The trading symbol of the coin, e.g. BTC or ETH",
-                },
-                },
-                required: ["symbol"],
+      // Fourth function - analyze coin data and provide insight based on RSI
+      {
+        type: "function",
+        function: {
+          name: "rsi_analysis",
+          description:
+            "Calculate the Relative Strength Index (RSI) for a given token based on a 14 day period with closing prices for each day in the period.",
+          parameters: {
+            type: "object",
+            properties: {
+              symbol: {
+                type: "string",
+                description: "The trading symbol of the coin, e.g. BTC or ETH",
+              },
             },
-            },
+            required: ["symbol"],
+          },
         },
-        ],
-    });
-})();
-
+      },
+    ],
+  });
+}
 
 async function main(userInput) {
   console.log("USER INPUT PASSED IN", userInput);
-//   const assistantDescription =
-//     "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
+  //   const assistantDescription =
+  //     "You are a crypto trading advisor. Provide insightful answers, using the Tavily search API for additional information. Include URL sources in responses. When asked for analysis or insight offer nuanced analyses using the Relative Strength Index (RSI) function (rsi_analysis).";
 
-//   const assistant = await client.beta.assistants.create({
-//     name: "Crypto Trading Advisor",
-//     description: assistantDescription,
-//     model: "gpt-4-1106-preview",
-//     tools: [
-//       // First function - web search
-//       {
-//         type: "function",
-//         function: {
-//           name: "tavily_search",
-//           description:
-//             "Get information on recent crypto/blockchain related events from the web.",
-//           parameters: {
-//             type: "object",
-//             properties: {
-//               query: {
-//                 type: "string",
-//                 description:
-//                   "The search query to use. For example: 'Latest news on Bitcoin applications'",
-//               },
-//             },
-//             required: ["query"],
-//           },
-//         },
-//       },
+  //   const assistant = await client.beta.assistants.create({
+  //     name: "Crypto Trading Advisor",
+  //     description: assistantDescription,
+  //     model: "gpt-4-1106-preview",
+  //     tools: [
+  //       // First function - web search
+  //       {
+  //         type: "function",
+  //         function: {
+  //           name: "tavily_search",
+  //           description:
+  //             "Get information on recent crypto/blockchain related events from the web.",
+  //           parameters: {
+  //             type: "object",
+  //             properties: {
+  //               query: {
+  //                 type: "string",
+  //                 description:
+  //                   "The search query to use. For example: 'Latest news on Bitcoin applications'",
+  //               },
+  //             },
+  //             required: ["query"],
+  //           },
+  //         },
+  //       },
 
-//       // Second function - retrieve coin market data
-//       {
-//         type: "function",
-//         function: {
-//           name: "coin_market_data",
-//           description:
-//             "Get a user-requested coin's live market data (price, market cap, volume).",
-//           parameters: {
-//             type: "object",
-//             properties: {
-//               symbol: {
-//                 type: "string",
-//                 description: "The trading symbol of the coin, e.g. BTC or ETH",
-//               },
-//             },
-//             required: ["symbol"],
-//           },
-//         },
-//       },
+  //       // Second function - retrieve coin market data
+  //       {
+  //         type: "function",
+  //         function: {
+  //           name: "coin_market_data",
+  //           description:
+  //             "Get a user-requested coin's live market data (price, market cap, volume).",
+  //           parameters: {
+  //             type: "object",
+  //             properties: {
+  //               symbol: {
+  //                 type: "string",
+  //                 description: "The trading symbol of the coin, e.g. BTC or ETH",
+  //               },
+  //             },
+  //             required: ["symbol"],
+  //           },
+  //         },
+  //       },
 
-//       // Third function - retrieve trending coins data
-//       {
-//         type: "function",
-//         function: {
-//           name: "top_coins_data",
-//           description:
-//             "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
-//         },
-//       },
+  //       // Third function - retrieve trending coins data
+  //       {
+  //         type: "function",
+  //         function: {
+  //           name: "top_coins_data",
+  //           description:
+  //             "Get the top-7 trending coins on CoinGecko as searched by users in the last 24 hours (ordered by most popular first).",
+  //         },
+  //       },
 
-//       // Fourth function - analyze coin data and provide insight based on RSI
-//       {
-//         type: "function",
-//         function: {
-//           name: "rsi_analysis",
-//           description:
-//             "Calculate the Relative Strength Index (RSI) for a given token based on a 14 day period with closing prices for each day in the period.",
-//           parameters: {
-//             type: "object",
-//             properties: {
-//               symbol: {
-//                 type: "string",
-//                 description: "The trading symbol of the coin, e.g. BTC or ETH",
-//               },
-//             },
-//             required: ["symbol"],
-//           },
-//         },
-//       },
-//     ],
-//   });
+  //       // Fourth function - analyze coin data and provide insight based on RSI
+  //       {
+  //         type: "function",
+  //         function: {
+  //           name: "rsi_analysis",
+  //           description:
+  //             "Calculate the Relative Strength Index (RSI) for a given token based on a 14 day period with closing prices for each day in the period.",
+  //           parameters: {
+  //             type: "object",
+  //             properties: {
+  //               symbol: {
+  //                 type: "string",
+  //                 description: "The trading symbol of the coin, e.g. BTC or ETH",
+  //               },
+  //             },
+  //             required: ["symbol"],
+  //           },
+  //         },
+  //       },
+  //     ],
+  //   });
 
   // Create a thread
   const thread = await client.beta.threads.create();
@@ -231,25 +228,24 @@ async function main(userInput) {
     const lastMessage = await printMessagesFromThread(thread.id, run.id);
     // return lastMessage;
     return {
-        threadId: thread.id,
-        runId: run ? run.id : null, 
-        message: lastMessage,
+      threadId: thread.id,
+      runId: run ? run.id : null,
+      message: lastMessage,
     };
-
   }
 }
 
-async function followUp(unserInput, threadId, runId){
+async function followUp(userInput, threadId, runId) {
   // Create a message
   await client.beta.threads.messages.create(threadId, {
     role: "user",
     content: userInput,
   });
 
-//   // Create a run
-//   let run = await client.beta.threads.runs.create(thread.id, {
-//     assistant_id: assistant.id,
-//   });
+  // Create a run
+  let run = await client.beta.threads.runs.create(thread.id, {
+    assistant_id: assistant.id,
+  });
 
   run = await waitForRunCompletion(threadId, runId);
 
@@ -268,7 +264,6 @@ async function followUp(unserInput, threadId, runId){
 
   const lastMessage = await printMessagesFromThread(threadId, runId);
   return lastMessage;
-
 }
 
 async function getUserInput() {
@@ -528,9 +523,16 @@ async function printMessagesFromThread(thread_id, run_id) {
     )
     .pop();
 
+  // Log the last message for debugging
+  console.log("Last Message:", lastMessage);
+
   // Print the last message coming from the assistant
   if (lastMessage) {
     return lastMessage.content[0]["text"].value;
+  } else {
+    // Log if no message is found
+    console.log("No last message found");
+    return null;
   }
 }
 
@@ -557,15 +559,20 @@ app.post("/analyze", async (req, res) => {
 app.post("/followup", async (req, res) => {
   try {
     const userInput = req.body.userInput;
-    const threadId = req.body.threadId; 
-    const runId = req.body.runId; 
+    const threadId = req.body.threadId;
+    const runId = req.body.runId;
+    console.log("User Input", userInput);
+    console.log("Thread ID", threadId);
+    console.log("Run ID", runId);
     const result = await followUp(userInput, threadId, runId);
+    console.log("RESULT", result);
     res.json(result);
   } catch (error) {
     res.status(500).send(`Server error: ${error.message}`);
   }
 });
 
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`Server running on http://localhost:${port}`);
+  await initializeOpenAI();
 });

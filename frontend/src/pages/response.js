@@ -2,11 +2,9 @@ import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import FollowUpQuestionBar from "../../../frontend/components/FollowUpQuestionBar";
 import NotesIcon from "@mui/icons-material/Notes";
-// import { main as callAssistant } from "../backend/Assistant"; 
-// import { printMessagesFromThread as getLastMessage } from "../backend/Assistant"; 
+// import { main as callAssistant } from "../backend/Assistant";
+// import { printMessagesFromThread as getLastMessage } from "../backend/Assistant";
 import Grid from "@mui/material/Grid";
-
-
 
 const markdownToHtml = (text) => {
   let html = text;
@@ -58,23 +56,21 @@ const markdownToHtml = (text) => {
   return html;
 };
 
-
-
 export default function Response() {
   const [responseText, setResponseText] = useState("");
-  const [userSearch, setUserSearch] = useState(""); 
+  const [userSearch, setUserSearch] = useState("");
   const [threadId, setThreadId] = useState("");
-  const [runId, setRunId] = useState(""); 
+  const [runId, setRunId] = useState("");
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
-    await fetchFollowUp(query); 
+    // await fetchFollowUp(query);
+    await fetchResponse(query);
   };
 
   async function fetchResponse(userQuery) {
     console.log("INSIDE FETCH RESPONSE");
     try {
-
       const response = await fetch("http://localhost:3001/analyze", {
         method: "POST",
         headers: {
@@ -82,7 +78,6 @@ export default function Response() {
         },
         body: JSON.stringify({ userInput: userQuery }),
       });
-  
 
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
@@ -102,7 +97,6 @@ export default function Response() {
 
   async function fetchFollowUp(userQuery) {
     try {
-
       console.log("INSIDE FETCH FOLLOW UP");
       console.log("threadId", threadId);
       console.log("runId", runId);
@@ -111,7 +105,11 @@ export default function Response() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userInput: userQuery, threadId: threadId, runId: runId }),
+        body: JSON.stringify({
+          userInput: userQuery,
+          threadId: threadId,
+          runId: runId,
+        }),
       });
 
       if (!response.ok) {
@@ -119,6 +117,7 @@ export default function Response() {
       }
 
       const data = await response.json();
+      console.log("Data:", data.message);
       const formattedResponse = markdownToHtml(data.message);
       console.log("Formatted response:", formattedResponse);
 
@@ -126,19 +125,16 @@ export default function Response() {
     } catch (error) {
       console.error("Error fetching response:", error);
     }
-
   }
-
 
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");
     const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
-    setUserSearch(processedQuery); 
+    setUserSearch(processedQuery);
 
     console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
     fetchResponse(userQuery);
   }, []);
-
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
