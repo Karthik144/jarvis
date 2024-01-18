@@ -102,6 +102,10 @@ export default function Response() {
 
   async function fetchFollowUp(userQuery) {
     try {
+
+      console.log("INSIDE FETCH FOLLOW UP");
+      console.log("threadId", threadId);
+      console.log("runId", runId);
       const response = await fetch("http://localhost:3001/followup", {
         method: "POST",
         headers: {

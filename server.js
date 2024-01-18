@@ -233,7 +233,7 @@ async function main(userInput) {
     return {
         threadId: thread.id,
         runId: run ? run.id : null, 
-        message: lastMessageContent,
+        message: lastMessage,
     };
 
   }
@@ -559,10 +559,10 @@ app.post("/followup", async (req, res) => {
     const userInput = req.body.userInput;
     const threadId = req.body.threadId; 
     const runId = req.body.runId; 
-    const result = await followUp(unserInput, threadId, runId);
+    const result = await followUp(userInput, threadId, runId);
     res.json(result);
   } catch (error) {
-    res.status(500).send("Server error");
+    res.status(500).send(`Server error: ${error.message}`);
   }
 });
 
