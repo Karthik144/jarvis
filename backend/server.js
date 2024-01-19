@@ -228,6 +228,41 @@ async function calcRSI(symbol) {
   return RSI;
 }
 
+// Get Whitepaper Key info
+async function getWhitepaper(symbol) {
+  const parsedSymbol = JSON.parse(symbol).symbol;
+
+
+  const whitepapers = {
+    "ETH": "https://api-new.whitepaper.io/documents/pdf?id=H1ugBX9Bd",
+    "BTC": "https://api-new.whitepaper.io/documents/pdf?id=SksIiBd6z",
+    "LINK": "https://api-new.whitepaper.io/documents/pdf?id=B1U9CtOiE",
+    "COSMOS": "https://api-new.whitepaper.io/documents/pdf?id=BJNXW5ZnU",
+    "USDC": "https://api-new.whitepaper.io/documents/pdf?id=HJX1cRBSO"
+  }
+
+  const url = 'https://api-new.whitepaper.io/documents/pdf?slug=lido-dao';
+
+  axiosRetry(axios, { retries: 5 });
+  axios({
+    url,
+    method: 'GET',
+    responseType: 'stream',
+  }).then(response => {
+    const stream = response.data;
+    const writeStream = fs.createWriteStream('./output.pdf');
+    stream.pipe(writeStream);
+
+    writeStream.on('finish', async () => {
+        const dataBuffer = fs.readFileSync('./output.pdf');
+        const data = await pdf(dataBuffer);
+        console.log(data.text);
+        //need to input this data.text into GPT summarizer
+
+    });
+  });
+}
+
 async function getHistoricalPrices(coinId) {
   console.log("Coin ID Inside Historical Prices:", coinId);
   try {
