@@ -125,11 +125,19 @@ async function summary(symbol) {
 
   console.log("SEARCH RESULT", searchResult); 
 
+
+  whitePaperExtracted = await getWhitepaper(symbol);
+
+  console.log("WHITEPAPER KEY POINTS", whitePaperExtracted); 
+
+
+
   // White paper
 
   return {
     rsi,
     searchResult,
+    whitePaperExtracted
   };
   // return rsi; 
 }
@@ -252,26 +260,31 @@ async function getWhitepaper(symbol) {
     "USDC": "https://api-new.whitepaper.io/documents/pdf?id=HJX1cRBSO"
   }
 
-  const url = 'https://api-new.whitepaper.io/documents/pdf?slug=lido-dao';
+  const queryObject = {
+    query: `${whitepapers[symbol]} What are some key points from the $${parsedSymbol} cryptocurrency whitepaper?`,
+  };
+  const jsonString = JSON.stringify(queryObject);
+  const searchResult = await tavilySearch(JSON.parse(jsonString).query);
 
-  axiosRetry(axios, { retries: 5 });
-  axios({
-    url,
-    method: 'GET',
-    responseType: 'stream',
-  }).then(response => {
-    const stream = response.data;
-    const writeStream = fs.createWriteStream('./output.pdf');
-    stream.pipe(writeStream);
+  return searchResult;
+  // axiosRetry(axios, { retries: 5 });
+  // axios({
+  //   url,
+  //   method: 'GET',
+  //   responseType: 'stream',
+  // }).then(response => {
+  //   const stream = response.data;
+  //   const writeStream = fs.createWriteStream('./output.pdf');
+  //   stream.pipe(writeStream);
 
-    writeStream.on('finish', async () => {
-        const dataBuffer = fs.readFileSync('./output.pdf');
-        const data = await pdf(dataBuffer);
-        console.log(data.text);
-        //need to input this data.text into GPT summarizer
+  //   writeStream.on('finish', async () => {
+  //       const dataBuffer = fs.readFileSync('./output.pdf');
+  //       const data = await pdf(dataBuffer);
+  //       console.log(data.text);
+  //       //need to input this data.text into GPT summarizer
 
-    });
-  });
+  //   });
+  // });
 }
 
 async function getHistoricalPrices(coinId) {
@@ -398,7 +411,7 @@ async function tavilySearch(query) {
     console.log("INSIDE TAVILY SEARCH");
     const retriever = new TavilySearchAPIRetriever({
       apiKey: process.env.TAVILY_API_KEY,
-      k: 3,
+      k: 10,
       searchDepth: "advanced",
     });
 
