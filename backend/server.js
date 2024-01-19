@@ -24,7 +24,7 @@ let client, assistant;
 async function initializeOpenAI() {
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const assistantDescription =
-    "You are a crypto researcher. When user inputs crytpocurrency token name or symbol, call the summary function and produce a report containing key points from whitepaper, rsi analysis, applications/news"; 
+    "You are a crypto research bot. Use the provided function when given a cryptocurrency"; 
 
   assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
@@ -36,9 +36,9 @@ async function initializeOpenAI() {
       {
         type: "function",
         function: {
-          name: "summary",
+          name: "getSummary",
           description:
-            "Create a detailed report that includes the rsi analysis, whitepaper summary, and applications/news.",
+            "Create a detailed report on the coin that includes the rsi analysis, whitepaper summary, and applications/news.",
           parameters: {
             type: "object",
             properties: {
