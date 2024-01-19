@@ -8,6 +8,8 @@ import Grid from "@mui/material/Grid";
 
 const markdownToHtml = (text) => {
   let html = text;
+  // Convert Markdown headers (###) to HTML <h3> tags
+  html = html.replace(/(?:^|\n)###\s?(.*?)(?=\n|$)/g, "<h3>$1</h3>");
 
   // Convert line breaks to <br>
   html = html.replace(/\n/g, "<br>");

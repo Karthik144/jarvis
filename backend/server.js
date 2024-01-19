@@ -24,21 +24,21 @@ let client, assistant;
 async function initializeOpenAI() {
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const assistantDescription =
-    "You are a crypto research bot. Use the provided function when given a cryptocurrency"; 
+    "You are a crypto research bot. Use the provided function to get numersical RSI data and recent data on the applications/news of the cryptocurrency, then give a detailed and useful summary on the token based on this data."; 
+
 
   assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
     description: assistantDescription,
     model: "gpt-4-1106-preview",
     tools: [
-
       // Main summary function
       {
         type: "function",
         function: {
           name: "getSummary",
           description:
-            "Create a detailed report on the coin that includes the rsi analysis, whitepaper summary, and applications/news.",
+            "Create a detailed report on the coin with RSI data and the cryptocurrency's applications/news.",
           parameters: {
             type: "object",
             properties: {
@@ -48,10 +48,10 @@ async function initializeOpenAI() {
               },
             },
             required: ["symbol"],
-          }
-        }
-      }
-    ]
+          },
+        },
+      },
+    ],
   });
 }
 
@@ -96,12 +96,12 @@ async function main(userInput) {
     }
 
     const lastMessage = await printMessagesFromThread(thread.id, run.id);
-    // return lastMessage;
-    return {
-      threadId: thread.id,
-      runId: run ? run.id : null,
-      message: lastMessage,
-    };
+    return { message: lastMessage };
+    // return {
+    //   threadId: thread.id,
+    //   runId: run ? run.id : null,
+    //   message: lastMessage,
+    // };
   }
 }
 
@@ -111,12 +111,19 @@ async function summary(symbol) {
   // RSI analysis
   const rsi = await calcRSI(symbol);
 
-  console.log("RSI:" )
+  console.log("RSI IN SUMMARY:", rsi); 
   // Applications + News
-  const searchResult = await tavilySearch(
-    "What are the newest applications of ethereum?"
-  );
+  const queryObject = {
+    query: "What are the newest applications of ethereum?",
+  };
+  const jsonString = JSON.stringify(queryObject);
+  const searchResult = await tavilySearch(JSON.parse(jsonString).query);
 
+  // const searchResult = await tavilySearch(
+  //   "What are the newest applications of ethereum?"
+  // );
+
+  console.log("SEARCH RESULT", searchResult); 
 
   // White paper
 
@@ -124,6 +131,7 @@ async function summary(symbol) {
     rsi,
     searchResult,
   };
+  // return rsi; 
 }
 
 async function followUp(userInput, threadId, runId) {
@@ -203,6 +211,7 @@ async function calcRSI(symbol) {
   // Get previous 14 day price data from coin gecko
   const last14DayPrices = await getHistoricalPrices(coinId);
 
+  console.log("AFTER GET HISTORICAL PRICES"); 
   // Subtract previous day's close from today's close to determine if it's a gain or loss or no change
   for (let i = 1; i < last14DayPrices.length; i++) {
     const priceDiff = last14DayPrices[i] - last14DayPrices[i - 1];
@@ -223,8 +232,10 @@ async function calcRSI(symbol) {
   // Calc RS by finding the ratio of avg. gain to avg. loss
   const RS = avgGain / avgLoss;
 
+  console.log("RS", RS); 
   // Calc RSI by doing 100 - (100 / (1+RS))
   const RSI = 100 - 100 / (1 + RS);
+  console.log("RSI", RSI); 
   return RSI;
 }
 
@@ -275,6 +286,7 @@ async function getHistoricalPrices(coinId) {
       const price = queriedPrices[i][1];
       prices.push(price);
     }
+    console.log("RICES", prices); 
     return prices;
   } catch (error) {
     console.error("Error:", error);
@@ -382,15 +394,20 @@ async function fetchCoinMarketData(coinId) {
 }
 
 async function tavilySearch(query) {
-  const retriever = new TavilySearchAPIRetriever({
-    apiKey: process.env.TAVILY_API_KEY,
-    k: 3,
-    searchDepth: "advanced",
-  });
+  try {
+    console.log("INSIDE TAVILY SEARCH");
+    const retriever = new TavilySearchAPIRetriever({
+      apiKey: process.env.TAVILY_API_KEY,
+      k: 3,
+      searchDepth: "advanced",
+    });
 
-  const searchResult = await retriever.getRelevantDocuments(query);
-
-  return searchResult;
+    console.log("BEFORE GET REL DOCS CALLED");
+    const searchResult = await retriever.getRelevantDocuments(query);
+    return searchResult;
+  } catch (error) {
+    console.error("Error in tavilySearch:", error);
+  }
 }
 
 async function submitToolOutputs(threadId, runId, toolsToCall) {
@@ -402,26 +419,19 @@ async function submitToolOutputs(threadId, runId, toolsToCall) {
     const functionName = tool.function.name;
     const functionArgs = tool.function.arguments;
 
+    console.log("FUNCTION ARGS", functionArgs); 
     console.log("FUNCTION NAME", functionName); 
-    if (functionName === "tavily_search") {
-      console.log("INSIDE TAVILY SEARCH");
-      output = await tavilySearch(JSON.parse(functionArgs).query);
-    } else if (functionName === "coin_market_data") {
-      console.log("INSIDE MARKET DATA FUNC");
-      output = await retrieveCoinMarketData(functionArgs);
-    } else if (functionName === "top_coins_data") {
-      console.log("INSIDE TOP COINS FUNC");
-      output = await retrieveTrendingCoins();
-    } else if (functionName === "rsi_analysis") {
-      console.log("INSIDE RSI ANALYSIS FUNC");
-      output = await calcRSI(functionArgs);
-    } else if (functionName === 'summary') {
-      console.log("INSIDE SUMMARY")
-      output = await summary(functionArgs); 
-    }
+    if (functionName === "getSummary") {
+      console.log("INSIDE SUMMARY");
+      output = await summary(functionArgs);
+      console.log("AFTER OUTPUT"); 
+    } 
 
+
+    console.log("BEFORE IF OUTPUT"); 
     // Convert output to a string
     if (output) {
+      console.log("INSIDE CONVERSION");
       const outputString =
         typeof output === "string" ? output : JSON.stringify(output);
       toolOutputArray.push({ tool_call_id: toolCallId, output: outputString });
