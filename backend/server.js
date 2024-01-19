@@ -114,7 +114,7 @@ async function summary(symbol) {
   console.log("RSI IN SUMMARY:", rsi); 
   // Applications + News
   const queryObject = {
-    query: "What are the newest applications of ethereum?",
+    query: `What are the newest applications of the $${parsedSymbol} cryptocurrency?`,
   };
   const jsonString = JSON.stringify(queryObject);
   const searchResult = await tavilySearch(JSON.parse(jsonString).query);

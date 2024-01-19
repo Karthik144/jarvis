@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
+import { Box } from "@mui/material";
 import FollowUpQuestionBar from "../../../frontend/components/FollowUpQuestionBar";
 import NotesIcon from "@mui/icons-material/Notes";
 // import { main as callAssistant } from "../backend/Assistant";
@@ -170,16 +171,24 @@ export default function Response() {
         </Grid>
       </Grid>
 
-      <Typography
-        variant="body1"
-        sx={{
-          textAlign: "left",
-          marginLeft: "60px",
-          marginTop: "15px",
-          maxWidth: "1200px",
-        }}
-        dangerouslySetInnerHTML={{ __html: responseText }}
-      />
+      <Box
+        overflow="auto"
+        paddingTop="20px"
+        paddingBottom="20px"
+        maxHeight="500px" // Adjust this value as needed
+        >
+        <Typography
+          variant="body1"
+          sx={{
+            textAlign: "left",
+            marginLeft: "60px",
+            marginTop: "15px",
+            maxWidth: "1200px",
+          }}
+          dangerouslySetInnerHTML={{ __html: responseText }}
+        />
+      </Box>
+
 
       <div style={{ position: "fixed", bottom: 35, left: 0, right: 0 }}>
         <FollowUpQuestionBar onSubmit={handleSubmit} />

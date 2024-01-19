@@ -20,6 +20,8 @@ axios({
    writeStream.on('finish', async () => {
        const dataBuffer = fs.readFileSync('./output.pdf');
        const data = await pdf(dataBuffer);
-       console.log(data.text);
+      console.log(data.text);
+      //need to input this data.text into GPT summarizer
+
    });
 });
