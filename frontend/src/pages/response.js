@@ -6,6 +6,7 @@ import NotesIcon from "@mui/icons-material/Notes";
 // import { main as callAssistant } from "../backend/Assistant";
 // import { printMessagesFromThread as getLastMessage } from "../backend/Assistant";
 import Grid from "@mui/material/Grid";
+import Skeleton from "@mui/material/Skeleton";
 
 const markdownToHtml = (text) => {
   let html = text;
@@ -155,11 +156,8 @@ export default function Response() {
         sx={{
           marginLeft: "50px",
           marginTop: "50px",
-          ...(responseText === "" && {
-            animation: "pulse 2s infinite",
-          }),
         }}
-        className={!responseText ? "animate-pulse" : ""}
+        className={!responseText ? "animate-pulse-slow" : ""}
       >
         <Grid item>
           <NotesIcon />
@@ -171,24 +169,33 @@ export default function Response() {
         </Grid>
       </Grid>
 
-      <Box
-        overflow="auto"
-        paddingTop="20px"
-        paddingBottom="20px"
-        maxHeight="500px" // Adjust this value as needed
-        >
-        <Typography
-          variant="body1"
-          sx={{
-            textAlign: "left",
-            marginLeft: "60px",
-            marginTop: "15px",
-            maxWidth: "1200px",
-          }}
-          dangerouslySetInnerHTML={{ __html: responseText }}
-        />
-      </Box>
-
+      <div>
+        {!responseText ? (
+          <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
+            <Skeleton />
+            <Skeleton animation="wave" />
+            <Skeleton animation={false} />
+          </Box>
+        ) : (
+          <Box
+            overflow="auto"
+            paddingTop="20px"
+            paddingBottom="20px"
+            maxHeight="500px"
+          >
+            <Typography
+              variant="body1"
+              sx={{
+                textAlign: "left",
+                marginLeft: "60px",
+                marginTop: "15px",
+                maxWidth: "1200px",
+              }}
+              dangerouslySetInnerHTML={{ __html: responseText }}
+            />
+          </Box>
+        )}
+      </div>
 
       <div style={{ position: "fixed", bottom: 35, left: 0, right: 0 }}>
         <FollowUpQuestionBar onSubmit={handleSubmit} />
