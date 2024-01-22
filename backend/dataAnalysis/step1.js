@@ -10,27 +10,52 @@ async function main() {
     await calcBeta('747c1d2a-c668-4682-b9f9-296708a3dd90');
 }
 
+// Cache for getting sorted pool data from the following three methods 
+let cache1 = {
+    timestamp: null,
+    data: null,
+    expiration: 60 * 60 * 1000 // Cache expiration time - 1 hour
+};
+
 // Get data from the /pools endpoint from Defillama
 async function getPoolData(chain, project, prediction) {
-  try {
-    const requestURL = "https://yields.llama.fi/pools";
-    const response = await axios.get(requestURL);
 
-    if (response.data.status === "success") {
-      const filteredPools = response.data.data.filter(
-        (pool) => pool.chain && pool.chain.toLowerCase() === chain.toLowerCase() 
-            && pool.project && pool.project.toLowerCase() === project.toLowerCase() 
-      );
+    const currentTime = new Date().getTime();
 
-      return filteredPools;
-    } else {
-      console.error("API call was not successful.");
-      return null;
+    // Check if cache is valid and return value if possible 
+    if (cache1.timestamp && currentTime - cache1.timestamp < cache1.expiration) {
+        console.log("Returning data from cache");
+        return cache1.data;
     }
-  } catch (error) {
-    console.error("An error occurred while fetching pool data:", error);
-    return null;
-  }
+
+    // If not stored in cache, then get data from api and then store back into cache 
+    try {
+        const requestURL = "https://yields.llama.fi/pools";
+        const response = await axios.get(requestURL);
+
+        if (response.data.status === "success") {
+            const filteredPools = response.data.data.filter(
+                (pool) => pool.chain && pool.chain.toLowerCase() === chain.toLowerCase() 
+                    && pool.project && pool.project.toLowerCase() === project.toLowerCase() 
+            );
+
+            // Update cache with retrieved data before return final values 
+            cache1 = {
+                timestamp: currentTime, 
+                data: filteredPools, 
+                expiration: cache1.expiration
+            };
+
+            return filteredPools;
+
+        } else {
+            console.error("API call was not successful.");
+            return null;
+        }
+    } catch (error) {
+        console.error("An error occurred while fetching pool data:", error);
+        return null;
+    }
 }
 
 // Sort pool data based on APY and TVL
@@ -64,13 +89,24 @@ function calcRank(pool) {
     );
 }
 
+// Cache object for the following methods 
+let cache2 = {
+  dailyPoolAPY: {
+    timestamp: null,
+    data: null,
+    expiration: 3600 * 1000, // Cache duration - 1 hour
+  },
+  dailyEthPrices: {
+    timestamp: null,
+    data: null,
+    expiration: 3600 * 1000, // Cache duration - 1 hour
+  },
+};
+
 async function calcBeta(poolID) {
   try {
     // Get daily pool apy and eth price data concurrently
-    const [dailyAPY, ethPrices] = await Promise.all([
-      getDailyPoolAPY(poolID),
-      getDailyEthPrices(),
-    ]);
+    const [dailyAPY, ethPrices] = await fetchAPYAndEthPrices(poolID);
 
     if (!dailyAPY || !ethPrices) {
       console.error("Failed to retrieve data.");
@@ -81,22 +117,13 @@ async function calcBeta(poolID) {
     // const endTimestamp = new Date(dailyAPY[dailyAPY.length - 1].timestamp).getTime();
     // const ethPrices = await getDailyEthPrices(startTimestamp, endTimestamp);
 
-    let dailyAPYReturns = [];
-    let dailyETHReturns = [];
-
     console.log("Daily APY Length:", dailyAPY.length);
     console.log("Daily ETH Length:", ethPrices.length);
-    // Calc daily returns
-    for (let i = 1; i < dailyAPY.length; i++) {
-      const dailyAPYReturn = (dailyAPY[i] - dailyAPY[i - 1]) / dailyAPY[i - 1];
-      dailyAPYReturns.push(dailyAPYReturn);
-    }
 
-    for (let i = 1; i < ethPrices.length; i++) {
-      const dailyETHReturn =
-        (ethPrices[i] - ethPrices[i - 1]) / ethPrices[i - 1];
-      dailyETHReturns.push(dailyETHReturn);
-    }
+    // Calc daily returns
+    const dailyAPYReturns = calculateDailyReturns(dailyAPY);
+    const dailyETHReturns = calculateDailyReturns(ethPrices);
+
 
     const apyMean = calculateMean(dailyAPYReturns);
     const ethMean = calculateMean(dailyETHReturns);
@@ -104,20 +131,29 @@ async function calcBeta(poolID) {
     console.log("APY Mean:", apyMean);
     console.log("ETH Mean:", ethMean);
 
-    // Calc covariance
+    // Calc covariance and variance
     const covariance = calculateCovariance(dailyAPYReturns, dailyETHReturns, apyMean, ethMean);
     const variance = calculateVariance(dailyETHReturns, ethMean);
 
     console.log("Covariance:", covariance);
     console.log("Variance:", variance);
-    
+
     const beta = covariance / variance; 
     console.log("Beta:", beta);
 
-    // Calc variance
   } catch (error) {
     console.error("An error occurred in calcBeta:", error);
   }
+}
+
+async function fetchAPYAndEthPrices(poolID) {
+  return Promise.all([getDailyPoolAPY(poolID), getDailyEthPrices()]);
+}
+
+function calculateDailyReturns(data) {
+  return data
+    .slice(1)
+    .map((value, index) => (value - data[index]) / data[index]);
 }
 
 function calculateCovariance(x, y, xMean, yMean) {
@@ -146,80 +182,92 @@ function calculateMean(array) {
 
 // Retrieve daily pool APY for one year 
 async function getDailyPoolAPY(poolID) {
-    try {
-        const requestURL = `https://yields.llama.fi/chart/${poolID}`;
-        const response = await axios.get(requestURL);
-        const dailyAPYForOneYear = [];
+  const currentTime = new Date().getTime();
+  const cacheEntry = cache2.dailyPoolAPY;
 
-        if (response.data.status === "success") {
-            const oneYearAgo = new Date();
-            oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1); // Set to one year ago
+  // Check if cache is valid and return data if possible 
+  if (cacheEntry.timestamp && currentTime - cacheEntry.timestamp < cacheEntry.expiration) {
+    console.log("Returning Daily Pool APY from cache");
+    return cacheEntry.data;
+  }
 
-            const dailyAPYForOneYear = response.data.data.filter(pool => {
-                const poolDate = new Date(pool.timestamp);
-                return poolDate >= oneYearAgo; // Include only data from the last year
-            });
+  try {
+    const requestURL = `https://yields.llama.fi/chart/${poolID}`;
+    const response = await axios.get(requestURL);
+    const dailyAPYForOneYear = [];
 
-            // Prepare values to be returned 
-            const startTimestamp = new Date(dailyAPYForOneYear[0].timestamp).getTime();
-            const endTimestamp = new Date(dailyAPYForOneYear[dailyAPYForOneYear.length - 1].timestamp).getTime();
-            const apyArray = dailyAPYForOneYear.map((pool) => pool.apy);
+    if (response.data.status === "success") {
+      const oneYearAgo = new Date();
+      oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1); // Set to one year ago
 
-            // return {
-            //     startTimestamp, 
-            //     endTimestamp, 
-            //     apyArray    
-            // }; 
-            return apyArray; 
+      const dailyAPYForOneYear = response.data.data.filter((pool) => {
+        const poolDate = new Date(pool.timestamp);
+        return poolDate >= oneYearAgo; // Include only data from the last year
+      });
 
-        } else {
-            console.log("API call was not successful.");
-            return null;
-        }
+      // Prepare values to be returned
+      const startTimestamp = new Date(
+        dailyAPYForOneYear[0].timestamp
+      ).getTime();
+      const endTimestamp = new Date(
+        dailyAPYForOneYear[dailyAPYForOneYear.length - 1].timestamp
+      ).getTime();
+      const apyArray = dailyAPYForOneYear.map((pool) => pool.apy);
 
-    } catch (error) {
-        console.error("An error occurred while fetching pool data:", error);
-        return null;
+      // Update cache before returning retrieved data 
+      cache.dailyPoolAPY = {
+        timestamp: currentTime, 
+        data: apyArray, 
+        expiration: cacheEntry.expiration
+
+      };
+
+      return apyArray;
+
+    } else {
+      console.log("API call was not successful.");
+      return null;
     }
+  } catch (error) {
+    console.error("An error occurred while fetching pool data:", error);
+    return null;
+  }
 }
-
-// Get data from defillama /chart/{coins} endpoint
-// async function getDailyEthPrice(startTimestamp, endTimestamp){
-//     try {
-//         console.log("Start Timestamp:", startTimestamp);
-//         console.log(typeof startTimestamp); 
-
-//         console.log("End Timestamp:", endTimestamp);
-//         console.log(typeof endTimestamp); 
-
-//         const requestURL = `https://coins.llama.fi/chart/ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1?start=${startTimestamp}&end=${endTimestamp}`;
-//         https://coins.llama.fi/chart/ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1?start=1674342120742&end=1705773688183
-
-//         const response = await axios.get(requestURL);
-
-//     } catch (error) {
-//         console.error("An error occurred while fetching pool data:", error);
-//         return null;
-//     }
-// }
 
 // NOTE: IN DIFFERENT TIMELINE AS HISTORIC POOL APY
 async function getDailyEthPrices() {
-  try {
-    const requestURL = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&interval=daily`;
-    const response = await axios.get(requestURL);
-    // Note: Struct is an array of arrays (each sub array has unix timestamp and price)
-    const queriedPrices = response.data.prices;
-    let prices = [];
-    for (let i = 0; i < queriedPrices.length; i++) {
-      const price = queriedPrices[i][1];
-      prices.push(price);
+    const currentTime = new Date().getTime(); 
+    const cacheEntry = cache2.dailyEthPrices; 
+
+    // Check if cache is valid and return data if possible 
+    if (cacheEntry.timestamp && (currentTime - cacheEntry.timestamp < cacheEntry.expiration)) {
+        console.log("Returning Daily ETH Prices from cache");
+        return cacheEntry.data;
     }
-    return prices;
-  } catch (error) {
-    console.error("Error:", error);
-    return [];
-  }
+
+    try {
+        const requestURL = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&interval=daily`;
+        const response = await axios.get(requestURL);
+        // Note: Struct is an array of arrays (each sub array has unix timestamp and price)
+        const queriedPrices = response.data.prices;
+        let prices = [];
+        for (let i = 0; i < queriedPrices.length; i++) {
+            const price = queriedPrices[i][1];
+            prices.push(price);
+        }
+
+        // Update cache with newly retrieved data before returning 
+        cache2.dailyEthPrices = {
+            timestamp: currentTime, 
+            data: prices, 
+            expiration: cacheEntry.expiration
+        };
+
+        return prices;
+    } catch (error) {
+        console.error("Error:", error);
+        return [];
+    }
 }
 
 main();
