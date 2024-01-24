@@ -1,17 +1,23 @@
 const axios = require("axios");
+const path = require("path");
+const fs = require("fs");
 
 async function main() {
   // Get data for all pools
   // const pools = await getPoolData("arbitrum", "uniswap-v3");
   // console.log(pools[0]);
 
-  getLowBetaHighGrowthPairs();
-
+  // getLowBetaHighGrowthPairs();
+  // getDailyPoolAPY("9917f09e-414f-4440-947c-bc06d0c50833");
+  // await getInsuranceProducts();
+  // await getInsurAceProducts();
   // Filter based on APY and TVL
   //   const highestAPY = sortPoolData(pools);
   // Beta analysis
   //   const data = await getDailyPoolAPY('747c1d2a-c668-4682-b9f9-296708a3dd90');
   // await calcBeta('747c1d2a-c668-4682-b9f9-296708a3dd90');
+  const relevantProducts = await searchProducts("uniswap");
+  console.log(relevantProducts);
 }
 
 // Cache for getting sorted pool data from the following three methods
@@ -22,6 +28,21 @@ let cache1 = {
 };
 
 async function getLowBetaHighGrowthPairs() {
+  const poolsWithBetaCalc = await addBetaCalcToExistingData();
+
+  // Sort pools by beta values in ascending order
+  const sortedPools = poolsWithBetaCalc.sort((a, b) => {
+    // Handle cases where beta might be undefined or null
+    const betaA = a.beta || Infinity;
+    const betaB = b.beta || Infinity;
+
+    return betaA - betaB;
+  });
+
+  return sortedPools;
+}
+
+async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
 
   // Get first 10 elements from pool data
@@ -156,8 +177,11 @@ async function calcBeta(poolID) {
     // const sanitizedEthPrices = sanitizeArray(ethPrices);
 
     // Calc daily returns
-    const dailyAPYReturns = calculateDailyReturns(dailyAPY);
-    const dailyETHReturns = calculateDailyReturns(ethPrices);
+    const dailyAPYReturns = calculateDailyReturns(dailyAPY, dailyAPY.length);
+    const dailyETHReturns = calculateDailyReturns(ethPrices, dailyAPY.length);
+
+    console.log("Daily APY Returns:", dailyAPYReturns.length);
+    console.log("Daily ETH Returns:", dailyETHReturns.length);
 
     const apyMean = calculateMean(dailyAPYReturns);
     const ethMean = calculateMean(dailyETHReturns);
@@ -189,11 +213,18 @@ async function fetchAPYAndEthPrices(poolID) {
   return Promise.all([getDailyPoolAPY(poolID), getDailyEthPrices()]);
 }
 
-function calculateDailyReturns(data) {
-  return data
-    .slice(1) // Starts from the second element
+function calculateDailyReturns(data, length) {
+  // Ensure the length does not exceed the data array's length
+  length = Math.min(length, data.length);
+
+  // Slice the data array to only include the number of elements specified by length
+  const slicedData = data.slice(0, length);
+
+  // Calculate returns as before, but using the sliced data
+  return slicedData
+    .slice(1) // Still start from the second element
     .map((value, index) => {
-      const previousValue = data[index]; // Correct reference to the previous element
+      const previousValue = slicedData[index]; // Reference to the previous element in the sliced data
       if (previousValue === 0) {
         // Prevent division by zero
         return 0;
@@ -219,7 +250,7 @@ function calculateVariance(data, mean) {
 }
 
 function calculateMean(array) {
-  logArrayStats(array);
+  // logArrayStats(array);
 
   const sum = array.reduce(
     (accumulator, currentValue) => accumulator + currentValue,
@@ -246,13 +277,6 @@ function sanitizeArray(array) {
 // Retrieve daily pool APY for one year
 async function getDailyPoolAPY(poolID) {
   const currentTime = new Date().getTime();
-  // const cacheEntry = cache2.dailyPoolAPY;
-
-  // Check if cache is valid and return data if possible
-  // if (cacheEntry.timestamp && currentTime - cacheEntry.timestamp < cacheEntry.expiration) {
-  //   console.log("Returning Daily Pool APY from cache");
-  //   return cacheEntry.data;
-  // }
 
   try {
     const requestURL = `https://yields.llama.fi/chart/${poolID}`;
@@ -277,13 +301,8 @@ async function getDailyPoolAPY(poolID) {
       ).getTime();
       const apyArray = dailyAPYForOneYear.map((pool) => pool.apy);
 
-      // Update cache before returning retrieved data
-      // cache2.dailyPoolAPY = {
-      //   timestamp: currentTime,
-      //   data: apyArray,
-      //   expiration: cacheEntry.expiration
-
-      // };
+      console.log("Start Timestamp:", startTimestamp);
+      console.log("End Timestamp:", endTimestamp);
 
       return apyArray;
     } else {
@@ -332,6 +351,90 @@ async function getDailyEthPrices() {
   } catch (error) {
     console.error("Error:", error);
     return [];
+  }
+}
+
+async function searchProducts(searchTerm) {
+  const allProducts = await getInsuranceProducts();
+
+  const results = {
+    "Nexus Mutual Covers": [],
+    "InsurAce Covers": {},
+  };
+
+  // Convert the search term to lowercase for case-insensitive comparison
+  const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+  // Function to search within each product's properties
+  const searchInNexusProducts = (product) =>
+    product.name.toLowerCase().includes(lowerCaseSearchTerm);
+
+  const searchInInsuraceProducts = (cover) =>
+    cover.Protocol.toLowerCase().includes(lowerCaseSearchTerm);
+
+  // Search in Nexus Mutual Covers
+  if (allProducts["Nexus Mutual Covers"]) {
+    results["Nexus Mutual Covers"] = allProducts["Nexus Mutual Covers"].filter(
+      searchInNexusProducts
+    );
+  }
+
+  // Search in InsurAce Covers
+  if (allProducts["InsurAce Covers"]) {
+    results["InsurAce Covers"] = {
+      SmartContractVulnerabilityCover: allProducts[
+        "InsurAce Covers"
+      ].SmartContractVulnerabilityCover.filter(searchInInsuraceProducts),
+      CustodianRiskCover: allProducts[
+        "InsurAce Covers"
+      ].CustodianRiskCover.filter(searchInInsuraceProducts),
+      StablecoinDePegRiskCover: allProducts[
+        "InsurAce Covers"
+      ].StablecoinDePegRiskCover.filter(searchInInsuraceProducts),
+    };
+  }
+  return results;
+}
+
+async function getInsuranceProducts() {
+  const [nexusMutualProducts, insurAceProducts] = await Promise.all([
+    getNexusMutualProducts(),
+    getInsurAceProducts(),
+  ]);
+
+  const allProducts = {
+    "Nexus Mutual Covers": nexusMutualProducts,
+    "InsurAce Covers": insurAceProducts,
+    Note: "Insurance covers from both providers may not be for all chains (i.e. Arbitrum)",
+  };
+
+  return allProducts;
+}
+
+async function getNexusMutualProducts() {
+  try {
+    const url = "https://sdk.nexusmutual.io/data/products.json";
+    const response = await axios.get(url);
+    const products = response.data;
+    return products;
+  } catch (error) {
+    console.error("Error fetching product data:", error);
+    return null;
+  }
+}
+
+function getInsurAceProducts() {
+  // Construct the path to the JSON file
+  const jsonFilePath = path.join(__dirname, "products.json");
+
+  // Read the file synchronously (you can do this asynchronously as well)
+  try {
+    const fileContents = fs.readFileSync(jsonFilePath, "utf8");
+    const data = JSON.parse(fileContents);
+    return data;
+  } catch (err) {
+    console.error("Error reading file:", err);
+    return null; // or handle the error as you see fit
   }
 }
 
