@@ -19,7 +19,8 @@
     "dayjs": "^1.11.10",
     "next": "14.0.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-scroll-box": "^0.3.5"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.1",

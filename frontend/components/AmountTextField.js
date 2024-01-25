@@ -16,12 +16,26 @@ const CustomTextField = styled(TextField)({
     },
     backgroundColor: "#FCFCF9",
   },
+  "& .MuiOutlinedInput-input": {
+    padding: "15px", // Reduced vertical padding to decrease height
+    fontSize: "1rem", 
+  },
+  "& .MuiInputBase-input": {
+    height: "auto", 
+    lineHeight: "normal", 
+  },
 });
 
 export default function AmountTextField() {
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Typography variant="h6" component="label" sx={{ mb: 1 }}>
+      <Typography
+        component="label"
+        sx={{
+          fontSize: "1rem", 
+          pb: '5px', 
+        }}
+      >
         Position Amount
       </Typography>
       <CustomTextField variant="outlined" placeholder="1000" />

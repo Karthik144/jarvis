@@ -5,9 +5,12 @@ import FollowUpQuestionBar from "../../../frontend/components/FollowUpQuestionBa
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
-import FeeButton from "../../../frontend/components/FeeButton";
-import AmountTextField from "../../../frontend/components/AmountTextField";
-import CustomDatePicker from "../../../frontend/components/DatePicker"; 
+// import FeeButton from "../../../frontend/components/FeeButton";
+// import AmountTextField from "../../../frontend/components/AmountTextField";
+// import CustomDatePicker from "../../../frontend/components/DatePicker"; 
+// import OverlayText from "../../../frontend/components/OverlayText"; 
+import Calculator from "../../../frontend/components/Calculator"; 
+import { ScrollBox } from "react-scroll-box";
 
 // MUI Date Picker Imports
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -72,13 +75,14 @@ export default function Response() {
   const [runId, setRunId] = useState("");
 
   const [selectedFee, setSelectedFee] = useState(null);
-
-  const fees = ["0.01%", "0.05%", "0.3%", "1%"]; 
+  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
-    // await fetchFollowUp(query);
-    await fetchResponse(query);
+    // await fetchResponse(query);
+    if (query === "Help me forecast my LP position?"){
+      setShowCalcualtorUI(true); 
+    }
   };
 
   async function fetchResponse(userQuery) {
@@ -108,21 +112,23 @@ export default function Response() {
     }
   }
 
-  // useEffect(() => {
-  //   const userQuery = localStorage.getItem("userQuery");
-  //   const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
-  //   setUserSearch(processedQuery);
+  useEffect(() => {
+    const userQuery = localStorage.getItem("userQuery");
+    const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
+    setUserSearch(processedQuery);
 
   //   console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
   //   fetchResponse(userQuery);
-  // }, []);
+  const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
+  setResponseText(loremIpsumText); 
+  }, []);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-between p-24">
+    <div className="flex min-h-screen flex-col items-start justify-between p-24">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Typography
           variant="h4"
-          sx={{ textAlign: "left", pt: "100px", marginLeft: "50px" }}
+          sx={{ textAlign: "left", pt: "70px", marginLeft: "50px" }}
         >
           {userSearch}
         </Typography>
@@ -147,111 +153,56 @@ export default function Response() {
           </Grid>
         </Grid>
 
-        {/* <div>
-          {!responseText ? (
-            <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
-              <Skeleton />
-              <Skeleton animation="wave" />
-              <Skeleton animation={false} />
-            </Box>
-          ) : (
-            <Box
-              overflow="auto"
-              paddingTop="20px"
-              paddingBottom="20px"
-              maxHeight="500px"
-            >
-              <Typography
-                variant="body1"
-                sx={{
-                  textAlign: "left",
-                  marginLeft: "60px",
-                  marginTop: "15px",
-                  maxWidth: "1200px",
-                }}
-                dangerouslySetInnerHTML={{ __html: responseText }}
-              />
-            </Box>
-          )}
-        </div> */}
+        <div style={{ overflow: "auto", maxHeight: "500px" }}>
+          <div>
+            {!responseText ? (
+              <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
+                <Skeleton />
+                <Skeleton animation="wave" />
+                <Skeleton animation={false} />
+              </Box>
+            ) : (
+              <Box
+                overflow="auto"
+                paddingTop="20px"
+                paddingBottom="20px"
+                maxHeight="500px"
+              >
+                <Typography
+                  variant="body1"
+                  sx={{
+                    textAlign: "left",
+                    marginLeft: "60px",
+                    marginTop: "15px",
+                    maxWidth: "1200px",
+                  }}
+                  dangerouslySetInnerHTML={{ __html: responseText }}
+                />
+              </Box>
+            )}
+          </div>
 
-        <Box
-          sx={{
-            width: "515px",
-            height: "320px",
-            mx: "auto",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
+          {showCalculatorUI && (
+            <Grid container spacing={2}>
+              <Box
+                sx={{ width: "100%", marginLeft: "-400px", marginTop: "50px" }}
+              >
+                <Calculator />
+              </Box>
+            </Grid>
+          )}
+        </div>
+
+        <div
+          style={{
+            position: "fixed",
+            bottom: 30,
+            left: 0,
+            right: 0,
+            paddingBottom: "15px",
+            paddingTop: "45px",
           }}
         >
-          <Paper
-            elevation={1}
-            sx={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: "#FFFFFF",
-              padding: { xs: 2, sm: 3 },
-              color: "text.primary",
-              borderRadius: "16px",
-              border: "1px solid #CECECE",
-            }}
-          >
-            <Typography>Select Fee Tier</Typography>
-
-            <Grid
-              container
-              spacing={2}
-              justifyContent="left"
-              alignItems="left"
-              sx={{ pt: 2 }}
-            >
-              {fees.map((fee, index) => (
-                <Grid item key={index}>
-                  <FeeButton
-                    feeAmount={fee}
-                    selected={selectedFee === fee}
-                    onClick={() => handleSelectFee(fee)}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-
-            <Grid
-              container
-              spacing={2}
-              justifyContent="left"
-              alignItems="left"
-              sx={{ pt: 2 }}
-            >
-              <Grid item>
-                <AmountTextField />
-              </Grid>
-              <Grid item>
-                <CustomDatePicker />
-              </Grid>
-            </Grid>
-
-            <Typography>Estimated Fees</Typography>
-            <Typography>$3.61</Typography>
-
-            <Grid
-              container
-              spacing={2}
-              justifyContent="left"
-              alignItems="left"
-              sx={{ pt: 2 }}
-            >
-              <Grid item>
-                <Typography>Position Breakdown</Typography>
- 
-              </Grid>
-            </Grid>
-          </Paper>
-        </Box>
-
-        <div style={{ position: "fixed", bottom: 35, left: 0, right: 0 }}>
           <FollowUpQuestionBar onSubmit={handleSubmit} />
         </div>
       </LocalizationProvider>

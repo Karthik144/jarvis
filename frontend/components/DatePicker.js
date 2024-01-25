@@ -11,23 +11,36 @@ import { styled } from "@mui/material/styles";
 const CustomTextField = styled(TextField)({
   "& .MuiOutlinedInput-root": {
     "& fieldset": {
-      borderColor: "rgba(0, 0, 0, 0.23)", // light stroke
+      borderColor: "rgba(0, 0, 0, 0.23)",
     },
     "&:hover fieldset": {
-      borderColor: "rgba(0, 0, 0, 0.5)", // darker on hover
+      borderColor: "rgba(0, 0, 0, 0.5)",
     },
     "&.Mui-focused fieldset": {
-      borderColor: "primary.main", // color when the textfield is focused
+      borderColor: "primary.main",
     },
-    backgroundColor: "#FCFCF9", // fill color
+    backgroundColor: "#FCFCF9",
+    "& .MuiOutlinedInput-input": {
+      padding: "14px 14px", // Increased padding to match the height of the TextField
+      fontSize: "0.875rem",
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: "1rem",
+    },
+  },
+  "& .MuiInputLabel-outlined": {
+    transform: "translate(14px, 14px) scale(1)", // Adjust label position to align with the input padding
+  },
+  "& .MuiInputBase-input": {
+    height: "auto",
   },
 });
 
 const customDatePickerTheme = createTheme({
   palette: {
     primary: {
-      main: "#03C988", 
-      contrastText: "#000000", 
+      main: "#03C988",
+      contrastText: "#000000",
     },
   },
   components: {
@@ -35,16 +48,14 @@ const customDatePickerTheme = createTheme({
       styleOverrides: {
         root: {
           "& .MuiOutlinedInput-root": {
-            "& fieldset": {
-              borderColor: "rgba(0, 0, 0, 0.23)", 
+            backgroundColor: "#FCFCF9",
+            "& .MuiOutlinedInput-input": {
+              padding: "14px 14px", // Increased padding to match the height of the TextField
+              fontSize: "0.875rem",
             },
-            "&:hover fieldset": {
-              borderColor: "rgba(0, 0, 0, 0.5)", 
+            "& .MuiSvgIcon-root": {
+              fontSize: "1rem",
             },
-            "&.Mui-focused fieldset": {
-              borderColor: "primary.main",
-            },
-            backgroundColor: "#FCFCF9", 
           },
         },
       },
@@ -52,22 +63,25 @@ const customDatePickerTheme = createTheme({
   },
 });
 
-const CustomDatePicker = ({ selectedDate, setSelectedDate, limitOrder, title }) => {
+const CustomDatePicker = ({ selectedDate, setSelectedDate }) => {
   return (
     <ThemeProvider theme={customDatePickerTheme}>
       <Typography
         variant="subtitle1"
-        gutterBottom
         sx={{
-          mb: 1,
           textAlign: "left",
           fontSize: "1rem",
           color: "text.primary",
+          paddingBottom: "1px"
         }}
       >
         Date
       </Typography>
-      <DatePicker/>
+      <DatePicker
+        value={selectedDate}
+        onChange={setSelectedDate}
+        textField={(params) => <CustomTextField {...params} />}
+      />
     </ThemeProvider>
   );
 };
