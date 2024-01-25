@@ -1,10 +1,9 @@
-Assistant.js;
-
 const { OpenAI } = require("openai");
 const readline = require("readline");
 const path = require("path");
 const fs = require("fs");
 const axios = require("axios");
+const { spawn } = require("child_process");
 const TavilySearchAPIRetriever =
   require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
 require("dotenv").config();
@@ -12,7 +11,7 @@ require("dotenv").config();
 async function main() {
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const userInput = "Does Pendle have insurance?";
+  const userInput = "What are people saying about Pendle on Twitter?";
 
   // Create a thread
   const thread = await client.beta.threads.create();
@@ -148,6 +147,27 @@ async function searchProducts(searchTerm) {
   return results;
 }
 
+async function getSentiment(tokenName) {
+  const python = spawn("python3", [
+    "./sentimentAnalysis/twitter.py",
+    tokenName,
+  ]);
+
+  python.stdout.on("data", (data) => {
+    let sentimentDict = JSON.parse(data.toString());
+    console.log(`stdout: ${sentimentDict}`);
+    return sentimentDict; //FIX: customize output, don't let openAI give output formatting
+  });
+
+  python.stderr.on("data", (data) => {
+    console.error(`stderror: ${data}`);
+  });
+
+  python.on("close", (code) => {
+    console.log(`child process exited with code: ${code}`);
+  });
+}
+
 async function submitToolOutputs(threadId, runId, toolsToCall) {
   const toolOutputArray = [];
 
@@ -160,13 +180,15 @@ async function submitToolOutputs(threadId, runId, toolsToCall) {
     console.log("FUNCTION ARGS", functionArgs);
     console.log("FUNCTION NAME", functionName);
     if (functionName === "tavilyBasicSearch") {
-      output = await tavilyBasicSearch(JSON.parse(functionArgs).query);
+        output = await tavilyBasicSearch(JSON.parse(functionArgs).query);
     } else if (functionName === "tavilyAdvancedSearch") {
-      output = await tavilyAdvancedSearch(JSON.parse(functionArgs).query);
+        output = await tavilyAdvancedSearch(JSON.parse(functionArgs).query);
     } else if (functionName === "lowBetaHighGrowth") {
-      output = await getLowBetaHighGrowthPairs();
+        output = await getLowBetaHighGrowthPairs();
     } else if (functionName === "checkForInsurance") {
-      output = await searchProducts(functionArgs);
+        output = await searchProducts(functionArgs);
+    } else if (functionName === "sentimentAnalysis") {
+        output = await getSentiment(JSON.parse(functionArgs).query);
     }
 
     console.log("BEFORE IF OUTPUT");
