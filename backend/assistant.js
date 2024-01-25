@@ -148,24 +148,27 @@ async function searchProducts(searchTerm) {
 }
 
 async function getSentiment(tokenName) {
-  const python = spawn("python3", [
-    "./sentimentAnalysis/twitter.py",
-    tokenName,
-  ]);
+  return new Promise((resolve, reject) => {
+    const python = spawn("python3", [
+      "./sentimentAnalysis/twitter.py",
+      tokenName,
+    ]);
 
-  python.stdout.on("data", (data) => {
-    let sentimentDict = JSON.parse(data.toString());
-    console.log(`stdout: ${sentimentDict}`);
-    return sentimentDict; //FIX: customize output, don't let openAI give output formatting
-  });
+    let sentimentDict = null;
 
-  python.stderr.on("data", (data) => {
-    console.error(`stderror: ${data}`);
-  });
+    python.stdout.on("data", (data) => {
+      sentimentDict = JSON.parse(data.toString());
+    });
 
-  python.on("close", (code) => {
-    console.log(`child process exited with code: ${code}`);
-  });
+    python.stderr.on("data", (data) => {
+      console.error(`stderror: ${data}`);
+    });
+
+    python.on("close", (code) => {
+      console.log(`child process exited with code: ${code}`);
+      resolve(sentimentDict);
+    });
+ });
 }
 
 async function submitToolOutputs(threadId, runId, toolsToCall) {
@@ -188,7 +191,7 @@ async function submitToolOutputs(threadId, runId, toolsToCall) {
     } else if (functionName === "checkForInsurance") {
         output = await searchProducts(functionArgs);
     } else if (functionName === "sentimentAnalysis") {
-        output = await getSentiment(JSON.parse(functionArgs).query);
+      output = await getSentiment(JSON.parse(functionArgs).query);
     }
 
     console.log("BEFORE IF OUTPUT");
