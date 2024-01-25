@@ -15,9 +15,9 @@ app.use(express.json());
 const { OpenAI } = require("openai");
 // const readline = require("readline");
 const axios = require("axios");
+const { spawn } = require('child_process')
 const TavilySearchAPIRetriever =
   require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
-require("dotenv").config();
 
 let client, assistant;
 
@@ -25,7 +25,6 @@ async function initializeOpenAI() {
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const assistantDescription =
     "You are a crypto research bot. Use the provided function to get numersical RSI data and recent data on the applications/news of the cryptocurrency, then give a detailed and useful summary on the token based on this data."; 
-
 
   assistant = await client.beta.assistants.create({
     name: "Crypto Trading Advisor",
@@ -305,6 +304,24 @@ async function getHistoricalPrices(coinId) {
     console.error("Error:", error);
     return [];
   }
+}
+
+async function getSentiment(tokenName) {
+  const python = spawn('python3', ['./sentimentAnalysis/twitter.py', tokenName])
+
+  python.stdout.on('data', (data) => {
+    let sentimentDict = JSON.parse(data.toString());
+    console.log(`stdout: ${sentimentDict}`);
+    return sentimentDict //FIX: customize output, don't let openAI give output formatting
+  });
+
+  python.stderr.on('data', (data) => {
+    console.error(`stderror: ${data}`)
+  })
+
+  python.on('close', (code) => {
+    console.log(`child process exited with code: ${code}`)
+  })
 }
 
 // Format given date to dd-mm-yyyy

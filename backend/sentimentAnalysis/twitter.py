@@ -1,3 +1,5 @@
+import json
+import sys
 import jmespath
 from playwright.sync_api import sync_playwright
 from typing import Dict
@@ -67,46 +69,43 @@ def parse_tweet(data: Dict) -> Dict:
 
 #main
 if __name__ == "__main__":
+    tokenName = sys.argv[1]
     sentimentDict = {
         "data": {},
-        "timestamp": None,
-        "expiration": 3600, #1hr expiration
         "compound_score": 0,
-        "tweet_num": 0
+        "tweet_num": 0,
+        "sentiment": ''
     }
 
-    if (sentimentDict['timestamp'] and time.time() - sentimentDict['timestamp'] < sentimentDict['expiration']):
-        print(sentimentDict)
+    sentiment = SentimentIntensityAnalyzer()
+    query = f"{tokenName} cryptocurrency opinions on twitter" 
+    keywords = ["twitter", "status"]
+    for j in search(query, num_results=15):
+        if all(keyword in j for keyword in keywords):
+            dict = scrape_tweet(j)
+            tweet = parse_tweet(dict)
 
+            sentiment_score = sentiment.polarity_scores(tweet['text'])
+            # print(f"Sentiment of tweet: {sentiment_score}")
+            sentimentDict['compound_score'] += sentiment_score['compound']
+            sentimentDict['data'][j] = sentiment_score
+            sentimentDict['tweet_num'] += 1
+
+    #calculate cum sentiment score
+    sentimentDict['compound_score'] = sentimentDict['compound_score'] / sentimentDict['tweet_num']
+
+    #save cache
+    sentimentDict['timestamp'] = time.time()
+
+    if(sentimentDict['compound_score'] > 0):
+        sentimentDict["sentiment"] = 'positive'
+    elif(sentimentDict['compound_score'] < 0):
+        sentimentDict["sentiment"] = 'negative'
     else:
-        sentiment = SentimentIntensityAnalyzer()
-        query = "pendle cryptocurrency opinions on twitter" #example query need to customize
-        keywords = ["twitter", "status"]
-        for j in search(query, num_results=7):
-            if all(keyword in j for keyword in keywords):
-                dict = scrape_tweet(j)
-                tweet = parse_tweet(dict)
+        sentimentDict["sentiment"] = 'neutral'
 
-                sentiment_score = sentiment.polarity_scores(tweet['text'])
-                # print(f"Sentiment of tweet: {sentiment_score}")
-                sentimentDict['compound_score'] += sentiment_score['compound']
-                sentimentDict['data'][j] = sentiment_score
-                sentimentDict['tweet_num'] += 1
+    sentimentDictJSON = json.dumps(sentimentDict)
+    print(sentimentDictJSON)
 
-        #calculate cum sentiment score
-        sentimentDict['compound_score'] = sentimentDict['compound_score'] / sentimentDict['tweet_num']
-
-        #save cache
-        sentimentDict['timestamp'] = time.time()
-
-        print(sentimentDict)
-
-        if(sentimentDict['compound_score'] > 0):
-            print('Sentiment is Positive')
-        elif(sentimentDict['compound_score'] < 0):
-            print('Sentiment is Negative')
-        else:
-            print("Sentiment is Neutral")
-    
     
             

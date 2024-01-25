@@ -1,4 +1,4 @@
-import { Token, ChainId, Ether} from "@uniswap/sdk-core"
+import { Token} from "@uniswap/sdk-core"
 import { FeeAmount } from "@uniswap/v3-sdk"
 import { Token0, Token1 } from "./entry"
 
