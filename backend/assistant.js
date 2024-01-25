@@ -1,3 +1,9 @@
+const express = require("express");
+const app = express();
+const cors = require("cors");
+const port = 3001;
+require("dotenv").config();
+
 const { OpenAI } = require("openai");
 const readline = require("readline");
 const path = require("path");
@@ -6,12 +12,19 @@ const axios = require("axios");
 const { spawn } = require("child_process");
 const TavilySearchAPIRetriever =
   require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
-require("dotenv").config();
 
-async function main() {
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Local testing url
+  })
+);
+
+async function main(userInput) {
+  console.log("USER INPUT PASSED IN", userInput);
   client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const userInput = "What are people saying about Pendle on Twitter?";
+  // const userInput = "What are people saying about Pendle on Twitter?";
+  //const userInput = "what is defidad saying about pendle on twitter?"
 
   // Create a thread
   const thread = await client.beta.threads.create();
@@ -578,4 +591,32 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-main();
+app.post("/analyze", async (req, res) => {
+  try {
+    const userInput = req.body.userInput;
+    const result = await main(userInput);
+    res.json(result);
+  } catch (error) {
+    res.status(500).send("Server error");
+  }
+});
+
+app.post("/followup", async (req, res) => {
+  try {
+    const userInput = req.body.userInput;
+    const threadId = req.body.threadId;
+    const runId = req.body.runId;
+    console.log("User Input", userInput);
+    console.log("Thread ID", threadId);
+    console.log("Run ID", runId);
+    const result = await followUp(userInput, threadId, runId);
+    console.log("RESULT", result);
+    res.json(result);
+  } catch (error) {
+    res.status(500).send(`Server error: ${error.message}`);
+  }
+});
+
+app.listen(port, async () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
