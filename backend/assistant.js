@@ -1,31 +1,95 @@
-const axios = require("axios");
+Assistant.js;
+
+const { OpenAI } = require("openai");
+const readline = require("readline");
 const path = require("path");
 const fs = require("fs");
+const axios = require("axios");
+const TavilySearchAPIRetriever =
+  require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
+require("dotenv").config();
 
 async function main() {
-  // Get data for all pools
-  // const pools = await getPoolData("arbitrum", "uniswap-v3");
-  // console.log(pools[0]);
+  client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  getLowBetaHighGrowthPairs();
-  // getDailyPoolAPY("9917f09e-414f-4440-947c-bc06d0c50833");
-  // await getInsuranceProducts();
-  // await getInsurAceProducts();
-  // Filter based on APY and TVL
-  //   const highestAPY = sortPoolData(pools);
-  // Beta analysis
-  //   const data = await getDailyPoolAPY('747c1d2a-c668-4682-b9f9-296708a3dd90');
-  // await calcBeta('747c1d2a-c668-4682-b9f9-296708a3dd90');
-  // const relevantProducts = await searchProducts("uniswap");
-  // console.log(relevantProducts);
+  const userInput = "Does Pendle have insurance?";
+
+  // Create a thread
+  const thread = await client.beta.threads.create();
+
+  // Create a message
+  await client.beta.threads.messages.create(thread.id, {
+    role: "user",
+    content: userInput,
+  });
+
+  // Create a run
+  let run = await client.beta.threads.runs.create(thread.id, {
+    assistant_id: "asst_YCT2knc7B6WZEaeU0pvNcXZ6",
+  });
+
+  run = await waitForRunCompletion(thread.id, run.id);
+
+  if (run.status === "failed") {
+    console.log("Run Failed With Error", run.error);
+  } else if (run.status === "requires_action") {
+    console.log("INSIDE FUNCTION CALLED");
+    run = await submitToolOutputs(
+      thread.id,
+      run.id,
+      run.required_action.submit_tool_outputs.tool_calls
+    );
+    run = await waitForRunCompletion(thread.id, run.id);
+  }
+
+  const lastMessage = await printMessagesFromThread(thread.id, run.id);
 }
 
-// Cache for getting sorted pool data from the following three methods
-let cache1 = {
-  timestamp: null,
-  data: null,
-  expiration: 60 * 60 * 1000, // Cache expiration time - 1 hour
-};
+async function tavilyBasicSearch(query) {
+  const endpoint = "https://api.tavily.com/search";
+
+  try {
+    const response = await axios.post(endpoint, {
+      api_key: process.env.TAVILY_API_KEY,
+      query: query,
+      search_depth: "basic",
+      include_images: false,
+      include_answer: false,
+      include_raw_content: false,
+      max_results: 5,
+      include_domains: [],
+      exclude_domains: [],
+    });
+
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error in tavilySearch:", error);
+  }
+}
+
+async function tavilyAdvancedSearch(query) {
+  const endpoint = "https://api.tavily.com/search";
+
+  try {
+    const response = await axios.post(endpoint, {
+      api_key: process.env.TAVILY_API_KEY,
+      query: query,
+      search_depth: "advanced",
+      include_images: false,
+      include_answer: false,
+      include_raw_content: false,
+      max_results: 5,
+      include_domains: [],
+      exclude_domains: [],
+    });
+
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error in tavilySearch:", error);
+  }
+}
 
 async function getLowBetaHighGrowthPairs() {
   const poolsWithBetaCalc = await addBetaCalcToExistingData();
@@ -42,23 +106,150 @@ async function getLowBetaHighGrowthPairs() {
   return sortedPools;
 }
 
+async function searchProducts(searchTerm) {
+  const allProducts = await getInsuranceProducts();
+
+  const results = {
+    "Nexus Mutual Covers": [],
+    "InsurAce Covers": {},
+  };
+
+  // Convert the search term to lowercase for case-insensitive comparison
+  const lowerCaseSearchTerm = searchTerm.toLowerCase();
+
+  // Function to search within each product's properties
+  const searchInNexusProducts = (product) =>
+    product.name.toLowerCase().includes(lowerCaseSearchTerm);
+
+  const searchInInsuraceProducts = (cover) =>
+    cover.Protocol.toLowerCase().includes(lowerCaseSearchTerm);
+
+  // Search in Nexus Mutual Covers
+  if (allProducts["Nexus Mutual Covers"]) {
+    results["Nexus Mutual Covers"] = allProducts["Nexus Mutual Covers"].filter(
+      searchInNexusProducts
+    );
+  }
+
+  // Search in InsurAce Covers
+  if (allProducts["InsurAce Covers"]) {
+    results["InsurAce Covers"] = {
+      SmartContractVulnerabilityCover: allProducts[
+        "InsurAce Covers"
+      ].SmartContractVulnerabilityCover.filter(searchInInsuraceProducts),
+      CustodianRiskCover: allProducts[
+        "InsurAce Covers"
+      ].CustodianRiskCover.filter(searchInInsuraceProducts),
+      StablecoinDePegRiskCover: allProducts[
+        "InsurAce Covers"
+      ].StablecoinDePegRiskCover.filter(searchInInsuraceProducts),
+    };
+  }
+  return results;
+}
+
+async function submitToolOutputs(threadId, runId, toolsToCall) {
+  const toolOutputArray = [];
+
+  for (const tool of toolsToCall) {
+    let output = null;
+    const toolCallId = tool.id;
+    const functionName = tool.function.name;
+    const functionArgs = tool.function.arguments;
+
+    console.log("FUNCTION ARGS", functionArgs);
+    console.log("FUNCTION NAME", functionName);
+    if (functionName === "tavilyBasicSearch") {
+      output = await tavilyBasicSearch(JSON.parse(functionArgs).query);
+    } else if (functionName === "tavilyAdvancedSearch") {
+      output = await tavilyAdvancedSearch(JSON.parse(functionArgs).query);
+    } else if (functionName === "lowBetaHighGrowth") {
+      output = await getLowBetaHighGrowthPairs();
+    } else if (functionName === "checkForInsurance") {
+      output = await searchProducts(functionArgs);
+    }
+
+    console.log("BEFORE IF OUTPUT");
+    // Convert output to a string
+    if (output) {
+      console.log("INSIDE CONVERSION");
+      const outputString =
+        typeof output === "string" ? output : JSON.stringify(output);
+      toolOutputArray.push({ tool_call_id: toolCallId, output: outputString });
+    }
+  }
+
+  try {
+    const response = await client.beta.threads.runs.submitToolOutputs(
+      threadId,
+      runId,
+      {
+        tool_outputs: toolOutputArray,
+      }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error submitting tool outputs:", error);
+  }
+}
+
+async function printMessagesFromThread(thread_id, run_id) {
+  const messages = await client.beta.threads.messages.list(thread_id);
+
+  // Find the last message for the current run
+  const lastMessage = messages.data
+    .filter(
+      (message) => message.run_id === run_id && message.role === "assistant"
+    )
+    .pop();
+
+  // Log the last message for debugging
+  console.log("Last Message:", lastMessage);
+
+  // Print the last message coming from the assistant
+  if (
+    lastMessage &&
+    lastMessage.content &&
+    lastMessage.content.length > 0 &&
+    lastMessage.content[0].text
+  ) {
+    const messageContent = lastMessage.content[0].text; // Access the text object
+    const messageText = messageContent.value || JSON.stringify(messageContent); // Get the text value or stringify if it's an object
+    console.log("Message Content:", messageText);
+    return messageText;
+  } else {
+    // Log if no message is found
+    console.log("No last message found");
+    return null;
+  }
+}
+
+const waitForRunCompletion = async (thread_id, run_id) => {
+  return new Promise((resolve, reject) => {
+    const interval = setInterval(async () => {
+      try {
+        const run = await client.beta.threads.runs.retrieve(thread_id, run_id);
+        console.log(`Current run status: ${run.status}`);
+
+        if (["completed", "failed", "requires_action"].includes(run.status)) {
+          clearInterval(interval);
+          resolve(run);
+        }
+      } catch (error) {
+        clearInterval(interval);
+        reject(error);
+      }
+    }, 1000);
+  });
+};
+
+// HELPER FUNCS FOR BETA CALCS
 async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
 
   // Get first 10 elements from pool data
   const firstTenPools = pools.slice(0, 10); // Note: Makes a shallow copy - might need to change later for efficiency
 
-  // // Create an array of promises
-  // const betaPromises = firstTenPools.map((pool) => calcBeta(pool.pool));
-
-  // // Wait for all the promises to resolve
-  // const betas = await Promise.all(betaPromises);
-
-  // // Assign each beta value to the corresponding pool
-  // for (let i = 0; i < firstTenPools.length; i++) {
-  //   firstTenPools[i].beta = betas[i];
-  //   await sleep(1000); // Waits for 1 second
-  // }
   for (let i = 0; i < firstTenPools.length; i++) {
     const poolID = firstTenPools[i].pool;
     const beta = await calcBeta(poolID);
@@ -67,18 +258,12 @@ async function addBetaCalcToExistingData() {
     firstTenPools[i].beta = beta;
     await sleep(1000); // Waits for 1 second
   }
-  console.log("FIRST 10:", firstTenPools);
   return firstTenPools;
 }
+
 // Get data from the /pools endpoint from Defillama
 async function getPoolData(chain, project) {
   const currentTime = new Date().getTime();
-
-  // Check if cache is valid and return value if possible
-  if (cache1.timestamp && currentTime - cache1.timestamp < cache1.expiration) {
-    console.log("Returning data from cache");
-    return cache1.data;
-  }
 
   // If not stored in cache, then get data from api and then store back into cache
   try {
@@ -97,13 +282,6 @@ async function getPoolData(chain, project) {
       // Sort the filtered pools using the calcRank function
       const sortedPools = sortPoolData(filteredPools);
 
-      // Update cache with retrieved data before return final values
-      cache1 = {
-        timestamp: currentTime,
-        data: sortedPools,
-        expiration: cache1.expiration,
-      };
-
       return sortedPools;
     } else {
       console.error("API call was not successful.");
@@ -114,16 +292,6 @@ async function getPoolData(chain, project) {
     return null;
   }
 }
-
-// Sort pool data based on APY and TVL
-
-// Main values:
-// 1. APY
-// 2. APY Base
-// 3. TVL USD
-// 4. APY PCT 1D, 7D, 30D (each is it's own variable)
-// 5. apyBase7d
-// 6. apyMean30d
 
 function sortPoolData(pools) {
   return pools.sort((a, b) => calcRank(b) - calcRank(a));
@@ -179,12 +347,6 @@ async function calcBeta(poolID) {
       startTimestamp,
       endTimestamp
     );
-    console.log("DAILY APY Length:", apyArray.length);
-    // console.log("Daily APY Length:", dailyAPYData.length);
-    console.log("Daily ETH Length:", filteredEthPrices.length);
-
-    // const sanitizedDailyAPY = sanitizeArray(dailyAPY);
-    // const sanitizedEthPrices = sanitizeArray(ethPrices);
 
     // Calc daily returns
     const dailyAPYReturns = calculateDailyReturns(apyArray, apyArray.length);
@@ -193,14 +355,8 @@ async function calcBeta(poolID) {
       apyArray.length
     );
 
-    console.log("Daily APY Returns:", dailyAPYReturns.length);
-    console.log("Daily ETH Returns:", dailyETHReturns.length);
-
     const apyMean = calculateMean(dailyAPYReturns);
     const ethMean = calculateMean(dailyETHReturns);
-
-    console.log("APY Mean:", apyMean);
-    console.log("ETH Mean:", ethMean);
 
     // Calc covariance and variance
     const covariance = calculateCovariance(
@@ -211,19 +367,15 @@ async function calcBeta(poolID) {
     );
     const variance = calculateVariance(dailyETHReturns, ethMean);
 
-    console.log("Covariance:", covariance);
-    console.log("Variance:", variance);
-
     const beta = covariance / variance;
-    console.log("Beta:", beta);
     return beta;
   } catch (error) {
     console.error("An error occurred in calcBeta:", error);
   }
 }
 
+// Make sure we only use eth prices for the timeline specified
 function filterData(dailyAPY, ethPrices, startTimestamp, endTimestamp) {
-  // Use reduce to filter and map in a single iteration
   const dataPoints = ethPrices.reduce((filteredData, priceEntry) => {
     const timestamp = priceEntry[0];
     const dataPoint = priceEntry[1];
@@ -249,7 +401,6 @@ function calculateDailyReturns(data, length) {
   // Slice the data array to only include the number of elements specified by length
   const slicedData = data.slice(0, length);
 
-  // Calculate returns as before, but using the sliced data
   return slicedData
     .slice(1) // Still start from the second element
     .map((value, index) => {
@@ -279,17 +430,11 @@ function calculateVariance(data, mean) {
 }
 
 function calculateMean(array) {
-  // logArrayStats(array);
-
   const sum = array.reduce(
     (accumulator, currentValue) => accumulator + currentValue,
     0
   );
   return sum / array.length;
-}
-
-function sanitizeArray(array) {
-  return array.filter((value) => isFinite(value));
 }
 
 // Retrieve daily pool APY for one year
@@ -312,15 +457,6 @@ async function getDailyPoolAPY(poolID) {
       const endTimestamp = new Date(
         dailyAPYData[dailyAPYData.length - 3].timestamp
       ).getTime();
-
-      console.log("UNIX START TIME:", startTimestamp);
-      console.log("UNIX END TIME:", endTimestamp);
-
-      console.log("APY Start Timestamp:", dailyAPYData[0].timestamp);
-      console.log(
-        "APY End Timestamp:",
-        dailyAPYData[dailyAPYData.length - 3].timestamp
-      ); // Need to change this to be less recent
 
       // Note if the apy is 0 or null need to remove it but also need to remove that date for ethereum data so it's completely aligned
 
@@ -352,16 +488,10 @@ async function getDailyEthPrices() {
   }
 
   try {
-    // const requestURL = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=365&interval=daily`;
     const requestURL = `https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=max`;
     const response = await axios.get(requestURL);
     // Note: Struct is an array of arrays (each sub array has unix timestamp and price)
     const queriedPrices = response.data.prices;
-    // let prices = [];
-    // for (let i = 0; i < queriedPrices.length; i++) {
-    //   const price = queriedPrices[i][1];
-    //   prices.push(price);
-    // }
 
     // Update cache with newly retrieved data before returning
     cache2.dailyEthPrices = {
@@ -370,54 +500,11 @@ async function getDailyEthPrices() {
       expiration: cacheEntry.expiration,
     };
 
-    // return prices;
     return queriedPrices;
   } catch (error) {
     console.error("Error:", error);
     return [];
   }
-}
-
-async function searchProducts(searchTerm) {
-  const allProducts = await getInsuranceProducts();
-
-  const results = {
-    "Nexus Mutual Covers": [],
-    "InsurAce Covers": {},
-  };
-
-  // Convert the search term to lowercase for case-insensitive comparison
-  const lowerCaseSearchTerm = searchTerm.toLowerCase();
-
-  // Function to search within each product's properties
-  const searchInNexusProducts = (product) =>
-    product.name.toLowerCase().includes(lowerCaseSearchTerm);
-
-  const searchInInsuraceProducts = (cover) =>
-    cover.Protocol.toLowerCase().includes(lowerCaseSearchTerm);
-
-  // Search in Nexus Mutual Covers
-  if (allProducts["Nexus Mutual Covers"]) {
-    results["Nexus Mutual Covers"] = allProducts["Nexus Mutual Covers"].filter(
-      searchInNexusProducts
-    );
-  }
-
-  // Search in InsurAce Covers
-  if (allProducts["InsurAce Covers"]) {
-    results["InsurAce Covers"] = {
-      SmartContractVulnerabilityCover: allProducts[
-        "InsurAce Covers"
-      ].SmartContractVulnerabilityCover.filter(searchInInsuraceProducts),
-      CustodianRiskCover: allProducts[
-        "InsurAce Covers"
-      ].CustodianRiskCover.filter(searchInInsuraceProducts),
-      StablecoinDePegRiskCover: allProducts[
-        "InsurAce Covers"
-      ].StablecoinDePegRiskCover.filter(searchInInsuraceProducts),
-    };
-  }
-  return results;
 }
 
 async function getInsuranceProducts() {
@@ -449,7 +536,7 @@ async function getNexusMutualProducts() {
 
 function getInsurAceProducts() {
   // Construct the path to the JSON file
-  const jsonFilePath = path.join(__dirname, "products.json");
+  const jsonFilePath = path.join(__dirname, "dataAnalysis", "products.json");
 
   // Read the file synchronously (you can do this asynchronously as well)
   try {
