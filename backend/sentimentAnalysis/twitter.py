@@ -78,7 +78,7 @@ if __name__ == "__main__":
     }
 
     sentiment = SentimentIntensityAnalyzer()
-    query = f"{tokenName} cryptocurrency opinions on twitter" 
+    query = f"{tokenName} cryptocurrency opinion posts on twitter" 
     # query = f'site:twitter.com inurl:status "{tokenName}" cryptocurrency opinions'
     keywords = ["twitter", "status"]
     for j in search(query, num_results=15):
@@ -93,20 +93,24 @@ if __name__ == "__main__":
             sentimentDict['tweet_num'] += 1
 
     #calculate cum sentiment score
-    sentimentDict['compound_score'] = sentimentDict['compound_score'] / sentimentDict['tweet_num']
+    if sentimentDict['tweet_num'] != 0:
+        sentimentDict['compound_score'] = sentimentDict['compound_score'] / sentimentDict['tweet_num']
 
-    #save cache
-    sentimentDict['timestamp'] = time.time()
+        #save cache
+        sentimentDict['timestamp'] = time.time()
 
-    if(sentimentDict['compound_score'] > 0):
-        sentimentDict["sentiment"] = 'positive'
-    elif(sentimentDict['compound_score'] < 0):
-        sentimentDict["sentiment"] = 'negative'
+        if(sentimentDict['compound_score'] > 0):
+            sentimentDict["sentiment"] = 'positive'
+        elif(sentimentDict['compound_score'] < 0):
+            sentimentDict["sentiment"] = 'negative'
+        else:
+            sentimentDict["sentiment"] = 'neutral'
+
+        sentimentDictJSON = json.dumps(sentimentDict)
+        print(sentimentDictJSON)
+
     else:
-        sentimentDict["sentiment"] = 'neutral'
-
-    sentimentDictJSON = json.dumps(sentimentDict)
-    print(sentimentDictJSON)
+        print("Unable to conduct sentiment analysis")
 
     
             
