@@ -78,7 +78,8 @@ if __name__ == "__main__":
     }
 
     sentiment = SentimentIntensityAnalyzer()
-    query = f"{tokenName} cryptocurrency opinions on twitter" 
+    # query = f"{tokenName} cryptocurrency opinions on twitter" 
+    query = f'site:twitter.com inurl:status "{tokenName}" cryptocurrency opinions'
     keywords = ["twitter", "status"]
     for j in search(query, num_results=15):
         if all(keyword in j for keyword in keywords):
