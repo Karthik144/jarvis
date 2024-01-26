@@ -76,7 +76,7 @@ export default function Response() {
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
     await fetchResponse(query);
-    if (query === "Help me forecast my LP position?"){
+    if (query === "Help me forecast my LP position"){
       setShowCalcualtorUI(true); 
     }
   };
