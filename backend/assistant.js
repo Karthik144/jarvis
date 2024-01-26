@@ -24,15 +24,27 @@ app.use(express.json());
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+//THREAD MGMNT TEMP
+let activeThreads = {
+  "Jarvis": null
+}
 
-async function main(userInput) {
+
+async function main(userId, userInput) {
   console.log("USER INPUT PASSED IN", userInput);
 
   // const userInput = "What are people saying about Pendle on Twitter?";
   //const userInput = "what is defidad saying about pendle on twitter?"
 
   // Create a thread
-  const thread = await client.beta.threads.create();
+  let thread;
+  if(activeThreads["Jarvis"] == null){
+    thread = await client.beta.threads.create();
+    activeThreads["Jarvis"] = thread;
+  }
+  else{
+    thread = activeThreads["Jarvis"]
+  }
 
   // Create a message
   await client.beta.threads.messages.create(thread.id, {
@@ -602,7 +614,7 @@ app.post("/analyze", async (req, res) => {
   try {
     const userInput = req.body.userInput;
     console.log("USER INPUT:", userInput); 
-    const result = await main(userInput);
+    const result = await main("Jarvis",userInput);
     res.json(result);
   } catch (error) {
     console.error(error);
