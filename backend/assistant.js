@@ -13,15 +13,20 @@ const { spawn } = require("child_process");
 const TavilySearchAPIRetriever =
   require("@langchain/community/retrievers/tavily_search_api").TavilySearchAPIRetriever;
 
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Local testing url
+    origin: "http://localhost:3000", 
   })
 );
 
+app.use(express.json());
+
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+
 async function main(userInput) {
   console.log("USER INPUT PASSED IN", userInput);
-  client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   // const userInput = "What are people saying about Pendle on Twitter?";
   //const userInput = "what is defidad saying about pendle on twitter?"
@@ -55,6 +60,8 @@ async function main(userInput) {
   }
 
   const lastMessage = await printMessagesFromThread(thread.id, run.id);
+  return { message: lastMessage };
+
 }
 
 async function tavilyBasicSearch(query) {
@@ -594,26 +601,12 @@ function sleep(ms) {
 app.post("/analyze", async (req, res) => {
   try {
     const userInput = req.body.userInput;
+    console.log("USER INPUT:", userInput); 
     const result = await main(userInput);
     res.json(result);
   } catch (error) {
-    res.status(500).send("Server error");
-  }
-});
-
-app.post("/followup", async (req, res) => {
-  try {
-    const userInput = req.body.userInput;
-    const threadId = req.body.threadId;
-    const runId = req.body.runId;
-    console.log("User Input", userInput);
-    console.log("Thread ID", threadId);
-    console.log("Run ID", runId);
-    const result = await followUp(userInput, threadId, runId);
-    console.log("RESULT", result);
-    res.json(result);
-  } catch (error) {
-    res.status(500).send(`Server error: ${error.message}`);
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 });
 

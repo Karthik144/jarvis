@@ -5,10 +5,6 @@ import FollowUpQuestionBar from "../../../frontend/components/FollowUpQuestionBa
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
-// import FeeButton from "../../../frontend/components/FeeButton";
-// import AmountTextField from "../../../frontend/components/AmountTextField";
-// import CustomDatePicker from "../../../frontend/components/DatePicker"; 
-// import OverlayText from "../../../frontend/components/OverlayText"; 
 import Calculator from "../../../frontend/components/Calculator"; 
 import { ScrollBox } from "react-scroll-box";
 
@@ -79,7 +75,7 @@ export default function Response() {
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
-    // await fetchResponse(query);
+    await fetchResponse(query);
     if (query === "Help me forecast my LP position?"){
       setShowCalcualtorUI(true); 
     }
@@ -88,6 +84,7 @@ export default function Response() {
   async function fetchResponse(userQuery) {
     console.log("INSIDE FETCH RESPONSE");
     try {
+      console.log(userQuery); 
       const response = await fetch("http://localhost:3001/analyze", {
         method: "POST",
         headers: {
@@ -117,10 +114,10 @@ export default function Response() {
     const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
     setUserSearch(processedQuery);
 
-  //   console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
-  //   fetchResponse(userQuery);
-  const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-  setResponseText(loremIpsumText); 
+    console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
+    fetchResponse(userQuery);
+  // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
+  // setResponseText(loremIpsumText); 
   }, []);
 
   return (
@@ -153,7 +150,7 @@ export default function Response() {
           </Grid>
         </Grid>
 
-        <div style={{ overflow: "auto", maxHeight: "500px" }}>
+        <div style={{ overflow: "auto", maxHeight: "1200px" }}>
           <div>
             {!responseText ? (
               <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
