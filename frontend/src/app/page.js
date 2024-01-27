@@ -1,6 +1,10 @@
 'use client';
 import React, { useState } from 'react'; 
+import Link from "next/link"
+import { styled } from "@mui/material/styles";
+import MuiButton from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button"
 import PromptBar from "../../../frontend/components/PromptBar";
 import QuickAction from "../../../frontend/components/QuickAction";
 import Button from "@mui/material/Button";
@@ -9,6 +13,19 @@ import WelcomeModal from "../../../frontend/components/WelcomeModal";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import { useRouter } from "next/navigation";
+
+export const CustomButton = styled(MuiButton)(({ theme }) => ({
+ backgroundColor: theme.palette.common.black,
+ color: theme.palette.common.white,
+ borderRadius: theme.spacing(3),
+ '&:hover': {
+    backgroundColor: '#f5f5dc',
+    color: theme.palette.common.black,
+ },
+ position: 'absolute',
+ top: theme.spacing(2), // Add spacing to the top
+ right: theme.spacing(2), // Add spacing to the right
+}));
 
 
 export default function Home() {
@@ -41,6 +58,7 @@ export default function Home() {
     router.push("/response");
   };
 
+<<<<<<< HEAD
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
       <Stack spacing={2} direction="row" sx={{ p: "10px" }}>
@@ -57,6 +75,20 @@ export default function Home() {
           Sign Up
         </SignUpButton>
       </Stack>
+=======
+  const handleUser = () => {
+    router.push("/user")
+  } 
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-between p-24 relative">
+      <CustomButton
+        variant="contained"
+        onClick={handleUser}
+      >
+        log-in / sign-up
+      </CustomButton>
+>>>>>>> ba64f1f (merging local changes)
 
       <Typography variant="h3" sx={{ textAlign: "center", pt: "165px" }}>
         Speed up your crypto research
@@ -85,6 +117,7 @@ export default function Home() {
           <QuickAction text="Chainlink" onPress={handleQuickAction} />
         </Grid>
       </Grid>
+<<<<<<< HEAD
 
       <WelcomeModal
         handleOpen={handleOpenModal}
@@ -93,6 +126,8 @@ export default function Home() {
         email={email} 
         setEmail={setEmail} 
       />
+=======
+>>>>>>> ba64f1f (merging local changes)
     </div>
   );
 }
