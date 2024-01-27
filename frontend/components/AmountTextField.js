@@ -17,7 +17,7 @@ const CustomTextField = styled(TextField)({
     backgroundColor: "#FCFCF9",
   },
   "& .MuiOutlinedInput-input": {
-    padding: "15px", // Reduced vertical padding to decrease height
+    padding: "15px", 
     fontSize: "1rem", 
   },
   "& .MuiInputBase-input": {

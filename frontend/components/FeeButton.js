@@ -3,7 +3,6 @@ import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 
 const CustomButton = styled(Button)(({ theme, selected }) => ({
-  // Common style...
   boxShadow: "none",
   textTransform: "none",
   fontSize: 16,
