@@ -20,7 +20,7 @@ const CustomButton = styled(Paper)(({ theme }) => ({
 }));
 
 
-export default function QuickAction({ text, onPress }) {
+export default function QuickPrompt({ text, onPress }) {
 
     return (
       <CustomButton

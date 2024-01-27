@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Paper } from "@mui/material";
-import FollowUpQuestionBar from "../../../frontend/components/FollowUpQuestionBar";
+import FollowUpQuestionBar from "../components/home/FollowUpQuestionBar";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
-import Calculator from "../../../frontend/components/Calculator"; 
+import Calculator from "../components/LP_Forecast.js/Calculator"; 
 import { ScrollBox } from "react-scroll-box";
 
 // MUI Date Picker Imports
