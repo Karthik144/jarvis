@@ -8,7 +8,13 @@ const { spawn } = require("child_process");
 
 
 // GLOBAL VARS 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: "https://oai.hconeai.com/v1",
+  defaultHeaders: {
+    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+  },
+});
 
 
 // MAIN FUNCS - USED FOR FUNC CALLING 
@@ -22,32 +28,6 @@ async function tavilyAdvancedSearch(query) {
         api_key: process.env.TAVILY_API_KEY,
         query: query,
         search_depth: "advanced",
-        include_images: false,
-        include_answer: false,
-        include_raw_content: false,
-        max_results: 5,
-        include_domains: [],
-        exclude_domains: [],
-        });
-
-        console.log(response.data);
-        return response.data;
-    } catch (error) {
-        console.error("Error in tavilySearch:", error);
-    }
-}
-
-async function tavilyBasicSearch(query) {
-
-    console.log("TAVILY BASIC SEARCH CALLED");
-
-    const endpoint = "https://api.tavily.com/search";
-
-    try {
-        const response = await axios.post(endpoint, {
-        api_key: process.env.TAVILY_API_KEY,
-        query: query,
-        search_depth: "basic",
         include_images: false,
         include_answer: false,
         include_raw_content: false,
@@ -171,7 +151,7 @@ async function runConversation(){
 
       {
         role: "user",
-        content: "Can you give me some low beta, high growth tokens?",
+        content: "What are some new tech-related updates with Injective?",
       },
     ];
 
@@ -195,27 +175,6 @@ async function runConversation(){
           },
         },
       },
-      // tavilyBasicSearch
-      {
-        type: "function",
-        function: {
-          name: "tavilyBasicSearch",
-          description:
-            "Get basic crypto/blockchain info from the internet. Use this only when you need basic info.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description:
-                  "The search query to use. For example: 'Latest news on Bitcoin applications'",
-              },
-            },
-            required: ["query"],
-          },
-        },
-      },
-
       // checkForInsurance
       {
         type: "function",
@@ -287,7 +246,6 @@ async function runConversation(){
     if (responseMessage.tool_calls) {
       const availableFunctions = {
         tavilyAdvancedSearch: tavilyAdvancedSearch,
-        tavilyBasicSearch: tavilyBasicSearch,
         checkForInsurance: searchProducts,
         sentimentAnalysis: getSentiment,
         lowBetaHighGrowth: getLowBetaHighGrowthPairs,
