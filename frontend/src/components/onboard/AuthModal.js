@@ -72,25 +72,42 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
     return true; 
   }
 
+  const investorProfile = {
+    tvl: '1,500,000 - 50,000,000',
+    chain: 'arbitrum',
+    protocol: 'uniswap',
+  };
   // USER-FLOW LOGIC
-  async function handleSignIn() {
+async function handleSignIn() {
+  const validInputs = checkValidInputs();
 
-    const validInputs = checkValidInputs(); 
+  if (validInputs) {
+    const { user, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
 
-    if (validInputs){
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
+    if (error) {
+      setErrorMessage(error.message);
+    } else {
+      const { data, error: insertError } = await supabase.from("users").upsert(
+        {
+          id: user.id,
+          email: user.email,
+          investor_profile: investorProfile, 
+        },
+        { onConflict: "id" }
+      );
 
-      if (error) {
-        setErrorMessage(error.message)
+      if (insertError) {
+        console.error("Error inserting/updating user data:", insertError);
       } else {
-        handleClose();
+        console.log("User data inserted/updated:", data);
       }
+      handleClose();
     }
   }
-
+}
 
   async function handleSignUp() {
 

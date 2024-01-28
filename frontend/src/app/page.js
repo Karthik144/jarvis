@@ -31,7 +31,12 @@ export default function Home() {
   const open = Boolean(anchorEl);
 
   const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+    if (document.contains(event.currentTarget)) {
+      console.log("Anchor element is in document.")
+      setAnchorEl(event.currentTarget);
+    } else {
+      console.error("The anchor element is not in the document.");
+    }
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -55,20 +60,22 @@ export default function Home() {
     };
   }, []);
 
-  // Function to handle user authentication
-  const handleAuth = async () => {
-    const { user, session, error } = await supabase.auth.signIn({
-      email,
-      password,
-    });
+  // const handleAuth = async () => {
 
-    if (error) {
-      console.error(error);
-    } else {
-      setUser(user);
-      setModalOpen(false);
-    }
-  };
+  //   console.log("HANDLE AUTH CALLED"); 
+  //   const { user, session, error } = await supabase.auth.signIn({
+  //     email,
+  //     password,
+  //   });
+
+  //   if (error) {
+  //     console.error(error);
+  //   } else {
+  //     setUser(user);
+  //     console.log("USER:", user); 
+  //     setModalOpen(false);
+  //   }
+  // };
 
   const handleOpenModal = (mode) => {
     setMode(mode);
