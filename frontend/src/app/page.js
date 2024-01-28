@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 import PromptBar from "../components/home/PromptBar";
 import QuickPrompt from "../components/home/QuickPrompt";
 import SignUpButton from "../components/onboard/SignUpButton";
-import WelcomeModal from "../components/onboard/WelcomeModal";
+import WelcomeModal from "../components/onboard/AuthModal";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
