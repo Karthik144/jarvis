@@ -38,7 +38,7 @@ export default function PromptBar({ onSubmit }) {
           id="outlined-helperText"
           placeholder="Enter token or ticker name for a research report."
           value={inputValue}
-          onChange={handleInputChange} 
+          onChange={handleInputChange}
           variant="outlined"
           InputProps={{
             endAdornment: (
@@ -52,28 +52,28 @@ export default function PromptBar({ onSubmit }) {
                 </IconButton>
               </InputAdornment>
             ),
-            style: { height: "8rem", position: "relative" }, // Added position relative for absolute positioning of the button
+            style: { height: "8rem", position: "relative" },
           }}
           sx={{
             maxWidth: "930px",
             "& .MuiOutlinedInput-root": {
               borderRadius: "10px",
               height: "100%",
-              alignItems: "flex-start", // Aligns the input contents to the top
-              border: "1px solid #CECECE", // Adds the outline
-              backgroundColor: "#FCFCF9", // Set the background color here
+              alignItems: "flex-start",
+              border: "1px solid #CECECE",
+              backgroundColor: "#FCFCF9",
             },
             "& .MuiOutlinedInput-input": {
-              fontSize: "1.2rem", // Change the font size here
-              paddingTop: "20px", // Adjust top padding to position the placeholder
-              paddingLeft: "20px", // Adjust left padding as needed
-              paddingRight: "48px", // Make room for the button
+              fontSize: "1.2rem",
+              paddingTop: "20px",
+              paddingLeft: "20px",
+              paddingRight: "48px",
             },
             "& .MuiOutlinedInput-notchedOutline": {
-              border: "none", // Ensures there is no notched outline
+              border: "none",
             },
             "& .MuiOutlinedInput-root.Mui-focused": {
-              borderColor: "#CECECE", // Maintains the border color when focused
+              borderColor: "#CECECE",
             },
             "& .MuiSvgIcon-root": {
               color: "#a0a0a0",

@@ -84,6 +84,10 @@ export default function Home() {
     setUser(null);
   };
 
+  const handleInvestorProfile = async () => {
+    router.push("/profile");
+  }; 
+
   const handleSubmit = (query) => {
     console.log("handle submit called in page.js");
     localStorage.setItem("userQuery", JSON.stringify(query));
@@ -140,16 +144,28 @@ export default function Home() {
               }}
             >
               <MenuItem
-                onClick={handleLogout}
+                onClick={handleInvestorProfile}
                 sx={{
                   "&.MuiMenuItem-root": {
                     "&:hover, &:focus": {
-                      backgroundColor: "transparent", 
+                      backgroundColor: "transparent",
                     },
                   },
                 }}
               >
-                Logout
+                Investor Profile
+              </MenuItem>
+              <MenuItem
+                onClick={handleLogout}
+                sx={{
+                  "&.MuiMenuItem-root": {
+                    "&:hover, &:focus": {
+                      backgroundColor: "transparent",
+                    },
+                  },
+                }}
+              >
+                Sign Out
               </MenuItem>
             </Menu>
           </>
