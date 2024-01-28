@@ -9,6 +9,9 @@ import SignUpButton from "../components/onboard/SignUpButton";
 import WelcomeModal from "../components/onboard/WelcomeModal";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
+import Avatar from "@mui/material/Avatar";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
 import { useRouter } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 
@@ -23,24 +26,35 @@ export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState("");
-  const [user, setUser] = useState(null); // Track user authentication state
+  const [user, setUser] = useState(null); 
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const router = useRouter();
 
   // Fetch the authentication state when the component mounts
   useEffect(() => {
-    // Listen for changes in the authentication state
-    const unsubscribe = supabase.auth.onAuthStateChange(
+    const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        // Update the user state whenever the authentication state changes
         setUser(session?.user || null);
       }
     );
 
-    // Call the cleanup function returned by supabase.auth.onAuthStateChange()
-    // when the component unmounts
-    return unsubscribe;
- }, []);
+    // Cleanup function
+    return () => {
+      if (authListener && typeof authListener.unsubscribe === "function") {
+        authListener.unsubscribe();
+      }
+    };
+  }, []);
+
   // Function to handle user authentication
   const handleAuth = async () => {
     const { user, session, error } = await supabase.auth.signIn({
@@ -81,18 +95,63 @@ export default function Home() {
     router.push("/response");
   };
 
+  function stringToColor(string) {
+    let hash = 0;
+    let i;
+
+    for (i = 0; i < string.length; i += 1) {
+      hash = string.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    let color = "#";
+
+    for (i = 0; i < 3; i += 1) {
+      const value = (hash >> (i * 8)) & 0xff;
+      color += `00${value.toString(16)}`.slice(-2);
+    }
+
+    return color;
+  }
+
+  function stringAvatar(email) {
+    let firstLetter = email ? email[0].toUpperCase() : ""; 
+    return {
+      sx: {
+        bgcolor: stringToColor(email), 
+      },
+      children: firstLetter, 
+    };
+  }
+
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
       <Stack spacing={2} direction="row" sx={{ p: "10px" }}>
         {user ? (
           // If user is authenticated, show the user's email and a logout button
           <>
-            <Typography variant="body1" sx={{ fontWeight: "lighter" }}>
-              {user.email}
-            </Typography>
-            <Button onClick={handleLogout} variant="text" sx={{ textTransform: "none", color: "black" }}>
-              Logout
-            </Button>
+            <Avatar {...stringAvatar(user.email)} onClick={handleClick} />
+            <Menu
+              id="basic-menu"
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleClose}
+              MenuListProps={{
+                "aria-labelledby": "basic-button",
+              }}
+            >
+              <MenuItem
+                onClick={handleLogout}
+                sx={{
+                  "&.MuiMenuItem-root": {
+                    "&:hover, &:focus": {
+                      backgroundColor: "transparent", 
+                    },
+                  },
+                }}
+              >
+                Logout
+              </MenuItem>
+            </Menu>
           </>
         ) : (
           // If user is not authenticated, show Sign In and Sign Up buttons
@@ -105,7 +164,10 @@ export default function Home() {
             >
               Sign In
             </Button>
-            <SignUpButton onClick={() => handleOpenModal("signup")} disableElevation>
+            <SignUpButton
+              onClick={() => handleOpenModal("signup")}
+              disableElevation
+            >
               Sign Up
             </SignUpButton>
           </>
