@@ -6,17 +6,19 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import SignUpButton from "./SignUpButton"
+import ClearIcon from "@mui/icons-material/Clear"; // Added ClearIcon
+import SignUpButton from "./SignUpButton";
+import IconButton from "@mui/material/IconButton"; // Added IconButton
 import React, { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
-//CONFIG
+// CONFIG
 const supabaseUrl = 'https://nibfafwhlabdjvkzpvuv.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
  
-//STYLING
+// STYLING
 const style = {
   position: "absolute",
   top: "50%",
@@ -36,7 +38,13 @@ const buttonStyle = {
   color: "white", 
 };
 
-//VIEW
+const closeButtonStyle = {
+  position: "absolute",
+  top: "1rem",
+  left: "1rem",
+};
+
+// VIEW
 export default function WelcomeModal({ handleClose, open, email, setEmail, password, setPassword, mode }) {
 
   const [errorMessage, setErrorMessage] = useState("");
@@ -76,20 +84,20 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
       });
 
       if (error) {
-        console.error(error);
+        setErrorMessage(error.message)
       } else {
         handleClose();
       }
     }
+  }
 
-  }  
 
   async function handleSignUp() {
 
     const validInputs = checkValidInputs(); 
 
     if (validInputs) {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: email,
         password: password,
         options: {
@@ -100,10 +108,10 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
       if (error) {
         console.error(error);
       } else {
-        // handleClose();
-        setNeedToConfirmEmail(true); 
+        setNeedToConfirmEmail(true);
       }
     }
+      
 
   }
 
@@ -117,6 +125,9 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
       >
         {needToConfirmEmail ? (
           <Box sx={style}>
+            <IconButton sx={closeButtonStyle} onClick={handleClose}>
+              <ClearIcon />
+            </IconButton>
             <MailOutlineIcon fontSize='large'/>
             <Typography
               id="modal-modal-title"
@@ -141,6 +152,9 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
           </Box>
         ) : (
           <Box sx={style}>
+            <IconButton sx={closeButtonStyle} onClick={handleClose}>
+              <ClearIcon />
+            </IconButton>
             <Typography
               id="modal-modal-title"
               sx={{
