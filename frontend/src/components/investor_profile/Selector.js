@@ -49,36 +49,49 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function Selector({ type }) {
-  const [protocol, setProtocol] = React.useState("");
-  const [chain, setChain] = React.useState("");
+  const [selectedValue, setSelectedValue] = React.useState("");
+
   const handleChange = (event) => {
-    if (type==='protocol'){
-      setProtocol(event.target.value);
-    } else {
-      setChain(event.target.value); 
-    }
+    setSelectedValue(event.target.value);
   };
+
+  const menuItems =
+    type === "protocol"
+      ? [
+          { value: "uniswap", label: "Uniswap" },
+          { value: "sushiswap", label: "SushiSwap" },
+          { value: "pancakeswap", label: "PancakeSwap" },
+        ]
+      : [
+          { value: "arbitrum", label: "Arbitrum" },
+          { value: "ethereum", label: "Ethereum" },
+          { value: "optimism", label: "Optimism" },
+        ];
 
   return (
     <Box sx={{ minWidth: 120 }}>
       <StyledFormControl fullWidth variant="outlined">
         <Select
-          value={protocol}
+          value={selectedValue}
           onChange={handleChange}
           displayEmpty
           input={<BootstrapInput />}
           inputProps={{ "aria-label": "Without label" }}
-          placeholder={type === "protocol" ? "Protocol" : "Chain"}
+          renderValue={
+            selectedValue !== ""
+              ? undefined
+              : () => (
+                  <span style={{ color: "#9F9F9C" }}>
+                    {type === "protocol" ? "Protocol" : "Chain"}
+                  </span>
+                )
+          }
         >
-          <MenuItem value={type === "protocol" ? "uniswap" : "arbitrum"}>
-            {type === "protocol" ? "Uniswap" : "Arbitrum"}
-          </MenuItem>
-          <MenuItem value={type === "protocol" ? "sushiswap" : "ethereum"}>
-            {type === "protocol" ? "SushiSwap" : "Ethereum"}
-          </MenuItem>
-          <MenuItem value={type === "protocol" ? "pancakeswap" : "optimism"}>
-            {type === "protocol" ? "PancakeSwap" : "Optimism"}
-          </MenuItem>
+          {menuItems.map((item) => (
+            <MenuItem key={item.value} value={item.value}>
+              {item.label}
+            </MenuItem>
+          ))}
         </Select>
       </StyledFormControl>
     </Box>

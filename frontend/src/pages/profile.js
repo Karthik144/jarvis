@@ -1,24 +1,24 @@
-import React from "react";
+import React, { useState } from "react";
 import Typography from "@mui/material/Typography";
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import Avatar from '@mui/material/Avatar';
-import FolderIcon from '@mui/icons-material/Folder';
-import ListItemText from '@mui/material/ListItemText';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Box from '@mui/material/Box'; 
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemAvatar from "@mui/material/ListItemAvatar";
+import Avatar from "@mui/material/Avatar";
+import FolderIcon from "@mui/icons-material/Folder";
+import ListItemText from "@mui/material/ListItemText";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import Stack from '@mui/material/Stack';
+import Stack from "@mui/material/Stack";
 import Menu from "@mui/material/Menu";
 import Divider from "@mui/material/Divider";
 import MenuItem from "@mui/material/MenuItem";
 import Selector from "../components/investor_profile/Selector";
 import TVLButton from "../components/investor_profile/TVLButton";
 import ActionButton from "../components/investor_profile/ActionButton";
-import { styled } from '@mui/material/styles';
+import { styled } from "@mui/material/styles";
 
 function generate(element) {
   return [0, 1, 2].map((value) =>
@@ -28,139 +28,146 @@ function generate(element) {
   );
 }
 
-export default function Profile(){
+export default function Profile() {
+  const [dense, setDense] = React.useState(false);
+  const [secondary, setSecondary] = React.useState(false);
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const [minValue, setMinValue] = useState("");
+  const [maxValue, setMaxValue] = useState("");
 
-    const [dense, setDense] = React.useState(false);
-    const [secondary, setSecondary] = React.useState(false);
-    const [anchorEl, setAnchorEl] = React.useState(null);
-    const open = Boolean(anchorEl);
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
+  const handleMinChange = (event) => {
+    setMinValue(event.target.value);
+  };
 
-    return (
-      <div style={{ paddingLeft: "90px" }}>
-        <Stack direction="column" spacing={5}>
-          <Typography
-            variant="h2"
-            sx={{
-              fontWeight: "500",
-              textAlign: "left",
-              fontSize: "1.75rem",
-              paddingTop: "90px",
-            }}
-          >
-            Investor Profile
-          </Typography>
+  const handleMaxChange = (event) => {
+    setMaxValue(event.target.value);
+  };
 
-          <Box
-            sx={{
-              padding: 2,
-              backgroundColor: "#FBF9F1",
-              width: "100%",
-              maxWidth: "600px",
-              minWidth: "300px",
-              borderRadius: "10px",
-            }}
-          >
-            <List dense={dense} sx={{ padding: 0 }}>
-              <ListItem
-                secondaryAction={
-                  <>
-                    <TVLButton onClick={handleClick} text="1-5M" />
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
-                    <Menu
-                      id="basic-menu"
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      MenuListProps={{
-                        "aria-labelledby": "basic-button",
-                      }}
-                    >
-                      <MenuItem
-                        onClick={(e) => e.stopPropagation()}
-                        sx={{
-                          "&.MuiMenuItem-root:active": {
-                            backgroundColor: "transparent",
-                          },
-                        }}
-                      >
-                        <TextField
-                          id="outlined-number"
-                          label="Min"
-                          type="number"
-                          size="small"
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </MenuItem>
-                      <MenuItem onClick={(e) => e.stopPropagation()}>
-                        <TextField
-                          id="outlined-number"
-                          label="Max"
-                          type="number"
-                          size="small"
-                          InputLabelProps={{
-                            shrink: true,
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </MenuItem>
-                    </Menu>
-                  </>
-                }
-                sx={{
-                  padding: "25px 0", // Add vertical padding bw each item
-                }}
-              >
-                <ListItemText primary="Total Value Locked" />
-              </ListItem>
+  const listItemStyle = {
+    py: 3,
+    display: "flex",
+    alignItems: "center",
+    minHeight: 55,
+  };
 
-              <Divider component="li" />
+  const listItemTextStyle = {
+    my: 0,
+    mx: 0,
+    textAlign: "left",
+  };
 
-              <ListItem
-                secondaryAction={
-                  <IconButton edge="end" aria-label="delete">
-                    <Selector />
-                  </IconButton>
-                }
-                sx={{
-                  padding: "25px 0", // Add vertical padding bw each item
-                }}
-              >
-                <ListItemText primary="Chain" />
-              </ListItem>
+  return (
+    <div style={{ paddingLeft: "90px" }}>
+      <Stack direction="column" spacing={5}>
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: "500",
+            textAlign: "left",
+            fontSize: "1.75rem",
+            paddingTop: "90px",
+          }}
+        >
+          Investor Profile
+        </Typography>
 
-              <Divider component="li" />
-
-              <ListItem
-                secondaryAction={
-                  <IconButton edge="end" aria-label="delete">
-                    <Selector type="protocol" />
-                  </IconButton>
-                }
-                sx={{
-                  padding: "25px 0", // Add vertical padding bw each item
-                }}
-              >
-                <ListItemText
-                  primary="Protocol"
-                  secondary={secondary ? "Secondary text" : null}
+        <Box
+          sx={{
+            backgroundColor: "rgba(242, 241, 235, 0.5)", // 50% opacity
+            width: "100%",
+            maxWidth: "600px",
+            borderRadius: "10px",
+          }}
+        >
+          <List dense={dense} sx={{ padding: 0 }}>
+            <ListItem
+              secondaryAction={
+                <TVLButton
+                  onClick={handleClick}
+                  minValue={minValue}
+                  maxValue={maxValue}
                 />
-              </ListItem>
-            </List>
-          </Box>
-          <Stack direction="row" spacing={2}>
-            <ActionButton>Save</ActionButton>
-            <ActionButton>Cancel</ActionButton>
-          </Stack>
+              }
+              sx={listItemStyle}
+            >
+              <Menu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  "aria-labelledby": "basic-button",
+                }}
+              >
+                <MenuItem
+                  onClick={(e) => e.stopPropagation()}
+                  sx={{
+                    "&.MuiMenuItem-root:active": {
+                      backgroundColor: "transparent",
+                    },
+                  }}
+                >
+                  <TextField
+                    id="min-number"
+                    label="Min"
+                    type="number"
+                    size="small"
+                    value={minValue}
+                    onChange={handleMinChange}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </MenuItem>
+                <MenuItem onClick={(e) => e.stopPropagation()}>
+                  <TextField
+                    id="max-number"
+                    label="Max"
+                    type="number"
+                    size="small"
+                    value={maxValue}
+                    onChange={handleMaxChange}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                  />
+                </MenuItem>
+              </Menu>
+              <ListItemText
+                primary="Total Value Locked"
+                sx={listItemTextStyle}
+              />
+            </ListItem>
+
+            <Divider variant="middle" component="li" />
+
+            <ListItem secondaryAction={<Selector />} sx={listItemStyle}>
+              <ListItemText primary="Chain" sx={listItemTextStyle} />
+            </ListItem>
+
+            <Divider variant="middle" component="li" />
+
+            <ListItem
+              secondaryAction={<Selector type="protocol" />}
+              sx={listItemStyle}
+            >
+              <ListItemText primary="Protocol" sx={listItemTextStyle} />
+            </ListItem>
+          </List>
+        </Box>
+        <Stack direction="row" spacing={2}>
+          <ActionButton cancel={true}>Cancel</ActionButton>
+          <ActionButton cancel={false}>Save</ActionButton>
         </Stack>
-      </div>
-    ); 
+      </Stack>
+    </div>
+  );
 }

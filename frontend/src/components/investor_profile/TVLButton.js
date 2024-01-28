@@ -2,13 +2,12 @@ import React from "react";
 import Button from "@mui/material/Button";
 import { styled } from "@mui/material/styles";
 
-// Use the same styling attributes for consistency
 const StyledButton = styled(Button)(({ theme }) => ({
   borderRadius: 10,
   backgroundColor: theme.palette.background.paper,
-  color: "#9F9F9C",
-  fontSize: "0.875rem", 
-  padding: "10px 26px",
+  color: "#000000", 
+  fontSize: "1rem",
+  padding: "10px 25x",
   textTransform: "none",
   boxShadow: "none",
   border: "1px solid #CECECE",
@@ -19,14 +18,32 @@ const StyledButton = styled(Button)(({ theme }) => ({
     boxShadow: "none",
   },
   "& .MuiButton-label": {
-    color: "#9F9F9C",
+    color: "#000000", // Ensure label text is also black
   },
 }));
 
-export default function TVLButton({ onClick, text }) {
+const formatNumber = (num) => {
+  if (num >= 1000000000) {
+    return (num / 1000000000).toFixed(1).replace(/\.0$/, "") + "B";
+  }
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+  }
+  return num;
+};
+
+export default function TVLButton({ onClick, minValue, maxValue }) {
+
+  const displayValue = `${formatNumber(minValue)} - ${formatNumber(
+    maxValue
+  )}`;
+
   return (
     <StyledButton variant="contained" onClick={onClick}>
-      {text}
+      {displayValue}
     </StyledButton>
   );
 }

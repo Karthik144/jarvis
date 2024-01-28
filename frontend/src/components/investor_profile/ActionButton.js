@@ -2,22 +2,26 @@ import React from "react";
 import Button from "@mui/material/Button";
 import { styled, keyframes } from "@mui/material/styles";
 
-const StyledSignUpButton = styled(Button)({
-  backgroundColor: "#000000",
-  color: "white",
+const StyledSignUpButton = styled(Button)(({ theme, cancel }) => ({
+  backgroundColor: cancel ? "#FCFCF9" : "#000000",
+  color: cancel ? "black" : "white",
   borderRadius: "20px",
   textTransform: "none",
-  transition: 'box-shadow 0.3s ease',
+  border: cancel ? "1px solid rgba(0, 0, 0, 0.25)" : "none",
+  transition: "box-shadow 0.3s ease",
   "&:hover": {
-    backgroundColor: "#808080",
+    backgroundColor: cancel ? "#FCFCF9" : "#808080",
   },
-});
+}));
 
 
-export default function SignUpButton({ children, ...props }) {
+export default function ActionButton({ cancel }) {
   return (
-    <StyledSignUpButton variant="contained" {...props}>
-      {children}
+    <StyledSignUpButton
+      variant="contained"
+      cancel={cancel} 
+    >
+      {cancel ? "Cancel" : "Save"}
     </StyledSignUpButton>
   );
 }
