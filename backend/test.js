@@ -339,21 +339,36 @@ function getInsurAceProducts() {
 }
 
 // HELPER FUNCS FOR BETA CALCS
+let poolOffset = 0;
+
 async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
 
-  // Get first 10 elements from pool data
-  const firstTenPools = pools.slice(0, 10); // Note: Makes a shallow copy - might need to change later for efficiency
+  const endIndex = Math.min(poolOffset + 10, pools.length);
 
-  for (let i = 0; i < firstTenPools.length; i++) {
-    const poolID = firstTenPools[i].pool;
+  // Get next 10 pools
+  const nextTenPools = pools.slice(poolOffset, endIndex);
+
+  // Get first 10 elements from pool data
+  // const firstTenPools = pools.slice(0, 10); // Note: Makes a shallow copy - might need to change later for efficiency
+
+  for (let i = 0; i < nextTenPools.length; i++) {
+    const poolID = nextTenPools[i].pool;
     const beta = await calcBeta(poolID);
 
     // Append the beta value to the current pool object
-    firstTenPools[i].beta = beta;
-    await sleep(1000); // Waits for 1 second
+    nextTenPools[i].beta = beta;
+    // await sleep(500); // Waits for half a second (1 second is 1000) 
   }
-  return firstTenPools;
+
+  poolOffset += 10;
+
+  // Reset to start from the beginning on the next call
+  if (poolOffset >= pools.length) {
+    poolOffset = 0;
+  }
+
+  return nextTenPools;
 }
 
 // Get data from the /pools endpoint from Defillama
