@@ -12,17 +12,22 @@ const CustomTextField = styled(TextField)({
       borderColor: "rgba(0, 0, 0, 0.5)",
     },
     "&.Mui-focused fieldset": {
-      borderColor: "primary.main",
+      borderColor: "black", 
     },
     backgroundColor: "#FCFCF9",
+    "& .MuiOutlinedInput-input": {
+      padding: "14px 14px",
+      fontSize: "0.875rem",
+    },
+    "& .MuiSvgIcon-root": {
+      fontSize: "1rem",
+    },
   },
-  "& .MuiOutlinedInput-input": {
-    padding: "15px", 
-    fontSize: "1rem", 
+  "& .MuiInputLabel-outlined": {
+    transform: "translate(14px, 14px) scale(1)",
   },
   "& .MuiInputBase-input": {
-    height: "auto", 
-    lineHeight: "normal", 
+    height: "auto",
   },
 });
 

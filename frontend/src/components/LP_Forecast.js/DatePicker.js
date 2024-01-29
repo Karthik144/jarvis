@@ -17,11 +17,11 @@ const CustomTextField = styled(TextField)({
       borderColor: "rgba(0, 0, 0, 0.5)",
     },
     "&.Mui-focused fieldset": {
-      borderColor: "primary.main",
+      borderColor: "rgba(0, 0, 0, 0.23)", 
     },
     backgroundColor: "#FCFCF9",
     "& .MuiOutlinedInput-input": {
-      padding: "14px 14px", // Increased padding to match the height of the TextField
+      padding: "14px 14px",
       fontSize: "0.875rem",
     },
     "& .MuiSvgIcon-root": {
@@ -29,7 +29,7 @@ const CustomTextField = styled(TextField)({
     },
   },
   "& .MuiInputLabel-outlined": {
-    transform: "translate(14px, 14px) scale(1)", // Adjust label position to align with the input padding
+    transform: "translate(14px, 14px) scale(1)",
   },
   "& .MuiInputBase-input": {
     height: "auto",
@@ -39,8 +39,7 @@ const CustomTextField = styled(TextField)({
 const customDatePickerTheme = createTheme({
   palette: {
     primary: {
-      main: "#03C988",
-      contrastText: "#000000",
+      main: "#000000", 
     },
   },
   components: {
@@ -50,7 +49,7 @@ const customDatePickerTheme = createTheme({
           "& .MuiOutlinedInput-root": {
             backgroundColor: "#FCFCF9",
             "& .MuiOutlinedInput-input": {
-              padding: "14px 14px", // Increased padding to match the height of the TextField
+              padding: "14px 14px",
               fontSize: "0.875rem",
             },
             "& .MuiSvgIcon-root": {

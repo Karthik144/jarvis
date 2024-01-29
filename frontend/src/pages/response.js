@@ -71,7 +71,7 @@ export default function Response() {
   const [runId, setRunId] = useState("");
 
   const [selectedFee, setSelectedFee] = useState(null);
-  const [showCalculatorUI, setShowCalcualtorUI] = useState(true); 
+  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
@@ -116,8 +116,8 @@ export default function Response() {
 
     console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
     fetchResponse(userQuery);
-    const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-    setResponseText(loremIpsumText); 
+    // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
+    // setResponseText(loremIpsumText); 
   }, []);
 
   return (
