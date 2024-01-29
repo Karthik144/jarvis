@@ -13,13 +13,7 @@ import Avatar from "@mui/material/Avatar";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseUrl = 'https://nibfafwhlabdjvkzpvuv.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+import { supabase } from "../../supabaseClient";
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -96,7 +90,6 @@ export default function Home() {
   }; 
 
   const handleSubmit = (query) => {
-    console.log("handle submit called in page.js");
     localStorage.setItem("userQuery", JSON.stringify(query));
     router.push("/response");
   };

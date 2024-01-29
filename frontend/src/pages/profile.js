@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Typography from "@mui/material/Typography";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
@@ -18,23 +18,21 @@ import MenuItem from "@mui/material/MenuItem";
 import Selector from "../components/investor_profile/Selector";
 import TVLButton from "../components/investor_profile/TVLButton";
 import ActionButton from "../components/investor_profile/ActionButton";
+import { supabase } from "../../supabaseClient";
 import { styled } from "@mui/material/styles";
-
-function generate(element) {
-  return [0, 1, 2].map((value) =>
-    React.cloneElement(element, {
-      key: value,
-    })
-  );
-}
 
 export default function Profile() {
   const [dense, setDense] = React.useState(false);
+  const [user, setUser] = useState(null);
   const [secondary, setSecondary] = React.useState(false);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
   const [minValue, setMinValue] = useState("");
   const [maxValue, setMaxValue] = useState("");
+  const [chain, setChain] = useState("");
+  const [protocol, setProtocol] = useState("");
+
+  const [investorProfile, setInvestorProfile] = useState(null);
 
   const handleMinChange = (event) => {
     setMinValue(event.target.value);
@@ -64,6 +62,92 @@ export default function Profile() {
     textAlign: "left",
   };
 
+  // Fetch the authentication state when the component mounts
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    // Cleanup function
+    return () => {
+      if (authListener && typeof authListener.unsubscribe === "function") {
+        authListener.unsubscribe();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      // User is logged in, fetch their profile
+      const fetchInvestorProfile = async () => {
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("investor_profile")
+            .eq("id", user.id)
+            .single(); 
+
+          if (error) {
+            throw error;
+          }
+
+          setInvestorProfile(data.investor_profile);
+          setMinValue(data.investor_profile.min_tvl);
+          setMaxValue(data.investor_profile.max_tvl);
+          setChain(data.investor_profile.chain);
+          setProtocol(data.investor_profile.protocol);
+
+        } catch (error) {
+          console.error("Error fetching investor profile:", error.message);
+        }
+      };
+
+      fetchInvestorProfile();
+    } else {
+      setInvestorProfile(null);
+    }
+  }, [user]); 
+
+  const updateProfile = async () => {
+    if (!user) {
+      console.error("No user found");
+      return;
+    }
+
+    const investorProfile = {
+      min_tvl: minValue,
+      max_tvl: maxValue,
+      chain: chain,
+      protocol: protocol,
+    };
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ investor_profile: investorProfile })
+        .eq("id", user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      // Handle success (e.g., show a notification)
+      console.log("Profile updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error.message);
+    }
+  };
+
+  const resetProfile = async () => {
+    // Set all value back to original state
+    setMinValue(investorProfile.min_tvl);
+    setMaxValue(investorProfile.max_tvl);
+    setChain(investorProfile.chain);
+    setProtocol(investorProfile.protocol);
+  };
+
   return (
     <div style={{ paddingLeft: "90px" }}>
       <Stack direction="column" spacing={5}>
@@ -81,7 +165,7 @@ export default function Profile() {
 
         <Box
           sx={{
-            backgroundColor: "rgba(242, 241, 235, 0.5)", // 50% opacity
+            backgroundColor: "rgba(242, 241, 235, 0.5)",
             width: "100%",
             maxWidth: "600px",
             borderRadius: "10px",
@@ -149,14 +233,29 @@ export default function Profile() {
 
             <Divider variant="middle" component="li" />
 
-            <ListItem secondaryAction={<Selector />} sx={listItemStyle}>
+            <ListItem
+              secondaryAction={
+                <Selector
+                  type="chain"
+                  selectedValue={chain}
+                  onChange={setChain}
+                />
+              }
+              sx={listItemStyle}
+            >
               <ListItemText primary="Chain" sx={listItemTextStyle} />
             </ListItem>
 
             <Divider variant="middle" component="li" />
 
             <ListItem
-              secondaryAction={<Selector type="protocol" />}
+              secondaryAction={
+                <Selector
+                  type="protocol"
+                  selectedValue={protocol}
+                  onChange={setProtocol}
+                />
+              }
               sx={listItemStyle}
             >
               <ListItemText primary="Protocol" sx={listItemTextStyle} />
@@ -164,8 +263,10 @@ export default function Profile() {
           </List>
         </Box>
         <Stack direction="row" spacing={2}>
-          <ActionButton cancel={true}>Cancel</ActionButton>
-          <ActionButton cancel={false}>Save</ActionButton>
+          <ActionButton cancel={true} onClick={resetProfile}>Cancel</ActionButton>
+          <ActionButton cancel={false} onClick={updateProfile}>
+            Save
+          </ActionButton>
         </Stack>
       </Stack>
     </div>

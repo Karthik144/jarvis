@@ -48,11 +48,10 @@ const BootstrapInput = styled(InputBase)(({ theme }) => ({
   },
 }));
 
-export default function Selector({ type }) {
-  const [selectedValue, setSelectedValue] = React.useState("");
+export default function Selector({ type, selectedValue, onChange }) {
 
   const handleChange = (event) => {
-    setSelectedValue(event.target.value);
+    onChange(event.target.value); // Call the passed onChange handler with the new value
   };
 
   const menuItems =

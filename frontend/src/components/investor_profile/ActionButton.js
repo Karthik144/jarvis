@@ -15,13 +15,14 @@ const StyledSignUpButton = styled(Button)(({ theme, cancel }) => ({
 }));
 
 
-export default function ActionButton({ cancel }) {
+export default function ActionButton({ cancel, onClick, children }) {
   return (
     <StyledSignUpButton
       variant="contained"
-      cancel={cancel} 
+      cancel={cancel}
+      onClick={onClick} 
     >
-      {cancel ? "Cancel" : "Save"}
+      {children} 
     </StyledSignUpButton>
   );
 }

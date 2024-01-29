@@ -6,18 +6,12 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Alert from "@mui/material/Alert";
 import MailOutlineIcon from "@mui/icons-material/MailOutline";
-import ClearIcon from "@mui/icons-material/Clear"; // Added ClearIcon
+import ClearIcon from "@mui/icons-material/Clear"; 
 import SignUpButton from "./SignUpButton";
-import IconButton from "@mui/material/IconButton"; // Added IconButton
-import React, { useState } from "react";
-import { createClient } from "@supabase/supabase-js";
+import IconButton from "@mui/material/IconButton"; 
+import React, { useState, useEffect } from "react";
+import { supabase } from "../../../supabaseClient";
 
-// CONFIG
-const supabaseUrl = 'https://nibfafwhlabdjvkzpvuv.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
- 
 // STYLING
 const style = {
   position: "absolute",
@@ -46,14 +40,13 @@ const closeButtonStyle = {
 
 // VIEW
 export default function WelcomeModal({ handleClose, open, email, setEmail, password, setPassword, mode }) {
-
   const [errorMessage, setErrorMessage] = useState("");
   const [needToConfirmEmail, setNeedToConfirmEmail] = useState(false);
 
   const handleEmailChange = (event) => {
     setEmail(event.target.value);
-    if (errorMessage){
-      setErrorMessage(""); 
+    if (errorMessage) {
+      setErrorMessage("");
     }
   };
 
@@ -65,53 +58,41 @@ export default function WelcomeModal({ handleClose, open, email, setEmail, passw
   };
 
   function checkValidInputs() {
-    if (!email || !password){
-      setErrorMessage("Please make sure both fields are filled.")
-      return false; 
-    } 
-    return true; 
+    if (!email || !password) {
+      setErrorMessage("Please make sure both fields are filled.");
+      return false;
+    }
+    return true;
   }
 
-  const investorProfile = {
-    tvl: '1,500,000 - 50,000,000',
-    chain: 'arbitrum',
-    protocol: 'uniswap',
-  };
+
   // USER-FLOW LOGIC
-async function handleSignIn() {
-  const validInputs = checkValidInputs();
+  async function handleSignIn() {
+    console.log("HANDLE SIGN IN CALLED"); 
+    const validInputs = checkValidInputs();
 
-  if (validInputs) {
-    const { user, error } = await supabase.auth.signInWithPassword({
-      email: email,
-      password: password,
-    });
+    if (validInputs) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
 
-    if (error) {
-      setErrorMessage(error.message);
-    } else {
-      const { data, error: insertError } = await supabase.from("users").upsert(
-        {
-          id: user.id,
-          email: user.email,
-          investor_profile: investorProfile, 
-        },
-        { onConflict: "id" }
-      );
-
-      if (insertError) {
-        console.error("Error inserting/updating user data:", insertError);
-      } else {
-        console.log("User data inserted/updated:", data);
+      if (error) {
+        setErrorMessage(error.message);
+      } else{
+        // const {
+        //   data: { user },
+        // } = await supabase.auth.getUser();
+        //  console.log("Logged in user's email: ", user.email);
+        //  console.log("Logged in user's ID: ", user.id);
+         handleClose(); 
       }
-      handleClose();
     }
   }
-}
-
   async function handleSignUp() {
 
-    const validInputs = checkValidInputs(); 
+    console.log("HANDLE SIGN UP CALLED"); 
+    const validInputs = checkValidInputs();
 
     if (validInputs) {
       const { error } = await supabase.auth.signUp({
@@ -128,8 +109,6 @@ async function handleSignIn() {
         setNeedToConfirmEmail(true);
       }
     }
-      
-
   }
 
   return (
@@ -145,7 +124,7 @@ async function handleSignIn() {
             <IconButton sx={closeButtonStyle} onClick={handleClose}>
               <ClearIcon />
             </IconButton>
-            <MailOutlineIcon fontSize='large'/>
+            <MailOutlineIcon fontSize="large" />
             <Typography
               id="modal-modal-title"
               sx={{
