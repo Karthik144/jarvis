@@ -1,3 +1,10 @@
+
+// NODE SERVER REQS
+const express = require("express");
+const app = express();
+const cors = require("cors");
+const port = 3001;
+
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
@@ -6,6 +13,13 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Local testing url
+  })
+);
+
+app.use(express.json());
 
 // GLOBAL VARS 
 const openai = new OpenAI({
@@ -143,7 +157,10 @@ async function getLowBetaHighGrowthPairs() {
 
 
 // OPEN AI SETUP + RUN
-async function runConversation() {
+async function runConversation(userQuery) {
+
+  console.log("INSIDE RUN CONVO");
+  console.log("RECIEVED QUERY:", userQuery);
   const messages = [
     {
       role: "system",
@@ -165,12 +182,13 @@ async function runConversation() {
       role: "system",
       content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
     },
-
-    {
-      role: "user",
-      content: "Does pendle have insurance?",
-    },
   ];
+
+  // Append the query to the messages array
+  messages.push({
+    role: "user",
+    content: userQuery,
+  });
 
   const tools = [
     {
@@ -625,12 +643,12 @@ function sleep(ms) {
 }
 
 
-async function fetchLowBetaHighGrowthPairs() {
-  const result = await getLowBetaHighGrowthPairs();
-  console.log(result);
-}
+// async function fetchLowBetaHighGrowthPairs() {
+//   const result = await getLowBetaHighGrowthPairs();
+//   console.log(result);
+// }
 
-fetchLowBetaHighGrowthPairs();
+// fetchLowBetaHighGrowthPairs();
 
 
 // runConversation()
@@ -640,3 +658,23 @@ fetchLowBetaHighGrowthPairs();
 //     });
 //   })
 //   .catch(console.error);
+
+app.post("/analyze", async (req, res) => {
+  try {
+    const userInput = req.body.userInput;
+    console.log("USER INPUT:", userInput);
+    const conversationResult = await runConversation(userInput);
+    console.log("CONVERSATION RESULT:", conversationResult);
+    const lastMessageContent =
+      conversationResult[conversationResult.length - 1].message.content;
+    console.log("RESULTT:", lastMessageContent);
+    res.json({ message: lastMessageContent });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+app.listen(port, async () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
