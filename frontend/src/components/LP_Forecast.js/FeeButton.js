@@ -17,12 +17,12 @@ const CustomButton = styled(Button)(({ theme, selected }) => ({
     : theme.palette.common.white,
   "&:hover": {
     backgroundColor: selected
-      ? theme.palette.common.black
+      ? 'black'
       : theme.palette.grey[200],
     borderColor: theme.palette.grey[300],
   },
   "&:active": {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: 'black',
     color: theme.palette.common.white,
   },
   "&:focus": {

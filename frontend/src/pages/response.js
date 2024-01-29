@@ -71,7 +71,7 @@ export default function Response() {
   const [runId, setRunId] = useState("");
 
   const [selectedFee, setSelectedFee] = useState(null);
-  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
+  const [showCalculatorUI, setShowCalcualtorUI] = useState(true); 
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
@@ -116,92 +116,97 @@ export default function Response() {
 
     console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
     fetchResponse(userQuery);
-  // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-  // setResponseText(loremIpsumText); 
+    const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
+    setResponseText(loremIpsumText); 
   }, []);
 
   return (
     <div className="flex min-h-screen flex-col items-start justify-between p-24">
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Typography
-          variant="h4"
-          sx={{ textAlign: "left", pt: "70px", marginLeft: "50px" }}
-        >
-          {userSearch}
-        </Typography>
+        <Grid container direction="column" style={{ paddingLeft: "50px" }}>
+          <Typography variant="h4" sx={{ textAlign: "left", pt: "70px" }}>
+            {userSearch}
+          </Typography>
 
-        <Grid
-          container
-          alignItems="center"
-          spacing={1}
-          sx={{
-            marginLeft: "50px",
-            marginTop: "50px",
-          }}
-          className={!responseText ? "animate-pulse-slow" : ""}
-        >
-          <Grid item>
-            <NotesIcon />
+          <Grid
+            container
+            alignItems="center"
+            spacing={1}
+            sx={{
+              marginLeft: "50px",
+              marginTop: "50px",
+            }}
+            className={!responseText ? "animate-pulse-slow" : ""}
+          >
+            <Grid item>
+              <NotesIcon />
+            </Grid>
+            <Grid item>
+              <Typography variant="h5" sx={{ fontWeight: "300" }}>
+                Answer
+              </Typography>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Typography variant="h5" sx={{ fontWeight: "300" }}>
-              Answer
-            </Typography>
-          </Grid>
-        </Grid>
 
-        <div style={{ overflow: "auto", maxHeight: "1200px" }}>
-          <div>
-            {!responseText ? (
-              <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
-                <Skeleton />
-                <Skeleton animation="wave" />
-                <Skeleton animation={false} />
-              </Box>
-            ) : (
-              <Box
-                overflow="auto"
-                paddingTop="20px"
-                paddingBottom="20px"
-                maxHeight="500px"
-              >
-                <Typography
-                  variant="body1"
+          <div style={{ overflow: "auto", maxHeight: "65vh" }}>
+            <div>
+              {!responseText ? (
+                <Box
+                  sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}
+                >
+                  <Skeleton />
+                  <Skeleton animation="wave" />
+                  <Skeleton animation={false} />
+                </Box>
+              ) : (
+                <Box
+                  overflow="auto"
+                  paddingTop="20px"
+                  paddingBottom="20px"
+                  maxHeight="500px"
+                >
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      textAlign: "left",
+                      marginLeft: "60px",
+                      marginTop: "15px",
+                      maxWidth: "1200px",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: responseText }}
+                  />
+                </Box>
+              )}
+            </div>
+
+            {showCalculatorUI && (
+              <Grid container spacing={2}>
+                <Box
                   sx={{
-                    textAlign: "left",
-                    marginLeft: "60px",
-                    marginTop: "15px",
-                    maxWidth: "1200px",
+                    width: "100%",
+                    marginLeft: "-415px",
+                    paddingTop: "50px",
                   }}
-                  dangerouslySetInnerHTML={{ __html: responseText }}
-                />
-              </Box>
+                >
+                  <Calculator />
+                </Box>
+              </Grid>
             )}
           </div>
 
-          {showCalculatorUI && (
-            <Grid container spacing={2}>
-              <Box
-                sx={{ width: "100%", marginLeft: "-400px", marginTop: "50px" }}
-              >
-                <Calculator />
-              </Box>
-            </Grid>
-          )}
-        </div>
-
-        <div
-          style={{
-            position: "fixed",
-            bottom: 30,
-            left: 0,
-            right: 0,
-            paddingBottom: "15px",
-            paddingTop: "45px",
-          }}
-        >
-          <FollowUpQuestionBar onSubmit={handleSubmit} />
-        </div>
+          <div
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 1000,
+              padding: "35px 0",
+            }}
+          >
+            <FollowUpQuestionBar onSubmit={handleSubmit} />
+          </div>
+        </Grid>
       </LocalizationProvider>
     </div>
   );
