@@ -51,39 +51,56 @@ async function searchProducts(searchTerm) {
     "InsurAce Covers": {},
   };
 
-  // Convert the search term to lowercase for case-insensitive comparison
   const lowerCaseSearchTerm = searchTerm.toLowerCase();
 
-  // Function to search within each product's properties
   const searchInNexusProducts = (product) =>
     product.name.toLowerCase().includes(lowerCaseSearchTerm);
 
   const searchInInsuraceProducts = (cover) =>
     cover.Protocol.toLowerCase().includes(lowerCaseSearchTerm);
 
-  // Search in Nexus Mutual Covers
   if (allProducts["Nexus Mutual Covers"]) {
     results["Nexus Mutual Covers"] = allProducts["Nexus Mutual Covers"].filter(
       searchInNexusProducts
     );
   }
 
-  // Search in InsurAce Covers
   if (allProducts["InsurAce Covers"]) {
-    results["InsurAce Covers"] = {
-      SmartContractVulnerabilityCover: allProducts[
-        "InsurAce Covers"
-      ].SmartContractVulnerabilityCover.filter(searchInInsuraceProducts),
-      CustodianRiskCover: allProducts[
-        "InsurAce Covers"
-      ].CustodianRiskCover.filter(searchInInsuraceProducts),
-      StablecoinDePegRiskCover: allProducts[
-        "InsurAce Covers"
-      ].StablecoinDePegRiskCover.filter(searchInInsuraceProducts),
-    };
+    const insurAceCovers = {};
+
+    const smartContractVulnerabilityCover = allProducts[
+      "InsurAce Covers"
+    ].SmartContractVulnerabilityCover.filter(searchInInsuraceProducts);
+
+    if (smartContractVulnerabilityCover.length > 0) {
+      insurAceCovers.SmartContractVulnerabilityCover =
+        smartContractVulnerabilityCover;
+    }
+
+    const custodianRiskCover = allProducts[
+      "InsurAce Covers"
+    ].CustodianRiskCover.filter(searchInInsuraceProducts);
+
+    if (custodianRiskCover.length > 0) {
+      insurAceCovers.CustodianRiskCover = custodianRiskCover;
+    }
+
+    const stablecoinDePegRiskCover = allProducts[
+      "InsurAce Covers"
+    ].StablecoinDePegRiskCover.filter(searchInInsuraceProducts);
+
+    if (stablecoinDePegRiskCover.length > 0) {
+      insurAceCovers.StablecoinDePegRiskCover = stablecoinDePegRiskCover;
+    }
+
+    if (Object.keys(insurAceCovers).length > 0) {
+      results["InsurAce Covers"] = insurAceCovers;
+    }
   }
+
   return results;
 }
+
 
 async function getSentiment(tokenName) {
   return new Promise((resolve, reject) => {
@@ -126,158 +143,155 @@ async function getLowBetaHighGrowthPairs() {
 
 
 // OPEN AI SETUP + RUN
-async function runConversation(){
-    const messages = [
-      {
-        role: "system",
-        content: "You are a helpful crypto research assistant.",
-      },
-      {
-        role: "system",
-        content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
-      },
-      {
-        role: "system",
-        content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-      },
-      {
-        role: "system",
-        content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-      },
-      {
-        role: "system",
-        content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
-      },
+async function runConversation() {
+  const messages = [
+    {
+      role: "system",
+      content: "You are a helpful crypto research assistant.",
+    },
+    {
+      role: "system",
+      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+    },
+    {
+      role: "system",
+      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+    },
+    {
+      role: "system",
+      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
+    },
+    {
+      role: "system",
+      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+    },
 
-      {
-        role: "user",
-        content: "What are some new tech-related updates with Injective?",
-      },
-    ];
+    {
+      role: "user",
+      content: "Does pendle have insurance?",
+    },
+  ];
 
-    const tools = [
-      {
-        type: "function",
-        function: {
-          name: "tavilyAdvancedSearch",
-          description:
-            "Get basic crypto/blockchain info from the internet. Use this only when you need more detailed info.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description:
-                  "The search query to use. For example: 'Latest news on Bitcoin applications'",
-              },
+  const tools = [
+    {
+      type: "function",
+      function: {
+        name: "tavilyAdvancedSearch",
+        description:
+          "Get basic crypto/blockchain info from the internet. Use this only when you need more detailed info.",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "The search query to use. For example: 'Latest news on Bitcoin applications'",
             },
-            required: ["query"],
           },
+          required: ["query"],
         },
       },
-      // checkForInsurance
-      {
-        type: "function",
-        function: {
-          name: "checkForInsurance",
-          description:
-            "Get a list of insurance covers for the specified blockchain protocol from NexusMutual and Insurace.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description:
-                  "The protocol name the user is trying to find an available insurance for.",
-              },
+    },
+    // checkForInsurance
+    {
+      type: "function",
+      function: {
+        name: "checkForInsurance",
+        description:
+          "Get a list of insurance covers for the specified blockchain protocol from NexusMutual and Insurace.",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "The protocol name the user is trying to find an available insurance for.",
             },
-            required: ["query"],
           },
+          required: ["query"],
         },
       },
+    },
 
-      // sentimentAnalysis
-      {
-        type: "function",
-        function: {
-          name: "sentimentAnalysis",
-          description:
-            "Get sentiment analysis on data from Twitter posts regarding a crypto token.",
-          parameters: {
-            type: "object",
-            properties: {
-              query: {
-                type: "string",
-                description:
-                  "The token name for which we're doing sentiment analysis on (i.e. Bitcoin)",
-              },
+    // sentimentAnalysis
+    {
+      type: "function",
+      function: {
+        name: "sentimentAnalysis",
+        description:
+          "Get sentiment analysis on data from Twitter posts regarding a crypto token.",
+        parameters: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "The token name for which we're doing sentiment analysis on (i.e. Bitcoin)",
             },
-            required: ["query"],
           },
+          required: ["query"],
         },
       },
+    },
 
-      // lowBetaHighGrowth
-      {
-        type: "function",
-        function: {
-          name: "lowBetaHighGrowth",
-          description:
-            "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
-          parameters: {
-            type: "object",
-            properties: {},
-            required: [],
-          },
+    // lowBetaHighGrowth
+    {
+      type: "function",
+      function: {
+        name: "lowBetaHighGrowth",
+        description:
+          "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
+        parameters: {
+          type: "object",
+          properties: {},
+          required: [],
         },
       },
-    ];
+    },
+  ];
 
-    const response = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-1106",
-        messages: messages,
-        tools: tools,
-        tool_choice: "auto", 
-    });
+  const response = await openai.chat.completions.create({
+    model: "gpt-3.5-turbo-1106",
+    messages: messages,
+    tools: tools,
+    tool_choice: "auto",
+  });
 
-    const responseMessage = response.choices[0].message;
-    const toolCalls = responseMessage.tool_calls;
+  const responseMessage = response.choices[0].message;
+  const toolCalls = responseMessage.tool_calls;
 
-    if (responseMessage.tool_calls) {
-      const availableFunctions = {
-        tavilyAdvancedSearch: tavilyAdvancedSearch,
-        checkForInsurance: searchProducts,
-        sentimentAnalysis: getSentiment,
-        lowBetaHighGrowth: getLowBetaHighGrowthPairs,
-      };
+  if (responseMessage.tool_calls) {
+    const availableFunctions = {
+      tavilyAdvancedSearch: tavilyAdvancedSearch,
+      checkForInsurance: searchProducts,
+      sentimentAnalysis: getSentiment,
+      lowBetaHighGrowth: getLowBetaHighGrowthPairs,
+    };
 
-      messages.push(responseMessage);
+    messages.push(responseMessage);
 
-      for (const toolCall of toolCalls) {
-        const functionName = toolCall.function.name;
-        const functionToCall = availableFunctions[functionName];
-        const functionArgs = JSON.parse(toolCall.function.arguments);
-        const functionResponse = await functionToCall(functionArgs.query);
+    for (const toolCall of toolCalls) {
+      const functionName = toolCall.function.name;
+      const functionToCall = availableFunctions[functionName];
+      const functionArgs = JSON.parse(toolCall.function.arguments);
+      const functionResponse = await functionToCall(functionArgs.query);
 
-        const contentString = JSON.stringify(functionResponse);
+      const contentString = JSON.stringify(functionResponse);
 
-        messages.push({
-          tool_call_id: toolCall.id,
-          role: "tool",
-          name: functionName,
-          content: contentString,
-        }); // extend conversation with function response
-      }
-      const secondResponse = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-1106",
-        messages: messages,
-      }); // get a new response from the model where it can see the function response
-    return secondResponse.choices;
-
+      messages.push({
+        tool_call_id: toolCall.id,
+        role: "tool",
+        name: functionName,
+        content: contentString,
+      }); // extend conversation with function response
     }
-    
+    const secondResponse = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-1106",
+      messages: messages,
+    }); // get a new response from the model where it can see the function response
+    return secondResponse.choices;
+  }
 }
-
 
 
 
