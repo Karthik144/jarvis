@@ -365,13 +365,17 @@ async function getPoolData(chain, project) {
     const requestURL = "https://yields.llama.fi/pools";
     const response = await axios.get(requestURL);
 
+    // Note: Need to allow this to be customized (tvl value + stable coin) based on investor profile from db)
     if (response.data.status === "success") {
       const filteredPools = response.data.data.filter(
         (pool) =>
           pool.chain &&
           pool.chain.toLowerCase() === chain.toLowerCase() &&
           pool.project &&
-          pool.project.toLowerCase() === project.toLowerCase()
+          pool.project.toLowerCase() === project.toLowerCase() &&
+          !pool.stablecoin &&
+          pool.tvlUsd &&
+          pool.tvlUsd >= 1500000
       );
 
       // Sort the filtered pools using the calcRank function
@@ -606,10 +610,18 @@ function sleep(ms) {
 }
 
 
-runConversation()
-  .then((choices) => {
-    choices.forEach((choice) => {
-      console.log(choice.message.content); // Only print content of each message
-    });
-  })
-  .catch(console.error);
+async function fetchLowBetaHighGrowthPairs() {
+  const result = await getLowBetaHighGrowthPairs();
+  console.log(result);
+}
+
+fetchLowBetaHighGrowthPairs();
+
+
+// runConversation()
+//   .then((choices) => {
+//     choices.forEach((choice) => {
+//       console.log(choice.message.content); // Only print content of each message
+//     });
+//   })
+//   .catch(console.error);
