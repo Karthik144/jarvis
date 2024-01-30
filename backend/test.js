@@ -1,4 +1,3 @@
-
 // NODE SERVER REQS
 const express = require("express");
 const app = express();
@@ -21,20 +20,19 @@ app.use(
 
 app.use(express.json());
 
+let poolOffset = 0
+
 // GLOBAL VARS 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  baseURL: "https://oai.hconeai.com/v1",
+    baseURL: "https://oai.hconeai.com/v1",
   defaultHeaders: {
     "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
   },
 });
 
-let poolOffset = 0;
-
 // MAIN FUNCS - USED FOR FUNC CALLING 
 async function tavilyAdvancedSearch(query) {
-
     console.log("TAVILY ADVANCED SEARCH CALLED");
     const endpoint = "https://api.tavily.com/search";
 
@@ -168,7 +166,7 @@ async function predict_LP() {
 async function runConversation(userQuery, previousMessages) {
 
   console.log("INSIDE RUN CONVO");
-  console.log("RECIEVED QUERY:", userQuery);
+  console.log("RECEIEVED QUERY:", userQuery);
   // const messages = [
   //   {
   //     role: "system",
@@ -269,11 +267,6 @@ async function runConversation(userQuery, previousMessages) {
         name: "lowBetaHighGrowth",
         description:
           "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
-        parameters: {
-          type: "object",
-          properties: {},
-          required: [],
-        },
       },
     },
 
@@ -323,6 +316,7 @@ async function runConversation(userQuery, previousMessages) {
 
 
     messages.push(responseMessage);
+
 
     for (const toolCall of toolCalls) {
       const functionName = toolCall.function.name;
@@ -734,49 +728,25 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-
-// async function fetchLowBetaHighGrowthPairs() {
-//   const result = await getLowBetaHighGrowthPairs();
-//   console.log(result);
-// }
-
-// fetchLowBetaHighGrowthPairs();
-
-
-// runConversation()
-//   .then((choices) => {
-//     choices.forEach((choice) => {
-//       console.log(choice.message.content); // Only print content of each message
-//     });
-//   })
-//   .catch(console.error);
-
-getLPTokenAddresses("USDC", "WETH")
-  .then((result) => {
-    console.log(result);
-  })
-  .catch((error) => {
+//ENDPOINTS
+app.post("/analyze", async (req, res) => {
+  try {
+    const userInput = req.body.userInput;
+    const previousMessages = req.body.defaultMessages;
+    console.log("USER INPUT:", userInput);
+    console.log("MESSAGES:", previousMessages);
+    const conversationResult = await runConversation(userInput, previousMessages);
+    console.log("CONVERSATION RESULT:", conversationResult);
+    const lastMessageContent =
+      conversationResult[conversationResult.length - 1].message.content;
+    console.log("RESULTT:", lastMessageContent);
+    res.json({ message: lastMessageContent });
+  } catch (error) {
     console.error(error);
-  });
+  }
+});
 
-// app.post("/analyze", async (req, res) => {
-//   try {
-//     const userInput = req.body.userInput;
-//     const previousMessages = req.body.defaultMessages; 
-//     console.log("USER INPUT:", userInput);
-//     console.log("MESSAGES:", previousMessages); 
-//     const conversationResult = await runConversation(userInput, previousMessages);
-//     console.log("CONVERSATION RESULT:", conversationResult);
-//     const lastMessageContent =
-//       conversationResult[conversationResult.length - 1].message.content;
-//     console.log("RESULTT:", lastMessageContent);
-//     res.json({ message: lastMessageContent });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Internal Server Error");
-//   }
-// });
 
-// app.listen(port, async () => {
-//   console.log(`Server running on http://localhost:${port}`);
-// });
+app.listen(port, async () => {
+  console.log(`Server running on http://localhost:${port}`);
+});
