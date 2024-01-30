@@ -54,22 +54,6 @@ export default function Home() {
     };
   }, []);
 
-  // const handleAuth = async () => {
-
-  //   console.log("HANDLE AUTH CALLED"); 
-  //   const { user, session, error } = await supabase.auth.signIn({
-  //     email,
-  //     password,
-  //   });
-
-  //   if (error) {
-  //     console.error(error);
-  //   } else {
-  //     setUser(user);
-  //     console.log("USER:", user); 
-  //     setModalOpen(false);
-  //   }
-  // };
 
   const handleOpenModal = (mode) => {
     setMode(mode);
@@ -189,12 +173,10 @@ export default function Home() {
           </>
         )}
       </Stack>
-
       <Typography variant="h3" sx={{ textAlign: "center", pt: "165px" }}>
         Speed up your crypto research
       </Typography>
       <PromptBar onSubmit={handleSubmit} />
-
       <Grid
         container
         spacing={2}
@@ -208,13 +190,42 @@ export default function Home() {
           </Typography>
         </Grid>
         <Grid item>
-          <QuickPrompt text="Bitcoin" onPress={handleQuickPrompt} />
+          <QuickPrompt
+            text="🚀 Low beta, high growth tokens"
+            onPress={handleQuickPrompt}
+          />
         </Grid>
         <Grid item>
-          <QuickPrompt text="Cosmos" onPress={handleQuickPrompt} />
+          <QuickPrompt
+            text="📈 What is Injective?"
+            onPress={handleQuickPrompt}
+          />
         </Grid>
         <Grid item>
-          <QuickPrompt text="Chainlink" onPress={handleQuickPrompt} />
+          <QuickPrompt
+            text="📱 What's the Twitter buzz on Injective?"
+            onPress={handleQuickPrompt}
+          />
+        </Grid>
+      </Grid>
+      <Grid
+        container
+        spacing={2}
+        justifyContent="center"
+        alignItems="center"
+        sx={{ maxWidth: 1200, margin: "0 auto" }}
+      >
+        <Grid item>
+          <QuickPrompt
+            text="📑 Does Pendle have insurance?"
+            onPress={handleQuickPrompt}
+          />
+        </Grid>
+        <Grid item>
+          <QuickPrompt
+            text="💸 Help me forecast my LP position"
+            onPress={handleQuickPrompt}
+          />
         </Grid>
       </Grid>
 

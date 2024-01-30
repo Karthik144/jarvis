@@ -36,7 +36,7 @@ export default function PromptBar({ onSubmit }) {
         <TextField
           fullWidth
           id="outlined-helperText"
-          placeholder="Enter token or ticker name for a research report."
+          placeholder="Ask any question to start your research..."
           value={inputValue}
           onChange={handleInputChange}
           variant="outlined"
