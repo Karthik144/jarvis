@@ -30,6 +30,7 @@ const openai = new OpenAI({
   },
 });
 
+let poolOffset = 0;
 
 // MAIN FUNCS - USED FOR FUNC CALLING 
 async function tavilyAdvancedSearch(query) {
@@ -288,6 +289,7 @@ async function runConversation(userQuery, previousMessages) {
       lowBetaHighGrowth: getLowBetaHighGrowthPairs,
     };
 
+
     messages.push(responseMessage);
 
     for (const toolCall of toolCalls) {
@@ -295,6 +297,12 @@ async function runConversation(userQuery, previousMessages) {
       const functionToCall = availableFunctions[functionName];
       const functionArgs = JSON.parse(toolCall.function.arguments);
       const functionResponse = await functionToCall(functionArgs.query);
+
+      console.log('FUNCTION NAME:', functionName); 
+      if (functionName !== 'lowBetaHighGrowth'){
+        console.log('INSIDE IF STATEMENT'); 
+        poolOffset = 0; 
+      }
 
       const contentString = JSON.stringify(functionResponse);
 
@@ -359,7 +367,6 @@ function getInsurAceProducts() {
 }
 
 // HELPER FUNCS FOR BETA CALCS
-let poolOffset = 0;
 
 async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
