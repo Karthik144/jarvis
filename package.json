@@ -15,6 +15,7 @@
     "@uniswap/v3-sdk": "^3.10.2",
     "axios": "^1.6.5",
     "axios-retry": "^4.0.0",
+    "bignumber.js": "^9.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "ethers-multicall": "^0.2.3",

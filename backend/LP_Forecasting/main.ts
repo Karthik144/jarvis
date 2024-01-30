@@ -4,10 +4,12 @@
 
 
 //TEMP VERSION
-import { ChainId, Token } from "@uniswap/sdk-core";
-import { Pool, FeeAmount } from "@uniswap/v3-sdk";
+import { Token } from "@uniswap/sdk-core";
+import { Pool } from "@uniswap/v3-sdk";
 import axios from "axios";
-import { response } from "express";
+import { ethers, providers } from 'ethers'
+import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
+import { Response } from "express";
 
 //0x912CE59144191C1204E64559FE8253a0e49E6548 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
 async function predict_LP(LP_dict: any) {
@@ -39,15 +41,11 @@ async function predict_LP(LP_dict: any) {
     const close_prices: number[] = ohlcv.map(entry => entry[1])
     const sortedClosePrices: number[] = close_prices.slice().sort((a, b) => a - b);
 
-    const minPrice: number = sortedClosePrices[0];
     const maxPrice: number = sortedClosePrices[sortedClosePrices.length - 1]
     const q1: number = calculatePercentile(sortedClosePrices, 25);
-    const q3: number = calculatePercentile(sortedClosePrices, 75);
 
-    console.log(`Minimum Price: ${minPrice}`);
-    console.log(`Maximum Price: ${maxPrice}`);
-    console.log(`25th Quartile (Q1): ${q1}`);
-    console.log(`75th Quartile (Q3): ${q3}`);
+    console.log(`Lower Band: ${q1}`);
+    console.log(`Upper Band: ${maxPrice}`);
 
     function calculatePercentile(data: number[], percentile: number): number {
         const index = Math.ceil((percentile / 100) * data.length) - 1;
@@ -69,12 +67,22 @@ async function predict_LP(LP_dict: any) {
     const deltaY = deltaL * (Math.sqrt(P) - Math.sqrt(Pl))
     const deltaX = deltaL * (1 / Math.sqrt(P) - 1 / Math.sqrt(Pu))
 
-    console.log(deltaY) // WETH - token0
-    console.log(deltaX) // USDC - token1
+    console.log(`USDC amt.: ${deltaY}`) // USDC - token0
+    console.log(`WETH amt.: ${deltaX}`) // ETH - token1
 
     //Estimate Fees
+    const volume_24h_avg = ohlcv.slice(1, 8).map(entry => entry[5]).reduce((accumulator,  currentValue) => accumulator + currentValue, 0) / 7
+    const usd_fees = predict_Fees(poolAddress, volume_24h_avg, deltaL);
+
+    console.log(usd_fees);
     
 }
+
+async function predict_Fees(contract_addr, volume_24h_avg, deltaL) {
+    return deltaL;
+}
+
+
 const example_object = {
     chain: 'eth',
     chainId: 1,
