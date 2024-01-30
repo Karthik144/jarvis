@@ -73,22 +73,20 @@ async function predict_LP(LP_dict: any) {
 
     //Estimate Fees
     const volume_24h_avg = ohlcv.slice(1, 8).map(entry => entry[5]).reduce((accumulator,  currentValue) => accumulator + currentValue, 0) / 7
-    const usd_fees = await predict_Fees(poolAddress, volume_24h_avg, deltaL, Pl, Pu);
-
-    console.log(usd_fees);
-    
+    //const usd_fees = await predict_Fees(poolAddress, volume_24h_avg, deltaL, Pl, Pu);    
 }
 
-async function predict_Fees(contract_addr, volume_24h_avg, deltaL, pl, pu) {
-    //deltaL: Our share of the liquidity
+// async function predict_Fees(contract_addr, volume_24h_avg, deltaL, pl, pu) {
+//     //deltaL: Our share of the liquidity
+//     //estimated_fee = ((deltaL / (deltaL + L) * (volume_24h_avg * fee)
 
-    const provider = new ethers.providers.JsonRpcProvider(process.env.RPCURL);
-    const pool_contract = new ethers.Contract(contract_addr, IUniswapV3PoolABI.abi, provider)
+//     const provider = new ethers.providers.JsonRpcProvider(process.env.RPCURL);
+//     const pool_contract = new ethers.Contract(contract_addr, IUniswapV3PoolABI.abi, provider)
 
    
 
-    return deltaL;
-}
+//     return deltaL;
+// }
 
 
 const example_object = {
