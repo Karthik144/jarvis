@@ -10,6 +10,7 @@ import axios from "axios";
 import { ethers, providers } from 'ethers'
 import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
 import { Response } from "express";
+require('dotenv').config()
 
 //0x912CE59144191C1204E64559FE8253a0e49E6548 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
 async function predict_LP(LP_dict: any) {
@@ -72,13 +73,20 @@ async function predict_LP(LP_dict: any) {
 
     //Estimate Fees
     const volume_24h_avg = ohlcv.slice(1, 8).map(entry => entry[5]).reduce((accumulator,  currentValue) => accumulator + currentValue, 0) / 7
-    const usd_fees = predict_Fees(poolAddress, volume_24h_avg, deltaL);
+    const usd_fees = await predict_Fees(poolAddress, volume_24h_avg, deltaL, Pl, Pu);
 
     console.log(usd_fees);
     
 }
 
-async function predict_Fees(contract_addr, volume_24h_avg, deltaL) {
+async function predict_Fees(contract_addr, volume_24h_avg, deltaL, pl, pu) {
+    //deltaL: Our share of the liquidity
+
+    const provider = new ethers.providers.JsonRpcProvider(process.env.RPCURL);
+    const pool_contract = new ethers.Contract(contract_addr, IUniswapV3PoolABI.abi, provider)
+
+   
+
     return deltaL;
 }
 
