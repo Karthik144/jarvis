@@ -1,3 +1,6 @@
+//REFS: 
+//  https://github.com/Uniswap/examples/blob/main/v3-sdk/pool-data/src/libs/pool-data.ts
+//  https://docs.uniswap.org/sdk/v3/guides/advanced/price-oracle
 import JSBI from 'jsbi'
 import { ethers, providers } from 'ethers'
 import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
