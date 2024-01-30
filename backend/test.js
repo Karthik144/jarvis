@@ -154,6 +154,13 @@ async function getLowBetaHighGrowthPairs() {
   return sortedPools;
 }
 
+async function predict_LP() {
+
+  // Call gecko terminal endpoint to get both token addresses 
+
+
+  // Call estimation method 
+}
 
 // OPEN AI SETUP + RUN
 async function runConversation(userQuery, previousMessages) {
@@ -262,6 +269,31 @@ async function runConversation(userQuery, previousMessages) {
           "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
       },
     },
+
+    // predict_LP
+    {
+      type: "function",
+      function: {
+        name: "predict_LP",
+        description: "Estimate best liquidity pool range for 100 day positions",
+        parameters: {
+          type: "object",
+          properties: {
+            tokenOne: {
+              type: "string",
+              description:
+                "The token ticker name for the first token used in the liquidity pool calculation (i.e. BTC for Bitcoin)",
+            },
+            tokenTwo: {
+              type: "string",
+              description:
+                "The token ticker name for the second token used in the liquidity pool calculation (i.e. BTC for Bitcoin)",
+            },
+          },
+          required: ["tokenOne", "tokenTwo"],
+        },
+      },
+    },
   ];
 
   const response = await openai.chat.completions.create({
@@ -316,6 +348,57 @@ async function runConversation(userQuery, previousMessages) {
 }
 
 
+
+async function getLPTokenAddresses(tokenOne, tokenTwo){
+    try {
+      const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
+      const response = await axios.get(url);
+      const pools = response.data;
+      
+      console.log("POOLS:", pools); 
+      let tokenOneAddress = '';
+      let tokenTwoAddress = ''; 
+
+      let formattedString = `${tokenOne} / ${tokenTwo}`;
+      console.log("FORMATTED STRING:", formattedString); 
+      console.log("LENGTH OF POOLS:", pools.data.length); 
+      for (let i = 0; i < pools.data.length; i++){
+
+        // console.log('INSIDE FOR LOOP'); 
+        let str = pools.data[i].attributes.name;
+        let parts = str.split(" "); // Split the string into parts
+        parts.pop(); // Remove the last element (which is "0.05%")
+        str = parts.join(" "); // Join the remaining elements back into a string
+
+        if (str === formattedString){
+          // console.log("INSIDE IF STATEMENT"); 
+          addressOneStr = pools.data[i].relationships.base_token.data.id;
+          console.log("ADDRESS ONE STR:", addressOneStr); 
+          let addressOneParts = addressOneStr.split("_"); // Split the string into parts
+          tokenOneAddress = addressOneParts[1]; 
+
+          addressTwoStr =
+            pools.data[i].relationships.quote_token.data.id;
+          console.log("ADDRESS TWO STR:", addressTwoStr); 
+          let addressTwoParts = addressTwoStr.split("_"); // Split the string into parts
+          tokenTwoAddress = addressTwoParts[1]; 
+
+        }
+      }
+
+      console.log('TOKEN ONE ADDRESS:', tokenOneAddress); 
+      console.log('TOKEN TWO ADDRESS:', tokenTwoAddress); 
+
+      if (tokenOneAddress !== '' && tokenTwoAddress !== ''){
+        return {
+          tokenOneAddress, tokenTwoAddress
+        }
+      } 
+    } catch (error) {
+      console.error("Error fetching product data:", error);
+      return null;
+    }
+}
 
 // HELPER FUNCS
 async function getInsuranceProducts() {
@@ -645,14 +728,17 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 550640bbf1bdfb4ec3dcbeeb8de3bfaee6f26448
 //ENDPOINTS
 app.post("/analyze", async (req, res) => {
   try {
     const userInput = req.body.userInput;
-    const previousMessages = req.body.defaultMessages; 
+    const previousMessages = req.body.defaultMessages;
     console.log("USER INPUT:", userInput);
-    console.log("MESSAGES:", previousMessages); 
+    console.log("MESSAGES:", previousMessages);
     const conversationResult = await runConversation(userInput, previousMessages);
     console.log("CONVERSATION RESULT:", conversationResult);
     const lastMessageContent =
@@ -661,9 +747,9 @@ app.post("/analyze", async (req, res) => {
     res.json({ message: lastMessageContent });
   } catch (error) {
     console.error(error);
-    res.status(500).send("Internal Server Error");
   }
 });
+
 
 app.listen(port, async () => {
   console.log(`Server running on http://localhost:${port}`);
