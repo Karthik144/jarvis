@@ -69,28 +69,97 @@ export default function Response() {
   const [userSearch, setUserSearch] = useState("");
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
+  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
+  const [messages, setMessages] = useState([
+    {
+      role: "system",
+      content: "You are a helpful crypto research assistant.",
+    },
+    {
+      role: "system",
+      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+    },
+    {
+      role: "system",
+      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+    },
+    {
+      role: "system",
+      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
+    },
+    {
+      role: "system",
+      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+    },
+  ]);
 
   const [selectedFee, setSelectedFee] = useState(null);
-  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
+
+  const addMessage = (newMessage) => {
+    setMessages((prevMessages) => [...prevMessages, newMessage]);
+  };
+
+  // const handleSubmit = async (query) => {
+  //   console.log("handle submit called in response.js");
+  //   await fetchResponse(query);
+  //   if (query === "Help me forecast my LP position"){
+  //     setShowCalcualtorUI(true); 
+  //   }
+  // };
 
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
+
+    // Create the new user message object
+    const newUserMessage = {
+      role: "user",
+      content: query,
+    };
+
+    addMessage(newUserMessage);
+
     await fetchResponse(query);
-    if (query === "Help me forecast my LP position"){
-      setShowCalcualtorUI(true); 
+
+    if (query === "Help me forecast my LP position") {
+      setShowCalcualtorUI(true);
     }
   };
 
   async function fetchResponse(userQuery) {
     console.log("INSIDE FETCH RESPONSE");
     try {
-      console.log(userQuery); 
+      console.log(userQuery);
+      // console.log(newUserMessage); 
+      console.log("MESSAGES INSIDE FETCH:", messages); 
+
+      const processedQuery = userQuery.replace(/^"|"$/g, "");
+
+      const structuredMessage = {
+        role: "user",
+        content: processedQuery,
+      }
+
+      const requestBody = {
+        userInput: userQuery,
+        defaultMessages: [...messages, structuredMessage],
+      };
+
+      console.log('MESSAGES REQUEST BODY', requestBody.messages); 
+
+      // const response = await fetch("http://localhost:3001/analyze", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify({ userInput: userQuery }),
+      // });
+
       const response = await fetch("http://localhost:3001/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ userInput: userQuery }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -98,6 +167,10 @@ export default function Response() {
       }
 
       const data = await response.json();
+      addMessage({
+        role: "system",
+        content: data.message,
+      });
       const formattedResponse = markdownToHtml(data.message);
       console.log("Formatted response:", formattedResponse);
 

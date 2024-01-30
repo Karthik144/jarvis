@@ -157,38 +157,40 @@ async function getLowBetaHighGrowthPairs() {
 
 
 // OPEN AI SETUP + RUN
-async function runConversation(userQuery) {
+async function runConversation(userQuery, previousMessages) {
 
   console.log("INSIDE RUN CONVO");
   console.log("RECIEVED QUERY:", userQuery);
-  const messages = [
-    {
-      role: "system",
-      content: "You are a helpful crypto research assistant.",
-    },
-    {
-      role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
-    },
-    {
-      role: "system",
-      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-    },
-    {
-      role: "system",
-      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-    },
-    {
-      role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
-    },
-  ];
+  // const messages = [
+  //   {
+  //     role: "system",
+  //     content: "You are a helpful crypto research assistant.",
+  //   },
+  //   {
+  //     role: "system",
+  //     content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+  //   },
+  //   {
+  //     role: "system",
+  //     content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+  //   },
+  //   {
+  //     role: "system",
+  //     content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
+  //   },
+  //   {
+  //     role: "system",
+  //     content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+  //   },
+  // ];
+
+  const messages = previousMessages; 
 
   // Append the query to the messages array
-  messages.push({
-    role: "user",
-    content: userQuery,
-  });
+  // messages.push({
+  //   role: "user",
+  //   content: userQuery,
+  // });
 
   const tools = [
     {
@@ -662,8 +664,10 @@ function sleep(ms) {
 app.post("/analyze", async (req, res) => {
   try {
     const userInput = req.body.userInput;
+    const previousMessages = req.body.defaultMessages; 
     console.log("USER INPUT:", userInput);
-    const conversationResult = await runConversation(userInput);
+    console.log("MESSAGES:", previousMessages); 
+    const conversationResult = await runConversation(userInput, previousMessages);
     console.log("CONVERSATION RESULT:", conversationResult);
     const lastMessageContent =
       conversationResult[conversationResult.length - 1].message.content;
