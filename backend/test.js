@@ -269,6 +269,31 @@ async function runConversation(userQuery, previousMessages) {
         },
       },
     },
+
+    // calcLPBands
+    {
+      type: "function",
+      function: {
+        name: "calcLPBands",
+        description: "Calculate LP bands",
+        parameters: {
+          type: "object",
+          properties: {
+            tokenOne: {
+              type: "string",
+              description:
+                "The token ticker name for the first token used in the LP Band calcualtion (i.e. BTC for Bitcoin)",
+            },
+            tokenTwo: {
+              type: "string",
+              description:
+                "The token ticker name for the second token used in the LP Band calcualtion (i.e. BTC for Bitcoin)",
+            },
+          },
+          required: ['tokenOne', 'tokenTwo'],
+        },
+      },
+    },
   ];
 
   const response = await openai.chat.completions.create({
