@@ -778,4 +778,8 @@ app.listen(port, async () => {
   console.log(`Server running on http://localhost:${port}`);
 });
 
+app.get("/", (req, res) => {
+  res.send("Hey this is my API running 🥳");
+});
+
 module.exports = app;
