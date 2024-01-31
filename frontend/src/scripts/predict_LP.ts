@@ -37,8 +37,6 @@ export async function predict_LP(LP_dict: any) {
         token0, token1, LP_dict.feeTier
     )
 
-    console.log(poolAddress);
-
     //GET 100D HISTORICAL PRICES
     const prices_endpoint = `https://api.geckoterminal.com/api/v2/networks/${LP_dict.chain}/pools/${poolAddress}/ohlcv/day`
     const response = await axios.get(prices_endpoint) 
@@ -62,8 +60,6 @@ export async function predict_LP(LP_dict: any) {
     //Calculate deposit amounts
     const poolPrices_endpoint = `https://api.geckoterminal.com/api/v2/networks/${LP_dict.chain}/pools/${poolAddress}`
     const response2 = await axios.get(poolPrices_endpoint)
-
-    console.log(response2.data.data.attributes)
 
     const priceUSDX = Number(response2.data.data.attributes.base_token_price_usd)
     const priceUSDY = Number(response2.data.data.attributes.quote_token_price_usd)
@@ -107,13 +103,13 @@ export async function predict_LP(LP_dict: any) {
 // }
 
 //ETH token0 is higher address, ARB token0 is lower address
-const example_object = {
-    chain: 'arbitrum',
-    chainId: 42161,
-    token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //WETH
-    token1: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //USDC
-    feeTier: 500,
-    depositAmt: 1000,
-}
-const result = predict_LP(example_object)
-console.log(result)
+// const example_object = {
+//     chain: 'arbitrum',
+//     chainId: 42161,
+//     token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //WETH
+//     token1: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //USDC
+//     feeTier: 500,
+//     depositAmt: 1000,
+// }
+// const result = predict_LP(example_object)
+// console.log(result)

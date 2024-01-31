@@ -166,7 +166,7 @@ export default function Calculator({ contract_addrs, tokenPair }) {
                     <OverlayText
                       text={`${
                         tokenPair.split(" / ")[1]
-                      } Amt: ${result.token0_amt.toFixed(2)}`}
+                      } Amt: ${result.token1_amt.toFixed(2)}`}
                     />
                   </Grid>
                 </Grid>
