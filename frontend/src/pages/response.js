@@ -184,18 +184,20 @@ export default function Response() {
       // });
 
       
-      try {
-        const response = await axios.post('https://jarvis-api.vercel.app/analyze', requestBody, {
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = await response.json();
-        console.log("Data in client:", data);
-      } catch (error) {
-        console.error(error);
+      const response = await fetch("https://jarvis-api.vercel.app/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
+
+      const data = await response.json();
+      console.log("Data in client:", data);
 
       // Check if response contains token addresses
       if ("tokenOneAddress" in data && "tokenTwoAddress" in data && 'tokenPair' in data) {
