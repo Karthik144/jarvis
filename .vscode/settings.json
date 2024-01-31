@@ -1,11 +1,20 @@
 {
-    "editor.formatOnPaste": true,
-    "editor.formatOnType": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "notebook.formatOnSave.enabled": true,
-    "editor.formatOnSave": false,
-    "editor.autoClosingBrackets": "always",
-    "editor.codeActionsOnSave": {
-      "notebook.formatOnSave.enabled": "explicit"
-    }
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
+  "deno.enablePaths": [
+    "supabase/functions"
+  ],
+  "deno.lint": true,
+  "deno.unstable": true,
+  "editor.autoClosingBrackets": "always",
+  "editor.codeActionsOnSave": {
+    "notebook.formatOnSave.enabled": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnPaste": true,
+  "editor.formatOnSave": false,
+  "editor.formatOnType": true,
+  "notebook.formatOnSave.enabled": true,
+  "deno.enable": true
 }

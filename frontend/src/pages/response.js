@@ -167,38 +167,15 @@ export default function Response() {
 
       console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages); 
 
-      // const response = await fetch("http://localhost:3001/analyze", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({ userInput: userQuery }),
-      // });
-
-      // const response = await fetch("http://localhost:3001/analyze", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody),
-      // });
-
-      
-      // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
-      //   mode: 'no-cors',
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody),
-      // });
-
+      const edge_endpoint = ''
+      const anon_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU'
       const response = await fetch(
-        "https://jarvis-api.vercel.app/analyze",
+        edge_endpoint,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${anon_key}`,
           },
           body: JSON.stringify(requestBody),
         }
