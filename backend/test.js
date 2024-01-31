@@ -34,6 +34,7 @@ const openai = new OpenAI({
 // MAIN FUNCS - USED FOR FUNC CALLING
 async function tavilyAdvancedSearch(query) {
   console.log("TAVILY ADVANCED SEARCH CALLED");
+  console.log("QUERY IN TAVILY:", query);
   const endpoint = "https://api.tavily.com/search";
 
   try {

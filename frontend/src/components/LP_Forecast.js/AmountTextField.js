@@ -31,19 +31,28 @@ const CustomTextField = styled(TextField)({
   },
 });
 
-export default function AmountTextField() {
+export default function AmountTextField({ depositAmount, setDepositAmount }) {
+
+  const handleChange = (event) => {
+    setDepositAmount(event.target.value);
+  };
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
       <Typography
         component="label"
         sx={{
-          fontSize: "1rem", 
-          pb: '5px', 
+          fontSize: "1rem",
+          pb: "5px",
         }}
       >
         Position Amount
       </Typography>
-      <CustomTextField variant="outlined" placeholder="1000" />
+      <CustomTextField
+        variant="outlined"
+        placeholder="1000"
+        value={depositAmount}
+        onChange={handleChange}
+      />
     </Box>
   );
 }

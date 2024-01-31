@@ -19,16 +19,35 @@ export default function Calculator({ contract_addrs }) {
 
   const handleCalcDone = async() => {
     //Call Typescript script
-    setDepositAmount(1000)
+    // setDepositAmount(1000)
+    let numericDepositAmount; 
+    if (depositAmount !== ''){
+      numericDepositAmount = parseFloat(depositAmount);
+    } else {
+      numericDepositAmount = 1000
+    }
+    let numericConvertedFee; 
+    if (selectedFee){
+      const feeNumber = parseFloat(selectedFee.replace("%", ""));
+      const basisPoints = feeNumber * 100;
+      numericConvertedFee = basisPoints * 100;
+    } else {
+      numericConvertedFee = 500; 
+    }
+
     const LP_params = {
       chain: 'arbitrum',
+      // chain: "eth", // For testing
       chainId: 42161,
+      // chainId: 1, // For testing
       token0: contract_addrs.tokenOneAddress, //WETH
+      // token0: "0xB50721BCf8d664c30412Cfbc6cf7a15145234ad1", // ARB - For testing
       token1: contract_addrs.tokenTwoAddress, //USDC
-      feeTier: 500,
-      depositAmt: depositAmount,
-    }
-    console.log("SEX", LP_params)
+      // token1: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC - For testing
+      feeTier: numericConvertedFee,
+      depositAmt: numericDepositAmount,
+    };
+    console.log("LP PARAMS", LP_params)
     const script_result = await predict_LP(LP_params);
     setResult(script_result)
     //Set output UI
@@ -58,7 +77,7 @@ export default function Calculator({ contract_addrs }) {
     <Box
       sx={{
         width: "470px",
-        height: doneCalculation ? "415px" : "300px",
+        height: doneCalculation ? "470px" : "300px",
         mx: "auto",
         display: "flex",
         flexDirection: "column",
@@ -108,7 +127,10 @@ export default function Calculator({ contract_addrs }) {
               sx={{ pt: 2 }}
             >
               <Grid item>
-                <AmountTextField />
+                <AmountTextField
+                  depositAmount={depositAmount}
+                  setDepositAmount={setDepositAmount}
+                />
               </Grid>
               <Grid item>
                 <CustomDatePicker />
@@ -127,13 +149,13 @@ export default function Calculator({ contract_addrs }) {
             >
               <Grid item>
                 <Typography>Position Breakdown</Typography>
-                <Grid container spacing={2}>
+                <Grid container spacing={1} direction="column">
                   <Grid item>
-                    <OverlayText text={`Token 0 Amt: ${result.token0_amt}`}/>
+                    <OverlayText text={`Token 0 Amt: ${result.token0_amt.toFixed(2)}`} />
                   </Grid>
 
                   <Grid item>
-                    <OverlayText text={`Token 1 Amt: ${result.token1_amt}`} />
+                    <OverlayText text={`Token 1 Amt: ${result.token1_amt.toFixed(2)}`} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -152,7 +174,9 @@ export default function Calculator({ contract_addrs }) {
                       >
                         Min Price
                       </Typography>
-                      <Typography sx={{ fontSize: "1.25rem" }}>${+(parseFloat(result.lower_band).toFixed(2))}</Typography>
+                      <Typography sx={{ fontSize: "1.25rem" }}>
+                        ${+parseFloat(result.lower_band).toFixed(2)}
+                      </Typography>
                     </div>{" "}
                   </Grid>
                   <Grid item>
@@ -166,7 +190,9 @@ export default function Calculator({ contract_addrs }) {
                       >
                         Max Price
                       </Typography>
-                      <Typography sx={{ fontSize: "1.25rem" }}>${+(parseFloat(result.upper_band).toFixed(2))}</Typography>
+                      <Typography sx={{ fontSize: "1.25rem" }}>
+                        ${+parseFloat(result.upper_band).toFixed(2)}
+                      </Typography>
                     </div>
                   </Grid>
                 </Grid>
@@ -207,7 +233,10 @@ export default function Calculator({ contract_addrs }) {
               sx={{ pt: 2 }}
             >
               <Grid item>
-                <AmountTextField />
+                <AmountTextField
+                  depositAmount={depositAmount}
+                  setDepositAmount={setDepositAmount}
+                />{" "}
               </Grid>
               <Grid item>
                 <CustomDatePicker />

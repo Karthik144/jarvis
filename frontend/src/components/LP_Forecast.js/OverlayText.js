@@ -8,7 +8,7 @@ export default function OverlayTypography({ text }) {
         elevation={0} 
         sx={{
           borderRadius: "50px", 
-          p: "6px 15px",
+          p: "6px 10px",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",

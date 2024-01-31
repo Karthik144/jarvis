@@ -34,9 +34,13 @@ const CustomButton = styled(Button)(({ theme, selected }) => ({
   },
 }));
 
-export default function FeeButton({ feeAmount, selected }) {
+export default function FeeButton({ feeAmount, selected, onClick }) {
   return (
-    <CustomButton variant="outlined" selected={selected}>
+    <CustomButton
+      variant="outlined"
+      selected={selected}
+      onClick={() => onClick(feeAmount)} 
+    >
       {feeAmount}
     </CustomButton>
   );
