@@ -71,6 +71,11 @@ export default function Response() {
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
   const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
+  const [contractAddresses, setContractAddresses] = useState({
+    tokenOneAddress: "",
+    tokenTwoAddress: "",
+  });
+
   const [messages, setMessages] = useState([
     {
       role: "system",
@@ -92,8 +97,15 @@ export default function Response() {
       role: "system",
       content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
     },
+    {
+      role: "system",
+      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+    },
   ]);
 
+  // `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return just the two contract addresses in the following format:
+  //    {contract address of first token}, {contract address of first token}`;
+  
   const [selectedFee, setSelectedFee] = useState(null);
   const [pulseAnimation, setPulseAnimation] = useState(false);
 
@@ -178,16 +190,33 @@ export default function Response() {
       }
 
       const data = await response.json();
-      addMessage({
-        role: "system",
-        content: data.message,
-      });
-      const formattedResponse = markdownToHtml(data.message);
-      console.log("Formatted response:", formattedResponse);
+      console.log("Data in client:", data);
 
-      setResponseText(formattedResponse);
-      setThreadId(data.threadId);
-      setRunId(data.runId);
+      // Check if response contains token addresses
+      if ("tokenOneAddress" in data && "tokenTwoAddress" in data) {
+        // Update state with contract addresses
+        setContractAddresses({
+          tokenOneAddress: data.tokenOneAddress,
+          tokenTwoAddress: data.tokenTwoAddress,
+        });
+
+        console.log(
+          "Contract addresses:",
+          data.tokenOneAddress,
+          data.tokenTwoAddress
+        );
+
+        setShowCalcualtorUI(true);
+
+      } else {
+        // Handle standard message response
+        addMessage({
+          role: "system",
+          content: data.message,
+        });
+        const formattedResponse = markdownToHtml(data.message);
+        setResponseText(formattedResponse);
+      }
     } catch (error) {
       console.error("Error fetching response:", error);
     }
