@@ -106,14 +106,14 @@ export async function predict_LP(LP_dict: any) {
 //     return deltaL;
 // }
 
-
-// const example_object = {
-//     chain: 'eth',
-//     chainId: 1,
-//     token0: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', //WETH
-//     token1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', //USDC
-//     feeTier: 500,
-//     depositAmt: 1000,
-// }
-// const result = predict_LP(example_object)
-// console.log(result)
+//ETH token0 is higher address, ARB token0 is lower address
+const example_object = {
+    chain: 'arbitrum',
+    chainId: 42161,
+    token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //WETH
+    token1: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //USDC
+    feeTier: 500,
+    depositAmt: 1000,
+}
+const result = predict_LP(example_object)
+console.log(result)

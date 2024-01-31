@@ -20,7 +20,7 @@ const { spawn } = require("child_process");
 
 app.use(
   cors({
-    origin: "jarvis-lemon.vercel.app/", 
+    origin: "https://jarvis-lemon.vercel.app/", 
   })
 );
 
