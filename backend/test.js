@@ -1,9 +1,3 @@
-// NODE SERVER REQS
-const express = require("express");
-const app = express();
-var cors = require("cors");
-const port = process.env.PORT || 3001;
-
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
@@ -11,10 +5,6 @@ require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
-
-app.use(cors({ origin: true, credentials: true })); 
-app.use(express.json());
-
 
 let poolOffset = 0;
 
@@ -159,17 +149,39 @@ async function predict_LP({ tokenOne, tokenTwo }) {
 }
 
 // OPEN AI SETUP + RUN
-async function runConversation(userQuery, previousMessages) {
+async function runConversation() {
   console.log("INSIDE RUN CONVO");
-  console.log("RECEIEVED QUERY:", userQuery);
 
-  const messages = previousMessages;
-
-  // Append the query to the messages array
-  // messages.push({
-  //   role: "user",
-  //   content: userQuery,
-  // });
+  const messages = [
+    {
+      role: "system",
+      content: "You are a helpful crypto research assistant.",
+    },
+    {
+      role: "system",
+      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+    },
+    {
+      role: "system",
+      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+    },
+    {
+      role: "system",
+      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
+    },
+    {
+      role: "system",
+      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+    },
+    {
+      role: "system",
+      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+    },
+    {
+      role: "user",
+      content: `What is injective?`,
+    },
+  ];
 
   const tools = [
     {
@@ -270,12 +282,15 @@ async function runConversation(userQuery, previousMessages) {
     },
   ];
 
+
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-1106",
     messages: messages,
     tools: tools,
     tool_choice: "auto",
   });
+
+
 
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
@@ -290,7 +305,7 @@ async function runConversation(userQuery, previousMessages) {
     };
 
     messages.push(responseMessage);
-    let predictLPCalled = false; 
+    let predictLPCalled = false;
     let functionResponse;
 
     for (const toolCall of toolCalls) {
@@ -303,7 +318,7 @@ async function runConversation(userQuery, previousMessages) {
 
       if (functionName === "predict_LP") {
         functionResponse = await functionToCall(functionArgs);
-        predictLPCalled = true; 
+        predictLPCalled = true;
         console.log("PREDICT LP CALLED:", predictLPCalled);
         console.log("FUNCTION RESPONSE IN AI:", functionResponse);
       } else {
@@ -321,20 +336,21 @@ async function runConversation(userQuery, previousMessages) {
         name: functionName,
         content: contentString,
       }); // extend conversation with function response
-
     }
 
-    if (predictLPCalled){
-      return functionResponse; 
+    if (predictLPCalled) {
+      return functionResponse;
     } else {
-      const secondResponse = await openai.chat.completions.create({
+      const stream = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-1106",
         messages: messages,
+        stream: true,
       }); // get a new response from the model where it can see the function response
-      return secondResponse.choices;
+        for await (const chunk of stream) {
+            process.stdout.write(chunk.choices[0]?.delta?.content || "");
+        }
+      return stream.choices;
     }
-
-
   }
 }
 
@@ -350,7 +366,7 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
     console.log("POOLS:", pools);
     let tokenOneAddress = "";
     let tokenTwoAddress = "";
-    let tokenPair = ""; 
+    let tokenPair = "";
 
     let formattedString1 = `${tokenOne} / ${tokenTwo}`;
     let formattedString2 = `${tokenTwo} / ${tokenOne}`;
@@ -378,10 +394,10 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
         let addressTwoParts = addressTwoStr.split("_"); // Split the string into parts
         tokenTwoAddress = addressTwoParts[1];
 
-        if (str === formattedString1){
-          tokenPair = formattedString1; 
+        if (str === formattedString1) {
+          tokenPair = formattedString1;
         } else {
-          tokenPair = formattedString2; 
+          tokenPair = formattedString2;
         }
       }
     }
@@ -389,7 +405,7 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
     console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
     console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
 
-    if (tokenOneAddress !== "" && tokenTwoAddress !== "" && tokenPair !=="") {
+    if (tokenOneAddress !== "" && tokenTwoAddress !== "" && tokenPair !== "") {
       return {
         tokenOneAddress,
         tokenTwoAddress,
@@ -730,46 +746,10 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-//ENDPOINTS
-app.post("/analyze", async (req, res) => {
-  try {
-    const userInput = req.body.userInput;
-    const previousMessages = req.body.defaultMessages;
-    console.log("USER INPUT:", userInput);
-    console.log("MESSAGES:", previousMessages);
-    const conversationResult = await runConversation(
-      userInput,
-      previousMessages
-    );
-    console.log("CONVERSATION RESULT:", conversationResult);
-
-    // const lastMessageContent =
-    //   conversationResult[conversationResult.length - 1].message.content;
-    // console.log("RESULTT:", lastMessageContent);
-    // res.json({ message: lastMessageContent });
-    if (!Array.isArray(conversationResult)) {
-      console.log("Returning direct predict_LP response:", conversationResult);
-      res.json(conversationResult); // Send the JSON object directly
-    } else {
-
-      const lastMessageContent =
-        conversationResult[conversationResult.length - 1].message.content;
-      console.log("Returning OpenAI message:", lastMessageContent);
-      res.json({ message: lastMessageContent });
-    }
-
-
-  } catch (error) {
-    console.error(error);
-  }
-});
-
-app.listen(port, async () => {
-  console.log(`Server started on port ${port}`);
-});
-
-app.get("/", (req, res) => {
-  res.send("Hey this is my API running 🥳");
-});
-
-module.exports = app;
+runConversation()
+  .then((result) => {
+    console.log("Result from runConversation:", result);
+  })
+  .catch((error) => {
+    console.error("Error from runConversation:", error);
+  });
