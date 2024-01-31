@@ -6,14 +6,52 @@ import CustomDatePicker from "./DatePicker";
 import OverlayText from "./OverlayText";
 import CalcButton from "./CalcButton";
 import Grid from "@mui/material/Grid";
+import { predict_LP } from "@/scripts/predict_LP";
 
-export default function Calculator({ selectedFee, handleSelectFee }) {
+export default function Calculator() {
   const fees = ["0.01%", "0.05%", "0.3%", "1%"];
   const [doneCalculation, setDoneCalculation] = useState(false);
+  const [selectedFee, setSelectedFee] = useState(null)
+  const [depositAmount, setDepositAmount] = useState('');
+  const [dateDeadline, setDateDeadline] = useState('');
+  
+  const [result, setResult] = useState({});
 
-  const handleCalcDone = () => {
+  const handleCalcDone = async() => {
+    //Call Typescript script
+    setDepositAmount(1000)
+    const LP_params = {
+      chain: 'eth',
+      chainId: 1,
+      token0: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', //WETH
+      token1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', //USDC
+      feeTier: 500,
+      depositAmt: depositAmount,
+    }
+    const script_result = await predict_LP(LP_params);
+    setResult(script_result)
+    //Set output UI
+
     setDoneCalculation((prevState) => !prevState); // Toggle the state
   };
+
+  const handleSelectFee = (fee) => {
+      setSelectedFee(fee)
+      console.log(selectedFee)
+  }
+
+  const handleDepositAmountChange = (event) => {
+      setDepositAmount(event.target.value);
+  }
+
+  const handleDateDeadlineChange = (date) => {
+      setDateDeadline(date);
+  }
+
+  useEffect(() => {
+      console.log("Selected Fee:", selectedFee);
+  }, [selectedFee]);
+    
 
   return (
     <Box
@@ -77,7 +115,7 @@ export default function Calculator({ selectedFee, handleSelectFee }) {
             </Grid>
 
             <Typography sx={{ pt: 2 }}>Estimated Fees</Typography>
-            <Typography style={{ fontSize: "2rem" }}>$3.61</Typography>
+            <Typography style={{ fontSize: "2rem" }}>Coming Soon</Typography>
 
             <Grid
               container
@@ -90,11 +128,11 @@ export default function Calculator({ selectedFee, handleSelectFee }) {
                 <Typography>Position Breakdown</Typography>
                 <Grid container spacing={2}>
                   <Grid item>
-                    <OverlayText text="ETH: 0.80953" />
+                    <OverlayText text={`Token 0 Amt: ${result.token0_amt}`}/>
                   </Grid>
 
                   <Grid item>
-                    <OverlayText text="USDC: 1226.18" />
+                    <OverlayText text={`Token 1 Amt: ${result.token1_amt}`} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -113,7 +151,7 @@ export default function Calculator({ selectedFee, handleSelectFee }) {
                       >
                         Min Price
                       </Typography>
-                      <Typography sx={{ fontSize: "1.25rem" }}>2100</Typography>
+                      <Typography sx={{ fontSize: "1.25rem" }}>${+(parseFloat(result.lower_band).toFixed(2))}</Typography>
                     </div>{" "}
                   </Grid>
                   <Grid item>
@@ -127,7 +165,7 @@ export default function Calculator({ selectedFee, handleSelectFee }) {
                       >
                         Max Price
                       </Typography>
-                      <Typography sx={{ fontSize: "1.25rem" }}>2130</Typography>
+                      <Typography sx={{ fontSize: "1.25rem" }}>${+(parseFloat(result.upper_band).toFixed(2))}</Typography>
                     </div>
                   </Grid>
                 </Grid>

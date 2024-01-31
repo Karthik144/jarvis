@@ -74,7 +74,7 @@ const CustomDatePicker = ({ selectedDate, setSelectedDate }) => {
           paddingBottom: "1px"
         }}
       >
-        Date
+        Position Deadline(Optional)
       </Typography>
       <DatePicker
         value={selectedDate}
