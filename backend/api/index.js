@@ -26,6 +26,7 @@ const { spawn } = require("child_process");
 
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://jarvis-lemon.vercel.app");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
 
