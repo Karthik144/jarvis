@@ -13,7 +13,7 @@ const fs = require("fs");
 const { spawn } = require("child_process");
 
 let corsOptions = { 
-   origin : ['http://localhost:5500'], 
+   origin : ['https://jarvis-lemon.vercel.app/'], 
 }
 
 app.use(cors(corsOptions)) 
