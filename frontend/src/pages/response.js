@@ -184,15 +184,27 @@ export default function Response() {
       // });
 
       
-      const response = await fetch("https://jarvis-api.vercel.app/analyze", {
-        mode: 'no-cors',
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
+      //   mode: 'no-cors',
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
 
+      const response = await fetch(
+        "https://jarvis-api.vercel.app/analyze",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
