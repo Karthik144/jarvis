@@ -12,8 +12,8 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
+app.use(cors({ origin: true, credentials: true })); 
 app.use(express.json());
-app.use(cors({origin:true, credentials: true})) 
 
 
 let poolOffset = 0;
