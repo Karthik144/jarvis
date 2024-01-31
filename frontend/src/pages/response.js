@@ -310,7 +310,10 @@ export default function Response() {
                         paddingTop: "50px",
                       }}
                     >
-                      <Calculator contract_addrs={contractAddresses, tokenPair} />
+                      <Calculator
+                        contract_addrs={contractAddresses}
+                        tokenPair={tokenPair}
+                      />
                     </Box>
                   </Grid>
                 )}
