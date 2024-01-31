@@ -174,7 +174,16 @@ export default function Response() {
       //   body: JSON.stringify({ userInput: userQuery }),
       // });
 
-      const response = await fetch("http://localhost:3001/analyze", {
+      // const response = await fetch("http://localhost:3001/analyze", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
+
+      
+      const response = await fetch("https://jarvis-api.vercel.app/analyze", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -182,7 +191,7 @@ export default function Response() {
         body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) {
+      https: if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
