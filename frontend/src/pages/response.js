@@ -70,7 +70,7 @@ export default function Response() {
   const [userSearch, setUserSearch] = useState("");
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
-  const [showCalculatorUI, setShowCalcualtorUI] = useState(false); 
+  const [showCalculatorUI, setShowCalcualtorUI] = useState(true); 
   const [messages, setMessages] = useState([
     {
       role: "system",
@@ -94,7 +94,6 @@ export default function Response() {
     },
   ]);
 
-  const [selectedFee, setSelectedFee] = useState(null);
   const [pulseAnimation, setPulseAnimation] = useState(false);
 
   const addMessage = (newMessage) => {
