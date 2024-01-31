@@ -1,7 +1,7 @@
 // NODE SERVER REQS
 const express = require("express");
 const app = express();
-const cors = require("cors");
+var cors = require("cors");
 const port = 3001;
 
 // IMPORTS
@@ -12,12 +12,7 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
-let corsOptions = { 
-  origin: ['https://jarvis-lemon.vercel.app/'], 
-  optionsSuccessStatus: 200 
-}
-
-app.use(cors(corsOptions)) 
+app.use(cors({origin:true, credentials: true})) 
 
 
 
@@ -738,7 +733,7 @@ function sleep(ms) {
 }
 
 //ENDPOINTS
-app.post("/analyze", cors(corsOptions) ,async (req, res) => {
+app.post("/analyze", async (req, res) => {
   try {
     const userInput = req.body.userInput;
     const previousMessages = req.body.defaultMessages;
