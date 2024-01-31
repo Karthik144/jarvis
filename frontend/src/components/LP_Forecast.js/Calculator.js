@@ -8,7 +8,7 @@ import CalcButton from "./CalcButton";
 import Grid from "@mui/material/Grid";
 import { predict_LP } from "@/scripts/predict_LP";
 
-export default function Calculator() {
+export default function Calculator({ contract_addrs }) {
   const fees = ["0.01%", "0.05%", "0.3%", "1%"];
   const [doneCalculation, setDoneCalculation] = useState(false);
   const [selectedFee, setSelectedFee] = useState(null)
@@ -21,13 +21,14 @@ export default function Calculator() {
     //Call Typescript script
     setDepositAmount(1000)
     const LP_params = {
-      chain: 'eth',
-      chainId: 1,
-      token0: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2', //WETH
-      token1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', //USDC
+      chain: 'arbitrum',
+      chainId: 42161,
+      token0: contract_addrs.tokenOneAddress, //WETH
+      token1: contract_addrs.tokenTwoAddress, //USDC
       feeTier: 500,
       depositAmt: depositAmount,
     }
+    console.log("SEX", LP_params)
     const script_result = await predict_LP(LP_params);
     setResult(script_result)
     //Set output UI
