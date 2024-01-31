@@ -18,11 +18,16 @@ const { spawn } = require("child_process");
 //   })
 // );
 
-app.use(
-  cors({
-    origin: "https://jarvis-lemon.vercel.app/", 
-  })
-);
+// app.use(
+//   cors({
+//     origin: "https://jarvis-lemon.vercel.app/", 
+//   })
+// );
+
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://jarvis-lemon.vercel.app");
+  next();
+});
 
 app.use(express.json());
 
