@@ -12,9 +12,15 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
+// app.use(
+//   cors({
+//     origin: "http://localhost:3000", // Local testing url
+//   })
+// );
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Local testing url
+    origin: "jarvis-lemon.vercel.app/", 
   })
 );
 
@@ -771,3 +777,5 @@ app.post("/analyze", async (req, res) => {
 app.listen(port, async () => {
   console.log(`Server running on http://localhost:${port}`);
 });
+
+module.exports = app;
