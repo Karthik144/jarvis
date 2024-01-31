@@ -6,17 +6,19 @@ import IconButton from "@mui/material/IconButton";
 import SendIcon from "@mui/icons-material/Send";
 
 export default function FollowUpQuestionBar({ onSubmit }) {
-  
   const [inputValue, setInputValue] = React.useState("");
-  
+
   const handleInputChange = (event) => {
     setInputValue(event.target.value);
-  }
+  };
 
   const handleFormSubmit = (event) => {
     event.preventDefault();
     onSubmit(inputValue);
-  }
+
+    // Clear the input value after submission
+    setInputValue("");
+  };
 
   return (
     <Box
@@ -51,7 +53,7 @@ export default function FollowUpQuestionBar({ onSubmit }) {
           "& .MuiOutlinedInput-root": {
             borderRadius: "30px",
             backgroundColor: "#FCFCF9", // Fill color
-            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.25)", // Drop shadow 
+            boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.25)", // Drop shadow
             "& fieldset": {
               borderColor: "#CECECE", // Default border color
             },
@@ -63,10 +65,10 @@ export default function FollowUpQuestionBar({ onSubmit }) {
             },
           },
           "& .MuiInputLabel-root": {
-            color: "#a0a0a0", 
+            color: "#a0a0a0",
           },
           "& .MuiSvgIcon-root": {
-            color: "#a0a0a0", 
+            color: "#a0a0a0",
           },
         }}
       />

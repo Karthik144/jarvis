@@ -267,33 +267,8 @@ async function runConversation(userQuery, previousMessages) {
         name: "lowBetaHighGrowth",
         description:
           "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
-      },
-    },
-
-    // predict_LP
-    {
-      type: "function",
-      function: {
-        name: "predict_LP",
-        description: "Estimate best liquidity pool range for 100 day positions",
-        parameters: {
-          type: "object",
-          properties: {
-            tokenOne: {
-              type: "string",
-              description:
-                "The token ticker name for the first token used in the liquidity pool calculation (i.e. BTC for Bitcoin)",
-            },
-            tokenTwo: {
-              type: "string",
-              description:
-                "The token ticker name for the second token used in the liquidity pool calculation (i.e. BTC for Bitcoin)",
-            },
-          },
-          required: ["tokenOne", "tokenTwo"],
-        },
-      },
-    },
+      }
+    }
   ];
 
   const response = await openai.chat.completions.create({
@@ -728,10 +703,6 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 550640bbf1bdfb4ec3dcbeeb8de3bfaee6f26448
 //ENDPOINTS
 app.post("/analyze", async (req, res) => {
   try {

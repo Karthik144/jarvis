@@ -66,6 +66,7 @@ const markdownToHtml = (text) => {
 
 export default function Response() {
   const [responseText, setResponseText] = useState("");
+  const [followUpText, setFollowUpText] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
@@ -94,6 +95,7 @@ export default function Response() {
   ]);
 
   const [selectedFee, setSelectedFee] = useState(null);
+  const [pulseAnimation, setPulseAnimation] = useState(false);
 
   const addMessage = (newMessage) => {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
@@ -110,20 +112,29 @@ export default function Response() {
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
 
-    // Create the new user message object
     const newUserMessage = {
       role: "user",
       content: query,
     };
 
-    addMessage(newUserMessage);
+    setResponseText("");
+    setShowCalcualtorUI(false);
+
+    setMessages([newUserMessage]);
+
+    setPulseAnimation(true);
+    
+    setFollowUpText("");
 
     await fetchResponse(query);
 
     if (query === "Help me forecast my LP position") {
       setShowCalcualtorUI(true);
     }
+    setPulseAnimation(false);
+
   };
+
 
   async function fetchResponse(userQuery) {
     console.log("INSIDE FETCH RESPONSE");
@@ -269,7 +280,7 @@ export default function Response() {
           </div>
 
           <div
-            style={{
+              style={{
               position: "fixed",
               bottom: 0,
               left: 0,
@@ -278,8 +289,21 @@ export default function Response() {
               padding: "35px 0",
             }}
           >
-            <FollowUpQuestionBar onSubmit={handleSubmit} />
-          </div>
+            <FollowUpQuestionBar onSubmit={handleSubmit} followUpText={followUpText} setFollowUpText={setFollowUpText} />
+         </div>
+        <div
+          className={`pulse-animation ${pulseAnimation ? "animate-pulse-slow" : ""}`}
+          style={{
+            position: "fixed",
+            bottom: "100px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            borderRadius: "10px",
+            padding: "10px",
+            display: pulseAnimation ? "block" : "none",
+          }}
+        >
+        </div>
         </Grid>
       </LocalizationProvider>
     </div>
