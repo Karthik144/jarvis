@@ -186,6 +186,7 @@ export default function Response() {
       
       try {
         const response = await axios.post('https://jarvis-api.vercel.app/analyze', requestBody, {
+          mode: 'cors',
           headers: {
             'Content-Type': 'application/json',
           },
