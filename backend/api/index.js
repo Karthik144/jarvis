@@ -25,12 +25,16 @@ const { spawn } = require("child_process");
 // );
 
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://jarvis-lemon.vercel.app");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  res.header("Access-Control-Allow-Methods", "OPTIONS, POST")
-  next();
-});
+ res.header("Access-Control-Allow-Origin", "https://jarvis-lemon.vercel.app");
+ res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+ res.header("Access-Control-Allow-Methods", "OPTIONS, POST");
 
+ if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+ } else {
+    next();
+ }
+});
 
 
 app.use(express.json());
