@@ -63,11 +63,15 @@ export async function predict_LP(LP_dict: any) {
     const poolPrices_endpoint = `https://api.geckoterminal.com/api/v2/networks/${LP_dict.chain}/pools/${poolAddress}`
     const response2 = await axios.get(poolPrices_endpoint)
 
-    const P = Number(response2.data.data.attributes.base_token_price_quote_token)
-    const Pl = q1
-    const Pu = maxPrice
+    console.log(response2.data.data.attributes)
+
     const priceUSDX = Number(response2.data.data.attributes.base_token_price_usd)
     const priceUSDY = Number(response2.data.data.attributes.quote_token_price_usd)
+    const P = Number(response2.data.data.attributes.base_token_price_quote_token * priceUSDY) // convert from quote-units to price
+
+    const Pl = q1
+    const Pu = maxPrice
+
 
 
     const deltaL = LP_dict.depositAmt / ((Math.sqrt(P) - Math.sqrt(Pl)) * priceUSDY + (1 / Math.sqrt(P) - 1 / Math.sqrt(Pu)) * priceUSDX)
@@ -103,13 +107,13 @@ export async function predict_LP(LP_dict: any) {
 // }
 
 
-// const example_object = {
-//     chain: 'eth',
-//     chainId: 1,
-//     token0: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
-//     token1: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-//     feeTier: 500,
-//     depositAmt: 1000,
-// }
-// const result = predict_LP(example_object)
-// console.log(result)
+const example_object = {
+    chain: 'arbitrum',
+    chainId: 42161,
+    token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //Arbitrum
+    token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //WETH
+    feeTier: 500,
+    depositAmt: 1000,
+}
+const result = predict_LP(example_object)
+console.log(result)
