@@ -12,27 +12,12 @@ const path = require("path");
 const fs = require("fs");
 const { spawn } = require("child_process");
 
-// app.use(
-//   cors({
-//     origin: "http://localhost:3000", // Local testing url
-//   })
-// );
+let corsOptions = { 
+   origin : ['http://localhost:5500'], 
+}
 
-// app.use(
-//   cors({
-//     origin: "https://jarvis-lemon.vercel.app/", 
-//   })
-// );
+app.use(cors(corsOptions)) 
 
-app.use((req, res, next) => {
- res.header("Access-Control-Allow-Origin", "https://jarvis-lemon.vercel.app");
- res.header("Access-Control-Allow-Headers", "Content-Type");
- res.header("Access-Control-Allow-Methods", "OPTIONS, POST");
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  }
-});
 
 
 app.use(express.json());
@@ -752,7 +737,7 @@ function sleep(ms) {
 }
 
 //ENDPOINTS
-app.post("/analyze", async (req, res) => {
+app.post("/analyze", cors(corsOptions) ,async (req, res) => {
   try {
     const userInput = req.body.userInput;
     const previousMessages = req.body.defaultMessages;
