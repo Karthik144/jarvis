@@ -223,7 +223,7 @@ export default function Home() {
         </Grid>
         <Grid item>
           <QuickPrompt
-            text="💸 Forecast my LP range for ARB and WETH"
+            text="💸 Forecast my LP range for ARB and USDC"
             onPress={handleQuickPrompt}
           />
         </Grid>
