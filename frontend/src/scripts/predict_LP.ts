@@ -107,13 +107,13 @@ export async function predict_LP(LP_dict: any) {
 // }
 
 
-const example_object = {
-    chain: 'arbitrum',
-    chainId: 42161,
-    token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //Arbitrum
-    token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //WETH
-    feeTier: 500,
-    depositAmt: 1000,
-}
-const result = predict_LP(example_object)
-console.log(result)
+// const example_object = {
+//     chain: 'arbitrum',
+//     chainId: 42161,
+//     token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //Arbitrum
+//     token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //WETH
+//     feeTier: 500,
+//     depositAmt: 1000,
+// }
+// const result = predict_LP(example_object)
+// console.log(result)
