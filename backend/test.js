@@ -354,6 +354,7 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
     console.log("POOLS:", pools);
     let tokenOneAddress = "";
     let tokenTwoAddress = "";
+    let tokenPair = ""; 
 
     let formattedString1 = `${tokenOne} / ${tokenTwo}`;
     let formattedString2 = `${tokenTwo} / ${tokenOne}`;
@@ -380,16 +381,23 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
         console.log("ADDRESS TWO STR:", addressTwoStr);
         let addressTwoParts = addressTwoStr.split("_"); // Split the string into parts
         tokenTwoAddress = addressTwoParts[1];
+
+        if (str === formattedString1){
+          tokenPair = formattedString1; 
+        } else {
+          tokenPair = formattedString2; 
+        }
       }
     }
 
     console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
     console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
 
-    if (tokenOneAddress !== "" && tokenTwoAddress !== "") {
+    if (tokenOneAddress !== "" && tokenTwoAddress !== "" && tokenPair !=="") {
       return {
         tokenOneAddress,
         tokenTwoAddress,
+        tokenPair,
       };
     }
   } catch (error) {

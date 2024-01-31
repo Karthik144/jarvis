@@ -8,7 +8,7 @@ import CalcButton from "./CalcButton";
 import Grid from "@mui/material/Grid";
 import { predict_LP } from "@/scripts/predict_LP";
 
-export default function Calculator({ contract_addrs }) {
+export default function Calculator({ contract_addrs, tokenPair }) {
   const fees = ["0.01%", "0.05%", "0.3%", "1%"];
   const [doneCalculation, setDoneCalculation] = useState(false);
   const [selectedFee, setSelectedFee] = useState(null)
@@ -151,11 +151,23 @@ export default function Calculator({ contract_addrs }) {
                 <Typography>Position Breakdown</Typography>
                 <Grid container spacing={1} direction="column">
                   <Grid item>
-                    <OverlayText text={`Token 0 Amt: ${result.token0_amt.toFixed(2)}`} />
+                    {/* <OverlayText text={`Token 0 Amt: ${result.token0_amt.toFixed(2)}`} /> */}
+                    <OverlayText
+                      text={`${
+                        tokenPair.split(" / ")[0]
+                      } Amt: ${result.token0_amt.toFixed(2)}`}
+                    />
                   </Grid>
 
                   <Grid item>
-                    <OverlayText text={`Token 1 Amt: ${result.token1_amt.toFixed(2)}`} />
+                    {/* <OverlayText
+                      text={`Token 1 Amt: ${result.token1_amt.toFixed(2)}`}
+                    /> */}
+                    <OverlayText
+                      text={`${
+                        tokenPair.split(" / ")[1]
+                      } Amt: ${result.token0_amt.toFixed(2)}`}
+                    />
                   </Grid>
                 </Grid>
               </Grid>

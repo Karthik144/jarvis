@@ -71,6 +71,7 @@ export default function Response() {
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
   const [showCalculatorUI, setShowCalculatorUI] = useState(false); 
+  const [tokenPair, setTokenPair] = useState(false); 
   const [contractAddresses, setContractAddresses] = useState({
     tokenOneAddress: "",
     tokenTwoAddress: "",
@@ -189,18 +190,22 @@ export default function Response() {
       console.log("Data in client:", data);
 
       // Check if response contains token addresses
-      if ("tokenOneAddress" in data && "tokenTwoAddress" in data) {
+      if ("tokenOneAddress" in data && "tokenTwoAddress" in data && 'tokenPair' in data) {
         // Update state with contract addresses
         setContractAddresses({
           tokenOneAddress: data.tokenOneAddress,
           tokenTwoAddress: data.tokenTwoAddress,
         });
 
+        setTokenPair(data.tokenPair); 
+
         console.log(
           "Contract addresses:",
           data.tokenOneAddress,
           data.tokenTwoAddress
         );
+
+        console.log("Token Pair:", data.tokenPair); 
 
         setResponseText('lp');
         setShowCalculatorUI(true);
@@ -305,7 +310,7 @@ export default function Response() {
                         paddingTop: "50px",
                       }}
                     >
-                      <Calculator contract_addrs={contractAddresses} />
+                      <Calculator contract_addrs={contractAddresses, tokenPair} />
                     </Box>
                   </Grid>
                 )}
