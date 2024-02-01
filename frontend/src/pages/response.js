@@ -6,13 +6,13 @@ import { runConversation } from "../backend/assistant";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
-import Calculator from "../components/LP_Forecast.js/Calculator"; 
+import Calculator from "../components/LP_Forecast.js/Calculator";
 import { ScrollBox } from "react-scroll-box";
 import axios from "axios";
 
 // MUI Date Picker Imports
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const markdownToHtml = (text) => {
   let html = text;
@@ -72,8 +72,8 @@ export default function Response() {
   const [userSearch, setUserSearch] = useState("");
   const [threadId, setThreadId] = useState("");
   const [runId, setRunId] = useState("");
-  const [showCalculatorUI, setShowCalculatorUI] = useState(false); 
-  const [tokenPair, setTokenPair] = useState(false); 
+  const [showCalculatorUI, setShowCalculatorUI] = useState(false);
+  const [tokenPair, setTokenPair] = useState(false);
   const [contractAddresses, setContractAddresses] = useState({
     tokenOneAddress: "",
     tokenTwoAddress: "",
@@ -126,7 +126,7 @@ export default function Response() {
     setMessages([newUserMessage]);
 
     setPulseAnimation(true);
-    
+
     setFollowUpText("");
 
     await fetchResponse(query);
@@ -135,16 +135,14 @@ export default function Response() {
       setShowCalculatorUI(true);
     }
     setPulseAnimation(false);
-
   };
-
 
   // async function fetchResponse(userQuery) {
   //   console.log("INSIDE FETCH RESPONSE");
   //   try {
   //     console.log(userQuery);
-  //     // console.log(newUserMessage); 
-  //     console.log("MESSAGES INSIDE FETCH:", messages); 
+  //     // console.log(newUserMessage);
+  //     console.log("MESSAGES INSIDE FETCH:", messages);
 
   //     const processedQuery = userQuery.replace(/^"|"$/g, "");
 
@@ -158,7 +156,7 @@ export default function Response() {
   //       defaultMessages: [...messages, structuredMessage],
   //     };
 
-  //     console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages); 
+  //     console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages);
 
   //     // const response = await fetch("http://localhost:3001/analyze", {
   //     //   method: "POST",
@@ -176,7 +174,6 @@ export default function Response() {
   //     //   body: JSON.stringify(requestBody),
   //     // });
 
-      
   //     // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
   //     //   mode: 'no-cors',
   //     //   method: "POST",
@@ -197,7 +194,6 @@ export default function Response() {
   //       }
   //     );
 
-      
   //     if (!response.ok) {
   //       throw new Error(`HTTP error! Status: ${response.status}`);
   //     }
@@ -213,7 +209,7 @@ export default function Response() {
   //         tokenTwoAddress: data.tokenTwoAddress,
   //       });
 
-  //       setTokenPair(data.tokenPair); 
+  //       setTokenPair(data.tokenPair);
 
   //       console.log(
   //         "Contract addresses:",
@@ -221,7 +217,7 @@ export default function Response() {
   //         data.tokenTwoAddress
   //       );
 
-  //       console.log("Token Pair:", data.tokenPair); 
+  //       console.log("Token Pair:", data.tokenPair);
 
   //       setResponseText('lp');
   //       setShowCalculatorUI(true);
@@ -239,11 +235,15 @@ export default function Response() {
   //   }
   // }
 
-  async function fetchResponse(query){
+  async function fetchResponse(query) {
     try {
       const assistantResponse = await runConversation(query);
       // Check if response contains token addresses
-      if ("tokenOneAddress" in assistantResponse && "tokenTwoAddress" in assistantResponse && 'tokenPair' in assistantResponse) {
+      if (
+        "tokenOneAddress" in assistantResponse &&
+        "tokenTwoAddress" in assistantResponse &&
+        "tokenPair" in assistantResponse
+      ) {
         // Update state with contract addresses
         setContractAddresses({
           tokenOneAddress: assistantResponse.tokenOneAddress,
@@ -260,7 +260,7 @@ export default function Response() {
 
         console.log("Token Pair:", assistantResponse.tokenPair);
 
-        setResponseText('lp');
+        setResponseText("lp");
         setShowCalculatorUI(true);
       } else {
         // Handle standard message response
@@ -281,11 +281,11 @@ export default function Response() {
     const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
     setUserSearch(processedQuery);
 
-    fetchResponse(processedQuery); 
+    fetchResponse(processedQuery);
     // setShowCalculatorUI(true);
-    // setResponseText('lp'); 
+    // setResponseText('lp');
     // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-    // setResponseText(loremIpsumText); 
+    // setResponseText(loremIpsumText);
   }, []);
 
   return (

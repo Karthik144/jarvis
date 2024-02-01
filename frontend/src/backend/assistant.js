@@ -8,7 +8,7 @@ let poolOffset = 0;
 // GLOBAL VARS
 const openai = new OpenAI({
   apiKey: "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",
-  dangerouslyAllowBrowser: true, 
+  dangerouslyAllowBrowser: true,
   baseURL: "https://oai.hconeai.com/v1",
   defaultHeaders: {
     "Helicone-Auth": `Bearer sk-iqcbg7a-2diev6a-xrelkyq-5vfnb5a`,
@@ -150,10 +150,10 @@ async function predict_LP({ tokenOne, tokenTwo }) {
 async function runConversation(query) {
   console.log("INSIDE RUN CONVO");
 
-    const structuredMessage = {
-        role: "user",
-        content: query,
-    }
+  const structuredMessage = {
+    role: "user",
+    content: query,
+  };
 
   const messages = [
     {
@@ -182,7 +182,7 @@ async function runConversation(query) {
     },
   ];
 
-  messages.push(structuredMessage); 
+  messages.push(structuredMessage);
 
   const tools = [
     {
@@ -296,7 +296,7 @@ async function runConversation(query) {
   if (responseMessage.tool_calls) {
     const availableFunctions = {
       tavilyAdvancedSearch: tavilyAdvancedSearch,
-    checkForInsurance: searchProducts,
+      checkForInsurance: searchProducts,
       //   sentimentAnalysis: getSentiment,
       lowBetaHighGrowth: getLowBetaHighGrowthPairs,
       predict_LP: predict_LP,
