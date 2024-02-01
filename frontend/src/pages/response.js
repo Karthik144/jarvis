@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Paper } from "@mui/material";
 import FollowUpQuestionBar from "../components/home/FollowUpQuestionBar";
+import { runConversation } from "../backend/assistant";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
@@ -111,14 +112,6 @@ export default function Response() {
     setMessages((prevMessages) => [...prevMessages, newMessage]);
   };
 
-  // const handleSubmit = async (query) => {
-  //   console.log("handle submit called in response.js");
-  //   await fetchResponse(query);
-  //   if (query === "Help me forecast my LP position"){
-  //     setShowCalculatorUI(true); 
-  //   }
-  // };
-
   const handleSubmit = async (query) => {
     console.log("handle submit called in response.js");
 
@@ -146,89 +139,126 @@ export default function Response() {
   };
 
 
-  async function fetchResponse(userQuery) {
-    console.log("INSIDE FETCH RESPONSE");
+  // async function fetchResponse(userQuery) {
+  //   console.log("INSIDE FETCH RESPONSE");
+  //   try {
+  //     console.log(userQuery);
+  //     // console.log(newUserMessage); 
+  //     console.log("MESSAGES INSIDE FETCH:", messages); 
+
+  //     const processedQuery = userQuery.replace(/^"|"$/g, "");
+
+  //     const structuredMessage = {
+  //       role: "user",
+  //       content: processedQuery,
+  //     }
+
+  //     const requestBody = {
+  //       userInput: userQuery,
+  //       defaultMessages: [...messages, structuredMessage],
+  //     };
+
+  //     console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages); 
+
+  //     // const response = await fetch("http://localhost:3001/analyze", {
+  //     //   method: "POST",
+  //     //   headers: {
+  //     //     "Content-Type": "application/json",
+  //     //   },
+  //     //   body: JSON.stringify({ userInput: userQuery }),
+  //     // });
+
+  //     // const response = await fetch("http://localhost:3001/analyze", {
+  //     //   method: "POST",
+  //     //   headers: {
+  //     //     "Content-Type": "application/json",
+  //     //   },
+  //     //   body: JSON.stringify(requestBody),
+  //     // });
+
+      
+  //     // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
+  //     //   mode: 'no-cors',
+  //     //   method: "POST",
+  //     //   headers: {
+  //     //     "Content-Type": "application/json",
+  //     //   },
+  //     //   body: JSON.stringify(requestBody),
+  //     // });
+
+  //     const response = await fetch(
+  //       "https://jarvis-api.vercel.app/analyze",
+  //       {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //         body: JSON.stringify(requestBody),
+  //       }
+  //     );
+
+      
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! Status: ${response.status}`);
+  //     }
+
+  //     const data = await response.json();
+  //     console.log("Data in client:", data);
+
+  //     // Check if response contains token addresses
+  //     if ("tokenOneAddress" in data && "tokenTwoAddress" in data && 'tokenPair' in data) {
+  //       // Update state with contract addresses
+  //       setContractAddresses({
+  //         tokenOneAddress: data.tokenOneAddress,
+  //         tokenTwoAddress: data.tokenTwoAddress,
+  //       });
+
+  //       setTokenPair(data.tokenPair); 
+
+  //       console.log(
+  //         "Contract addresses:",
+  //         data.tokenOneAddress,
+  //         data.tokenTwoAddress
+  //       );
+
+  //       console.log("Token Pair:", data.tokenPair); 
+
+  //       setResponseText('lp');
+  //       setShowCalculatorUI(true);
+  //     } else {
+  //       // Handle standard message response
+  //       addMessage({
+  //         role: "system",
+  //         content: data.message,
+  //       });
+  //       const formattedResponse = markdownToHtml(data.message);
+  //       setResponseText(formattedResponse);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching response:", error);
+  //   }
+  // }
+
+  async function fetchResponse(query){
     try {
-      console.log(userQuery);
-      // console.log(newUserMessage); 
-      console.log("MESSAGES INSIDE FETCH:", messages); 
-
-      const processedQuery = userQuery.replace(/^"|"$/g, "");
-
-      const structuredMessage = {
-        role: "user",
-        content: processedQuery,
-      }
-
-      const requestBody = {
-        userInput: userQuery,
-        defaultMessages: [...messages, structuredMessage],
-      };
-
-      console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages); 
-
-      // const response = await fetch("http://localhost:3001/analyze", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify({ userInput: userQuery }),
-      // });
-
-      // const response = await fetch("http://localhost:3001/analyze", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody),
-      // });
-
-      
-      // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
-      //   mode: 'no-cors',
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody),
-      // });
-
-      const response = await fetch(
-        "https://jarvis-api.vercel.app/analyze",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        }
-      );
-
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log("Data in client:", data);
-
+      const assistantResponse = await runConversation(query);
       // Check if response contains token addresses
-      if ("tokenOneAddress" in data && "tokenTwoAddress" in data && 'tokenPair' in data) {
+      if ("tokenOneAddress" in assistantResponse && "tokenTwoAddress" in assistantResponse && 'tokenPair' in assistantResponse) {
         // Update state with contract addresses
         setContractAddresses({
-          tokenOneAddress: data.tokenOneAddress,
-          tokenTwoAddress: data.tokenTwoAddress,
+          tokenOneAddress: assistantResponse.tokenOneAddress,
+          tokenTwoAddress: assistantResponse.tokenTwoAddress,
         });
 
-        setTokenPair(data.tokenPair); 
+        setTokenPair(assistantResponse.tokenPair);
 
         console.log(
           "Contract addresses:",
-          data.tokenOneAddress,
-          data.tokenTwoAddress
+          assistantResponse.tokenOneAddress,
+          assistantResponse.tokenTwoAddress
         );
 
-        console.log("Token Pair:", data.tokenPair); 
+        console.log("Token Pair:", assistantResponse.tokenPair);
 
         setResponseText('lp');
         setShowCalculatorUI(true);
@@ -236,13 +266,13 @@ export default function Response() {
         // Handle standard message response
         addMessage({
           role: "system",
-          content: data.message,
+          content: assistantResponse.message,
         });
-        const formattedResponse = markdownToHtml(data.message);
+        const formattedResponse = markdownToHtml(assistantResponse);
         setResponseText(formattedResponse);
       }
     } catch (error) {
-      console.error("Error fetching response:", error);
+      console.error("Error during conversation:", error);
     }
   }
 
@@ -250,10 +280,8 @@ export default function Response() {
     const userQuery = localStorage.getItem("userQuery");
     const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
     setUserSearch(processedQuery);
-    // setUserSearch('Does pendle have insurance?');
 
-    // console.log("RIGHT BEFORE FETCH RESPONSE CALLED");
-    fetchResponse(userQuery);
+    fetchResponse(processedQuery); 
     // setShowCalculatorUI(true);
     // setResponseText('lp'); 
     // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
@@ -291,7 +319,7 @@ export default function Response() {
             </Grid>
           </Grid>
 
-          <div style={{ overflow: "auto", maxHeight: "65vh" }}>
+          <div style={{ overflow: "auto", maxHeight: "60vh" }}>
             {responseText !== "lp" ? (
               <div>
                 {!responseText ? (
