@@ -147,42 +147,44 @@ async function predict_LP({ tokenOne, tokenTwo }) {
 }
 
 // OPEN AI SETUP + RUN
-async function runConversation(query) {
+async function runConversation(query, messages) {
   console.log("INSIDE RUN CONVO");
+  console.log("RUN CONVERSATION CALLED"); 
+  console.log("Messages:", messages); 
 
-  const structuredMessage = {
-    role: "user",
-    content: query,
-  };
+//   const structuredMessage = {
+//     role: "user",
+//     content: query,
+//   };
 
-  const messages = [
-    {
-      role: "system",
-      content: "You are a helpful crypto research assistant.",
-    },
-    {
-      role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
-    },
-    {
-      role: "system",
-      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-    },
-    {
-      role: "system",
-      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-    },
-    {
-      role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
-    },
-    {
-      role: "system",
-      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
-    },
-  ];
+//   const messages = [
+//     {
+//       role: "system",
+//       content: "You are a helpful crypto research assistant.",
+//     },
+//     {
+//       role: "system",
+//       content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+//     },
+//     {
+//       role: "system",
+//       content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+//     },
+//     {
+//       role: "system",
+//       content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
+//     },
+//     {
+//       role: "system",
+//       content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+//     },
+//     {
+//       role: "system",
+//       content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+//     },
+//   ];
 
-  messages.push(structuredMessage);
+//   messages.push(structuredMessage);
 
   const tools = [
     {
@@ -297,7 +299,7 @@ async function runConversation(query) {
     const availableFunctions = {
       tavilyAdvancedSearch: tavilyAdvancedSearch,
       checkForInsurance: searchProducts,
-      //   sentimentAnalysis: getSentiment,
+    //   sentimentAnalysis: getSentiment,
       lowBetaHighGrowth: getLowBetaHighGrowthPairs,
       predict_LP: predict_LP,
     };
@@ -482,7 +484,8 @@ async function getInsurAceProducts() {
 
 async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
-
+    console.log("INSIDE ADD BETA CALC TO EXISTING DATA"); 
+    console.log("POOL OFFSET:", poolOffset); 
   const endIndex = Math.min(poolOffset + 10, pools.length);
 
   // Get next 10 pools

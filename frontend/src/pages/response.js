@@ -235,39 +235,57 @@ export default function Response() {
   //   }
   // }
 
+  function isJsonObject(value) {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+  }
+
   async function fetchResponse(query) {
     try {
-      const assistantResponse = await runConversation(query);
-      // Check if response contains token addresses
-      if (
-        "tokenOneAddress" in assistantResponse &&
-        "tokenTwoAddress" in assistantResponse &&
-        "tokenPair" in assistantResponse
-      ) {
-        // Update state with contract addresses
-        setContractAddresses({
-          tokenOneAddress: assistantResponse.tokenOneAddress,
-          tokenTwoAddress: assistantResponse.tokenTwoAddress,
-        });
 
-        setTokenPair(assistantResponse.tokenPair);
+      const structuredMessage = {
+        role: "user",
+        content: query,
+      }
+      const allMessages = [...messages, structuredMessage]
+      console.log("ALL MESSAGES:", allMessages); 
+      const assistantResponse = await runConversation(query, allMessages);
+      console.log('RESPONSE', assistantResponse); 
 
-        console.log(
-          "Contract addresses:",
-          assistantResponse.tokenOneAddress,
-          assistantResponse.tokenTwoAddress
-        );
+      if (isJsonObject(assistantResponse)){
 
-        console.log("Token Pair:", assistantResponse.tokenPair);
+        // Check if response contains token addresses
+        if (
+          "tokenOneAddress" in assistantResponse &&
+          "tokenTwoAddress" in assistantResponse &&
+          "tokenPair" in assistantResponse
+        ) {
+            // Update state with contract addresses
+            setContractAddresses({
+              tokenOneAddress: assistantResponse.tokenOneAddress,
+              tokenTwoAddress: assistantResponse.tokenTwoAddress,
+            });
 
-        setResponseText("lp");
-        setShowCalculatorUI(true);
+            setTokenPair(assistantResponse.tokenPair);
+
+            console.log(
+              "Contract addresses:",
+              assistantResponse.tokenOneAddress,
+              assistantResponse.tokenTwoAddress
+            );
+
+            console.log("Token Pair:", assistantResponse.tokenPair);
+
+            setResponseText("lp");
+            setShowCalculatorUI(true);
+          } 
+
       } else {
         // Handle standard message response
         addMessage({
           role: "system",
-          content: assistantResponse.message,
+          content: assistantResponse,
         });
+
         const formattedResponse = markdownToHtml(assistantResponse);
         setResponseText(formattedResponse);
       }
