@@ -201,12 +201,12 @@ export default function Home() {
             onPress={handleQuickPrompt}
           />
         </Grid>
-        <Grid item>
+        {/* <Grid item>
           <QuickPrompt
             text="📱 What's the Twitter buzz on Injective?"
             onPress={handleQuickPrompt}
           />
-        </Grid>
+        </Grid> */}
       </Grid>
       <Grid
         container
