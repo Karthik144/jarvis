@@ -341,8 +341,14 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
   console.log("TOKEN ONE INSIDE FUNC:", tokenOne);
   console.log("TOKEN ONE INSIDE FUNC:", tokenTwo);
 
-  if (tokenOne.toLowerCase() === "eth"){
-    tokenOne = 'weth'; 
+  if (tokenOne === "ETH"){
+    console.log("INISDE WETH CONVERSION"); 
+    tokenOne = 'WETH'; 
+  }
+
+  if (tokenTwo === 'ETH'){
+    console.log("INISDE SECOND WETH CONVERSION");
+    tokenTwo = "WETH"; 
   }
 
   try {
@@ -368,7 +374,7 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
       str = parts.join(" "); // Join the remaining elements back into a string
       console.log("STR:", str);
       if (str === formattedString1 || str === formattedString2) {
-        console.log("INSIDE IF STATEMENT");
+        console.log("INSIDE TEST IF STATEMENT");
         const addressOneStr = pools.data[i].relationships.base_token.data.id;
         console.log("ADDRESS ONE STR:", addressOneStr);
         let addressOneParts = addressOneStr.split("_"); // Split the string into parts
