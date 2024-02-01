@@ -121,6 +121,7 @@ export default function Response() {
     };
 
     setResponseText("");
+    setUserSearch(query); 
     setShowCalculatorUI(false);
 
     setMessages([newUserMessage]);
