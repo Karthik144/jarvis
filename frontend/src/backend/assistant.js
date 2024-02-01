@@ -152,40 +152,6 @@ async function runConversation(query, messages) {
   console.log("RUN CONVERSATION CALLED"); 
   console.log("Messages:", messages); 
 
-//   const structuredMessage = {
-//     role: "user",
-//     content: query,
-//   };
-
-//   const messages = [
-//     {
-//       role: "system",
-//       content: "You are a helpful crypto research assistant.",
-//     },
-//     {
-//       role: "system",
-//       content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
-//     },
-//     {
-//       role: "system",
-//       content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-//     },
-//     {
-//       role: "system",
-//       content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-//     },
-//     {
-//       role: "system",
-//       content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
-//     },
-//     {
-//       role: "system",
-//       content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
-//     },
-//   ];
-
-//   messages.push(structuredMessage);
-
   const tools = [
     {
       type: "function",
@@ -325,7 +291,6 @@ async function runConversation(query, messages) {
         functionResponse = await functionToCall(functionArgs.query);
       }
       if (functionName !== "lowBetaHighGrowth") {
-        console.log("INSIDE IF STATEMENT");
         poolOffset = 0;
       }
 
@@ -376,6 +341,10 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
   console.log("TOKEN ONE INSIDE FUNC:", tokenOne);
   console.log("TOKEN ONE INSIDE FUNC:", tokenTwo);
 
+  if (tokenOne.toLowerCase() === "eth"){
+    tokenOne = 'weth'; 
+  }
+
   try {
     const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
     const response = await axios.get(url);
@@ -392,9 +361,7 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
     console.log("FORMATTED STRING 1:", formattedString1);
     console.log("FORMATTED STRING 2:", formattedString2);
 
-    console.log("LENGTH OF POOLS:", pools.data.length);
     for (let i = 0; i < pools.data.length; i++) {
-      // console.log('INSIDE FOR LOOP');
       let str = pools.data[i].attributes.name;
       let parts = str.split(" "); // Split the string into parts
       parts.pop(); // Remove the last element (which is "0.05%")
@@ -413,23 +380,33 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
         tokenTwoAddress = addressTwoParts[1];
 
         if (str === formattedString1) {
+          console.log("INSIDE FORMAT STRING 1 IF"); 
           tokenPair = formattedString1;
         } else {
+          console.log("INSIDE FORMAT STRING 2 IF"); 
           tokenPair = formattedString2;
         }
+
+        console.log('PAIR:', tokenPair); 
+        console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
+        console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
+
+        if (
+          tokenOneAddress !== "" &&
+          tokenTwoAddress !== "" &&
+          tokenPair !== ""
+        ) {
+          return {
+            tokenOneAddress,
+            tokenTwoAddress,
+            tokenPair,
+          };
+        } 
+
       }
     }
 
-    console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
-    console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
 
-    if (tokenOneAddress !== "" && tokenTwoAddress !== "" && tokenPair !== "") {
-      return {
-        tokenOneAddress,
-        tokenTwoAddress,
-        tokenPair,
-      };
-    }
   } catch (error) {
     console.error("Error fetching product data:", error);
     return null;
