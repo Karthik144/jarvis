@@ -94,11 +94,7 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-    },
-    {
-      role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
+      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
     },
     {
       role: "system",
