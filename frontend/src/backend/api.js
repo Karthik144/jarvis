@@ -1,19 +1,18 @@
+//TO-DO: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
-require("dotenv").config();
-const path = require("path");
-const fs = require("fs");
-const { spawn } = require("child_process");
+// const { spawn } = require("child_process");
 
 let poolOffset = 0;
 
 // GLOBAL VARS
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: "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",
+  dangerouslyAllowBrowser: true,
   baseURL: "https://oai.hconeai.com/v1",
   defaultHeaders: {
-    "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
+    "Helicone-Auth": `Bearer sk-iqcbg7a-2diev6a-xrelkyq-5vfnb5a`,
   },
 });
 
@@ -25,7 +24,7 @@ async function tavilyAdvancedSearch(query) {
 
   try {
     const response = await axios.post(endpoint, {
-      api_key: process.env.TAVILY_API_KEY,
+      api_key: "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",
       query: query,
       search_depth: "advanced",
       include_images: false,
@@ -101,29 +100,29 @@ async function searchProducts(searchTerm) {
   return results;
 }
 
-async function getSentiment(tokenName) {
-  return new Promise((resolve, reject) => {
-    const python = spawn("python3", [
-      "./sentimentAnalysis/twitter.py",
-      tokenName,
-    ]);
+// async function getSentiment(tokenName) {
+//   return new Promise((resolve, reject) => {
+//     const python = spawn("python3", [
+//       "./sentimentAnalysis/twitter.py",
+//       tokenName,
+//     ]);
 
-    let sentimentDict = null;
+//     let sentimentDict = null;
 
-    python.stdout.on("data", (data) => {
-      sentimentDict = JSON.parse(data.toString());
-    });
+//     python.stdout.on("data", (data) => {
+//       sentimentDict = JSON.parse(data.toString());
+//     });
 
-    python.stderr.on("data", (data) => {
-      console.error(`stderror: ${data}`);
-    });
+//     python.stderr.on("data", (data) => {
+//       console.error(`stderror: ${data}`);
+//     });
 
-    python.on("close", (code) => {
-      console.log(`child process exited with code: ${code}`);
-      resolve(sentimentDict);
-    });
-  });
-}
+//     python.on("close", (code) => {
+//       console.log(`child process exited with code: ${code}`);
+//       resolve(sentimentDict);
+//     });
+//   });
+// }
 
 async function getLowBetaHighGrowthPairs() {
   const poolsWithBetaCalc = await addBetaCalcToExistingData();
@@ -149,39 +148,10 @@ async function predict_LP({ tokenOne, tokenTwo }) {
 }
 
 // OPEN AI SETUP + RUN
-async function runConversation() {
+async function runConversation(query, messages) {
   console.log("INSIDE RUN CONVO");
-
-  const messages = [
-    {
-      role: "system",
-      content: "You are a helpful crypto research assistant.",
-    },
-    {
-      role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
-    },
-    {
-      role: "system",
-      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-    },
-    {
-      role: "system",
-      content: `Analyze sentiment using the Twitter Sentiment Analysis function. Summarize key findings in bullet points, ensuring brevity and density. Include Tweet links for reference. Expand details upon request. Trigger this function for mentions of Twitter, social media, or related topics.`,
-    },
-    {
-      role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Contextualize only if asked.`,
-    },
-    {
-      role: "system",
-      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
-    },
-    {
-      role: "user",
-      content: `What is injective?`,
-    },
-  ];
+  console.log("RUN CONVERSATION CALLED"); 
+  console.log("Messages:", messages); 
 
   const tools = [
     {
@@ -282,15 +252,12 @@ async function runConversation() {
     },
   ];
 
-
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo-1106",
     messages: messages,
     tools: tools,
     tool_choice: "auto",
   });
-
-
 
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
@@ -299,7 +266,7 @@ async function runConversation() {
     const availableFunctions = {
       tavilyAdvancedSearch: tavilyAdvancedSearch,
       checkForInsurance: searchProducts,
-      sentimentAnalysis: getSentiment,
+    //   sentimentAnalysis: getSentiment,
       lowBetaHighGrowth: getLowBetaHighGrowthPairs,
       predict_LP: predict_LP,
     };
@@ -325,7 +292,6 @@ async function runConversation() {
         functionResponse = await functionToCall(functionArgs.query);
       }
       if (functionName !== "lowBetaHighGrowth") {
-        console.log("INSIDE IF STATEMENT");
         poolOffset = 0;
       }
 
@@ -341,15 +307,33 @@ async function runConversation() {
     if (predictLPCalled) {
       return functionResponse;
     } else {
-      const stream = await openai.chat.completions.create({
+      //   const stream = await openai.chat.completions.create({
+      //     model: "gpt-3.5-turbo-1106",
+      //     messages: messages,
+      //     stream: true,
+      //   }); // get a new response from the model where it can see the function response
+      //   for await (const chunk of stream) {
+      //     process.stdout.write(chunk.choices[0]?.delta?.content || "");
+      //   }
+      //   return stream.choices;
+      const secondResponse = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-1106",
         messages: messages,
-        stream: true,
       }); // get a new response from the model where it can see the function response
-        for await (const chunk of stream) {
-            process.stdout.write(chunk.choices[0]?.delta?.content || "");
-        }
-      return stream.choices;
+
+      const conversationResult = secondResponse.choices;
+
+      if (!Array.isArray(conversationResult)) {
+        console.log(
+          "Returning direct predict_LP response:",
+          conversationResult
+        );
+        return conversationResult;
+      } else {
+        const lastMessageContent =
+          conversationResult[conversationResult.length - 1].message.content;
+        return lastMessageContent;
+      }
     }
   }
 }
@@ -357,6 +341,16 @@ async function runConversation() {
 async function getLPTokenAddresses(tokenOne, tokenTwo) {
   console.log("TOKEN ONE INSIDE FUNC:", tokenOne);
   console.log("TOKEN ONE INSIDE FUNC:", tokenTwo);
+
+  if (tokenOne === "ETH"){
+    console.log("INISDE WETH CONVERSION"); 
+    tokenOne = 'WETH'; 
+  }
+
+  if (tokenTwo === 'ETH'){
+    console.log("INISDE SECOND WETH CONVERSION");
+    tokenTwo = "WETH"; 
+  }
 
   try {
     const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
@@ -374,44 +368,52 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
     console.log("FORMATTED STRING 1:", formattedString1);
     console.log("FORMATTED STRING 2:", formattedString2);
 
-    console.log("LENGTH OF POOLS:", pools.data.length);
     for (let i = 0; i < pools.data.length; i++) {
-      // console.log('INSIDE FOR LOOP');
       let str = pools.data[i].attributes.name;
       let parts = str.split(" "); // Split the string into parts
       parts.pop(); // Remove the last element (which is "0.05%")
       str = parts.join(" "); // Join the remaining elements back into a string
       console.log("STR:", str);
       if (str === formattedString1 || str === formattedString2) {
-        console.log("INSIDE IF STATEMENT");
-        addressOneStr = pools.data[i].relationships.base_token.data.id;
+        console.log("INSIDE TEST IF STATEMENT");
+        const addressOneStr = pools.data[i].relationships.base_token.data.id;
         console.log("ADDRESS ONE STR:", addressOneStr);
         let addressOneParts = addressOneStr.split("_"); // Split the string into parts
         tokenOneAddress = addressOneParts[1];
 
-        addressTwoStr = pools.data[i].relationships.quote_token.data.id;
+        const addressTwoStr = pools.data[i].relationships.quote_token.data.id;
         console.log("ADDRESS TWO STR:", addressTwoStr);
         let addressTwoParts = addressTwoStr.split("_"); // Split the string into parts
         tokenTwoAddress = addressTwoParts[1];
 
         if (str === formattedString1) {
+          console.log("INSIDE FORMAT STRING 1 IF"); 
           tokenPair = formattedString1;
         } else {
+          console.log("INSIDE FORMAT STRING 2 IF"); 
           tokenPair = formattedString2;
         }
+
+        console.log('PAIR:', tokenPair); 
+        console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
+        console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
+
+        if (
+          tokenOneAddress !== "" &&
+          tokenTwoAddress !== "" &&
+          tokenPair !== ""
+        ) {
+          return {
+            tokenOneAddress,
+            tokenTwoAddress,
+            tokenPair,
+          };
+        } 
+
       }
     }
 
-    console.log("TOKEN ONE ADDRESS:", tokenOneAddress);
-    console.log("TOKEN TWO ADDRESS:", tokenTwoAddress);
 
-    if (tokenOneAddress !== "" && tokenTwoAddress !== "" && tokenPair !== "") {
-      return {
-        tokenOneAddress,
-        tokenTwoAddress,
-        tokenPair,
-      };
-    }
   } catch (error) {
     console.error("Error fetching product data:", error);
     return null;
@@ -446,17 +448,18 @@ async function getNexusMutualProducts() {
   }
 }
 
-function getInsurAceProducts() {
-  // Construct the path to the JSON file
-  const jsonFilePath = path.join(__dirname, "dataAnalysis", "products.json");
-
-  // Read the file synchronously
+async function getInsurAceProducts() {
   try {
-    const fileContents = fs.readFileSync(jsonFilePath, "utf8");
-    const data = JSON.parse(fileContents);
+    const response = await fetch("/products.json");
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
     return data;
   } catch (err) {
-    console.error("Error reading file:", err);
+    console.error("Error fetching products.json:", err);
     return null;
   }
 }
@@ -465,7 +468,8 @@ function getInsurAceProducts() {
 
 async function addBetaCalcToExistingData() {
   const pools = await getPoolData("arbitrum", "uniswap-v3");
-
+    console.log("INSIDE ADD BETA CALC TO EXISTING DATA"); 
+    console.log("POOL OFFSET:", poolOffset); 
   const endIndex = Math.min(poolOffset + 10, pools.length);
 
   // Get next 10 pools
@@ -746,10 +750,4 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-runConversation()
-  .then((result) => {
-    console.log("Result from runConversation:", result);
-  })
-  .catch((error) => {
-    console.error("Error from runConversation:", error);
-  });
+module.exports = { runConversation };

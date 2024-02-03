@@ -1,7 +1,8 @@
 //REFS:
 //  -https://deliverypdf.ssrn.com/delivery.php?ID=198103020022127072088108000070071122042048077048056085078022014029082017117122082105061019106057060060051027095099077067116026023021012013031101071121002118115000110030021049123010088097076017126079122070085099012103085082000077118119082005087070011126&EXT=pdf&INDEX=TRUE
 //  -https://deliverypdf.ssrn.com/delivery.php?ID=285088095002029121083070064076101091033020039072045089028085122023101114077117086075049063097015112023016027078096012094089124111059011078059081088088006123117025015024093047094069089007010018111110109028088015086068088084118112120116116105126030097106&EXT=pdf&INDEX=TRUE#page15
-
+//NOTE: Lower first hex value in addr is token0
+//SUBGRAPH: https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-arbitrum
 
 //TEMP VERSION
 import { Token } from "@uniswap/sdk-core";
@@ -36,6 +37,8 @@ export async function predict_LP(LP_dict: any) {
     const poolAddress = Pool.getAddress(
         token0, token1, LP_dict.feeTier
     )
+
+    console.log(poolAddress)
 
     //GET 100D HISTORICAL PRICES
     const prices_endpoint = `https://api.geckoterminal.com/api/v2/networks/${LP_dict.chain}/pools/${poolAddress}/ohlcv/day`
@@ -103,13 +106,13 @@ export async function predict_LP(LP_dict: any) {
 // }
 
 //ETH token0 is higher address, ARB token0 is lower address
-// const example_object = {
-//     chain: 'arbitrum',
-//     chainId: 42161,
-//     token0: '0x912CE59144191C1204E64559FE8253a0e49E6548', //WETH
-//     token1: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //USDC
-//     feeTier: 500,
-//     depositAmt: 1000,
-// }
-// const result = predict_LP(example_object)
-// console.log(result)
+const example_object = {
+    chain: 'arbitrum',
+    chainId: 42161,
+    token0: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //WETH
+    token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //USDC
+    feeTier: 500,
+    depositAmt: 1000,
+}
+const result = predict_LP(example_object)
+console.log(result)
