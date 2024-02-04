@@ -2,7 +2,11 @@ import * as React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 
 const columns = [
-  { field: "name", headerName: "Name", width: 130 },
+  {
+    field: "name",
+    headerName: "Name",
+    width: 120,
+  },
   {
     field: "currentPrice",
     headerName: "Current Price",
@@ -10,10 +14,22 @@ const columns = [
     width: 130,
   },
   {
-    field: "percentChangePrice",
-    headerName: "%∆ Price",
+    field: "priceChange30",
+    headerName: "%∆ Price (30d)",
     type: "number",
-    width: 130,
+    width: 120,
+  },
+  {
+    field: "priceChange60",
+    headerName: "%∆ Price (60d)",
+    type: "number",
+    width: 120,
+  },
+  {
+    field: "priceChange200",
+    headerName: "%∆ Price (200d)",
+    type: "number",
+    width: 120,
   },
   {
     field: "volume",
@@ -24,7 +40,7 @@ const columns = [
   {
     field: "category",
     headerName: "Category",
-    width: 130,
+    width: 150, 
   },
   {
     field: "marketCap",
@@ -33,23 +49,12 @@ const columns = [
   },
 ];
 
-const rows = [
-  { id: 1, lastName: "Snow", firstName: "Jon", age: 35 },
-  { id: 2, lastName: "Lannister", firstName: "Cersei", age: 42 },
-  { id: 3, lastName: "Lannister", firstName: "Jaime", age: 45 },
-  { id: 4, lastName: "Stark", firstName: "Arya", age: 16 },
-  { id: 5, lastName: "Targaryen", firstName: "Daenerys", age: null },
-  { id: 6, lastName: "Melisandre", firstName: null, age: 150 },
-  { id: 7, lastName: "Clifford", firstName: "Ferrara", age: 44 },
-  { id: 8, lastName: "Frances", firstName: "Rossini", age: 36 },
-  { id: 9, lastName: "Roxie", firstName: "Harvey", age: 65 },
-];
 
-export default function WatchlistTable() {
+export default function WatchlistTable({ watchlistData }) {
   return (
-    <div style={{ height: 400, width: "75%" }}>
+    <div style={{ height: 400, width: "100%" }}>
       <DataGrid
-        rows={rows}
+        rows={watchlistData}
         columns={columns}
         initialState={{
           pagination: {

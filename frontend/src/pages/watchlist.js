@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from "react";
 import WatchlistTable from "../components/watchlist/WatchlistTable.js";
+import AddButton from "../components/watchlist/AddButton.js"; 
+import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient";
+const axios = require("axios");
 
 export default function Watchlist() {
   const [user, setUser] = useState(null);
-  const [watchlist, setWatchlist] = useState(null);
+  const [watchlist, setWatchlist] = useState([]);
+  const [rawList, setRawList] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
 
   // Set current user
   useEffect(() => {
@@ -26,9 +32,9 @@ export default function Watchlist() {
 
   // Get users watchlist once
   useEffect(() => {
-    if (user) {
+    if (user && watchlist.length === 0) {
       // User is logged in, fetch their profile
-      const fetchInvestorProfile = async () => {
+      const fetchWatchlist = async () => {
         try {
           const { data, error } = await supabase
             .from("profiles")
@@ -39,63 +45,70 @@ export default function Watchlist() {
           if (error) {
             throw error;
           }
-          console.log(data.watchlist);
-          setWatchlist(data.watchlist);
+
+          setRawList(data.watchlist || { coins: []}); 
+
+          const coinsInWatchlist = data.watchlist.coins.length; 
+          for (let i = 0; i < coinsInWatchlist; i++){
+            const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
+            setWatchlist([...watchlist, coinData]);
+          }
+
         } catch (error) {
           console.error("Error fetching investor profile:", error.message);
         }
       };
 
-      fetchInvestorProfile();
-    } else {
-      setInvestorProfile(null);
-    }
+      fetchWatchlist();
+    } 
   }, [user]);
 
-  async function getCoinData(coinID) {
+  async function getCoinData(coinID, rowID) {
     try {
       const result = {
-        Name: "",
-        "Current Price": "",
-        "%∆ Price 30d": "",
-        "%∆ Price 60d": "",
-        "%∆ Price 200d": "",
-        Volume: "",
-        Category: "",
-        "Market Cap": "",
+        id: rowID,
+        name: "",
+        currentPrice: "",
+        priceChange30: "", 
+        priceChange60: "", 
+        priceChange200: "",
+        volume: "",
+        category: "",
+        marketCap: "",
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
       const response = await axios.get(url);
       const coinData = response.data;
 
       // Stores values in the result object
-      result["Name"] = coinData.name;
+      result["name"] = coinData.name;
       result[
-        "Current Price"
+        "currentPrice"
       ] = `$${coinData.market_data.current_price.usd.toLocaleString()}`;
       result[
-        "%∆ Price 30d"
+        "priceChange30"
       ] = `${coinData.market_data.price_change_percentage_30d_in_currency.usd.toFixed(
         2
       )}%`;
       result[
-        "%∆ Price 60d"
+        "priceChange60"
       ] = `${coinData.market_data.price_change_percentage_60d_in_currency.usd.toFixed(
         2
       )}%`;
       result[
-        "%∆ Price 200d"
+        "priceChange200"
       ] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(
         2
       )}%`;
       result[
-        "Volume"
+        "volume"
       ] = `$${coinData.market_data.total_volume.usd.toLocaleString()}`;
-      result["Category"] = coinData.categories.join(", ");
+      result["category"] = coinData.categories.join(", ");
       result[
-        "Market Cap"
+        "marketCap"
       ] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
 
+      console.log("RESULT:", result); 
       return result;
     } catch (error) {
       console.error("Error fetching coin data:", error);
@@ -103,37 +116,40 @@ export default function Watchlist() {
     }
   }
 
-  async function getCoinID(symbol) {
-    try {
-      const url = `https://api.coingecko.com/api/v3/search?query=${gmx}`;
-      const response = await axios.get(url);
-      const coinData = response.data;
-      const firstCoinId = coinData.coins[0].id;
-      return firstCoinId;
-    } catch (error) {
-      console.log("Error retrieving coin id:", error);
-      return null;
-    }
-  }
 
-  async function fetchUserWatchlist(userID) {}
+  const handleOpenModal = () => {
+    setModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalOpen(false);
+  };
+
 
   return (
-    <div style={{ paddingLeft: "90px" }}>
-      <Stack direction="column" spacing={5}>
+    <Box sx={{ padding: "90px" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+        }}
+      >
         <Typography
           variant="h2"
           sx={{
             fontWeight: "500",
-            textAlign: "left",
             fontSize: "1.75rem",
-            paddingTop: "90px",
           }}
         >
           Watchlist
         </Typography>
-        <WatchlistTable />
-      </Stack>
-    </div>
+        <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
+      </Box>
+      <WatchlistTable watchlistData={watchlist} />
+
+      <NewTokenModal handleClose={handleCloseModal} open={modalOpen} rawList={rawList} />
+    </Box>
   );
 }
