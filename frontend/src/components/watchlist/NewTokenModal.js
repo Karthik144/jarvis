@@ -43,23 +43,39 @@ const closeButtonStyle = {
 };
 
 // VIEW
-export default function NewTokenModal({ handleClose, open, rawList }) {
-
-  const [notes, setNotes] = useState(""); 
+export default function NewTokenModal({ handleClose, handleTokenAdded, open, rawList }) {
+  const [notes, setNotes] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState("");
+  const [user, setUser] = useState(null);
 
   const handleNotesChange = (value) => {
     setNotes(value);
   };
-  
+
   const handleAddressChange = (value) => {
-    setTokenAddress(value); 
-  }
+    setTokenAddress(value);
+  };
 
   const handleSymbolChange = (value) => {
-    setTokenSymbol(value); 
-  }
+    setTokenSymbol(value);
+  };
+
+  // Set current user
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    // Cleanup function
+    return () => {
+      if (authListener && typeof authListener.unsubscribe === "function") {
+        authListener.unsubscribe();
+      }
+    };
+  }, []);
 
   async function getCoinID(symbol) {
     try {
@@ -75,33 +91,35 @@ export default function NewTokenModal({ handleClose, open, rawList }) {
   }
 
   const addToWatchlist = async () => {
-      if (!user) {
-        console.error("No user found");
-        return;
+    if (!user) {
+      console.error("No user found");
+      return;
+    }
+
+    const coinID = await getCoinID(tokenSymbol);
+
+    const watchlistToken = {
+      coin_id: coinID,
+      notes: notes,
+    };
+
+    rawList.coins.push(watchlistToken);
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ watchlist: rawList })
+        .eq("id", user.id);
+
+      if (error) {
+        throw error;
       }
-
-      const coinID = await getCoinID(tokenSymbol); 
-
-      const watchlistToken = {
-        coin_id: coinID,
-        notes: notes
-      };
-
-      rawList.coins.push(watchlistToken);
-
-      try {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ watchlist: rawList })
-          .eq("id", user.id);
-
-        if (error) {
-          throw error;
-        }
-        console.log("Watchlist updated successfully");
-      } catch (error) {
-        console.error("Error updating profile:", error.message);
-      }
+      handleTokenAdded(); 
+      handleClose(); 
+      console.log("Watchlist updated successfully");
+    } catch (error) {
+      console.error("Error updating profile:", error.message);
+    }
   };
 
   return (
@@ -148,11 +166,7 @@ export default function NewTokenModal({ handleClose, open, rawList }) {
 
             <NotesTextField title={"Notes"} onChange={handleNotesChange} />
 
-            <AddTokenButton
-              onClick={addToWatchlist}
-            >
-              Add Token
-            </AddTokenButton>
+            <AddTokenButton onClick={addToWatchlist}>Add Token</AddTokenButton>
           </Stack>
         </Box>
       </Modal>

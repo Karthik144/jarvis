@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient";
+import Snackbar from "@mui/material/Snackbar";
 const axios = require("axios");
 
 export default function Watchlist() {
@@ -13,6 +14,7 @@ export default function Watchlist() {
   const [watchlist, setWatchlist] = useState([]);
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [tokenAdded, setTokenAdded] = useState(false);
 
   // Set current user
   useEffect(() => {
@@ -32,7 +34,7 @@ export default function Watchlist() {
 
   // Get users watchlist once
   useEffect(() => {
-    if (user && watchlist.length === 0) {
+    if (user) {
       // User is logged in, fetch their profile
       const fetchWatchlist = async () => {
         try {
@@ -49,10 +51,17 @@ export default function Watchlist() {
           setRawList(data.watchlist || { coins: []}); 
 
           const coinsInWatchlist = data.watchlist.coins.length; 
-          for (let i = 0; i < coinsInWatchlist; i++){
+          console.log("WATCHLIST LENGTH:", coinsInWatchlist);
+
+          const newWatchlist = [];
+
+          for (let i = 0; i < coinsInWatchlist; i++) {
             const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
-            setWatchlist([...watchlist, coinData]);
+            console.log("COIN DATA:", coinData);
+            newWatchlist.push(coinData);
           }
+
+          setWatchlist(newWatchlist);
 
         } catch (error) {
           console.error("Error fetching investor profile:", error.message);
@@ -65,9 +74,11 @@ export default function Watchlist() {
 
   async function getCoinData(coinID, rowID) {
     try {
+      console.log('ROW ID:', rowID);
       const result = {
         id: rowID,
         name: "",
+        coinID: coinID,
         currentPrice: "",
         priceChange30: "", 
         priceChange60: "", 
@@ -125,6 +136,18 @@ export default function Watchlist() {
     setModalOpen(false);
   };
 
+  const handleTokenAdded = () => {
+    setTokenAdded(true);
+  }
+
+  const handleTokenNotAdded = (event, reason) => {
+    if (reason === 'clickaway'){
+      return; 
+    }
+
+    setTokenAdded(false);
+  }
+
 
   return (
     <Box sx={{ padding: "90px" }}>
@@ -147,9 +170,27 @@ export default function Watchlist() {
         </Typography>
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
-      <WatchlistTable watchlistData={watchlist} />
+      <WatchlistTable watchlistData={watchlist} rawList={rawList} />
 
-      <NewTokenModal handleClose={handleCloseModal} open={modalOpen} rawList={rawList} />
+      <NewTokenModal
+        handleClose={handleCloseModal}
+        open={modalOpen}
+        rawList={rawList}
+        handleTokenAdded={handleTokenAdded}
+      />
+
+      <Snackbar
+        open={tokenAdded}
+        autoHideDuration={5000}
+        onClose={handleTokenNotAdded}
+        message="✅ Token successfully added!"
+        sx={{
+          ".MuiSnackbarContent-root": {
+            backgroundColor: "white",
+            color: "black",
+          }, 
+        }}
+      />
     </Box>
   );
 }
