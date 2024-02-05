@@ -32,9 +32,10 @@ export default function Watchlist() {
     };
   }, []);
 
+  
   // Get users watchlist once
   useEffect(() => {
-    if (user) {
+    if (user && watchlist.length===0) {
       // User is logged in, fetch their profile
       const fetchWatchlist = async () => {
         try {
@@ -56,7 +57,8 @@ export default function Watchlist() {
           const newWatchlist = [];
 
           for (let i = 0; i < coinsInWatchlist; i++) {
-            const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
+            // const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
+            const coinData = await getCachedCoinData(data.watchlist.coins[i].coin_id, i);
             console.log("COIN DATA:", coinData);
             newWatchlist.push(coinData);
           }
@@ -71,6 +73,30 @@ export default function Watchlist() {
       fetchWatchlist();
     } 
   }, [user]);
+
+  async function getCachedCoinData(coinID, id) {
+    const cacheKey = `coinData_${coinID}`;
+    const cachedData = localStorage.getItem(cacheKey);
+
+    if (cachedData) {
+      const { timestamp, data } = JSON.parse(cachedData);
+
+      // Check if the cache is still valid - 1 hour
+      if (Date.now() - timestamp < 3600000) {
+        return data; // Return cached data
+      }
+    }
+
+    // If no valid cache, fetch new data
+    const newData = await getCoinData(coinID, id);
+    if (newData) {
+      localStorage.setItem(
+        cacheKey,
+        JSON.stringify({ timestamp: Date.now(), data: newData })
+      );
+    }
+    return newData;
+  }
 
   async function getCoinData(coinID, rowID) {
     try {

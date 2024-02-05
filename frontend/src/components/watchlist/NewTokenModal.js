@@ -101,6 +101,7 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
     const watchlistToken = {
       coin_id: coinID,
       notes: notes,
+      address: tokenAddress, 
     };
 
     rawList.coins.push(watchlistToken);

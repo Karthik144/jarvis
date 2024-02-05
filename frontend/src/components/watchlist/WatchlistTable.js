@@ -48,7 +48,7 @@ export default function WatchlistTable({ watchlistData, rawList }) {
     {
       field: "category",
       headerName: "Category",
-      width: 450,
+      width: 160,
     },
     {
       field: "marketCap",
