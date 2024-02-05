@@ -353,7 +353,8 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
   }
 
   try {
-    const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
+    // const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
+    const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=eth&include=base_token%2C%20quote_token&page=1`;
     const response = await axios.get(url);
     const pools = response.data;
 
@@ -467,7 +468,8 @@ async function getInsurAceProducts() {
 // HELPER FUNCS FOR BETA CALCS
 
 async function addBetaCalcToExistingData() {
-  const pools = await getPoolData("arbitrum", "uniswap-v3");
+  // const pools = await getPoolData("arbitrum", "uniswap-v3");
+    const pools = await getPoolData("ethereum", "uniswap-v3");
     console.log("INSIDE ADD BETA CALC TO EXISTING DATA"); 
     console.log("POOL OFFSET:", poolOffset); 
   const endIndex = Math.min(poolOffset + 10, pools.length);

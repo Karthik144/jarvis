@@ -14,6 +14,8 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../supabaseClient";
+import Box from "@mui/material/Box";
+
 export default function Home() {
   const [userInput, setUserInput] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -113,66 +115,93 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-between p-24">
-      <Stack spacing={2} direction="row" sx={{ p: "10px" }}>
-        {user ? (
-          // If user is authenticated, show the user's email and a logout button
-          <>
-            <Avatar {...stringAvatar(user.email)} onClick={handleClick} />
-            <Menu
-              id="basic-menu"
-              anchorEl={anchorEl}
-              open={open}
-              onClose={handleClose}
-              MenuListProps={{
-                "aria-labelledby": "basic-button",
-              }}
-            >
-              <MenuItem
-                onClick={handleInvestorProfile}
-                sx={{
-                  "&.MuiMenuItem-root": {
-                    "&:hover, &:focus": {
-                      backgroundColor: "transparent",
-                    },
-                  },
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Stack spacing={2} direction="row" sx={{ p: "10px" }}>
+          {user ? (
+            // If user is authenticated, show the user's email and a logout button
+            <>
+              <Avatar {...stringAvatar(user.email)} onClick={handleClick} />
+              <Menu
+                id="basic-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  "aria-labelledby": "basic-button",
                 }}
               >
-                Investor Profile
-              </MenuItem>
-              <MenuItem
-                onClick={handleLogout}
-                sx={{
-                  "&.MuiMenuItem-root": {
-                    "&:hover, &:focus": {
-                      backgroundColor: "transparent",
+                <MenuItem
+                  onClick={handleInvestorProfile}
+                  sx={{
+                    "&.MuiMenuItem-root": {
+                      "&:hover, &:focus": {
+                        backgroundColor: "transparent",
+                      },
                     },
-                  },
-                }}
+                  }}
+                >
+                  Investor Profile
+                </MenuItem>
+                <MenuItem
+                  onClick={handleLogout}
+                  sx={{
+                    "&.MuiMenuItem-root": {
+                      "&:hover, &:focus": {
+                        backgroundColor: "transparent",
+                      },
+                    },
+                  }}
+                >
+                  Sign Out
+                </MenuItem>
+              </Menu>
+            </>
+          ) : (
+            // If user is not authenticated, show Sign In and Sign Up buttons
+            <>
+              <Button
+                onClick={() => handleOpenModal("signin")}
+                variant="text"
+                sx={{ textTransform: "none", color: "black" }}
+                disableElevation
               >
-                Sign Out
-              </MenuItem>
-            </Menu>
-          </>
-        ) : (
-          // If user is not authenticated, show Sign In and Sign Up buttons
-          <>
-            <Button
-              onClick={() => handleOpenModal("signin")}
-              variant="text"
-              sx={{ textTransform: "none", color: "black" }}
-              disableElevation
-            >
-              Sign In
-            </Button>
-            <SignUpButton
-              onClick={() => handleOpenModal("signup")}
-              disableElevation
-            >
-              Sign Up
-            </SignUpButton>
-          </>
-        )}
-      </Stack>
+                Sign In
+              </Button>
+              <SignUpButton
+                onClick={() => handleOpenModal("signup")}
+                disableElevation
+              >
+                Sign Up
+              </SignUpButton>
+            </>
+          )}
+        </Stack>
+
+        <Button
+          onClick={() => router.push("/watchlist")}
+          sx={{
+            textTransform: "none",
+            color: "black", 
+            fontSize: "1rem", 
+            paddingRight: "20px", 
+            marginRight: "20px", 
+            backgroundColor: "transparent", 
+            "&:hover": {
+              backgroundColor: "transparent", 
+              color: "#555",
+            },
+          }}
+        >
+          Watchlist
+        </Button>
+      </Box>
       <Typography variant="h3" sx={{ textAlign: "center", pt: "165px" }}>
         Speed up your crypto research
       </Typography>

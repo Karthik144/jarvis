@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Paper } from "@mui/material";
 import FollowUpQuestionBar from "../components/home/FollowUpQuestionBar";
-import { runConversation } from "../backend/assistant";
+import { runConversation } from "../backend/api";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
@@ -133,104 +133,6 @@ export default function Response() {
     }
     setPulseAnimation(false);
   };
-
-  // async function fetchResponse(userQuery) {
-  //   console.log("INSIDE FETCH RESPONSE");
-  //   try {
-  //     console.log(userQuery);
-  //     // console.log(newUserMessage);
-  //     console.log("MESSAGES INSIDE FETCH:", messages);
-
-  //     const processedQuery = userQuery.replace(/^"|"$/g, "");
-
-  //     const structuredMessage = {
-  //       role: "user",
-  //       content: processedQuery,
-  //     }
-
-  //     const requestBody = {
-  //       userInput: userQuery,
-  //       defaultMessages: [...messages, structuredMessage],
-  //     };
-
-  //     console.log('MESSAGES REQUEST BODY', requestBody.defaultMessages);
-
-  //     // const response = await fetch("http://localhost:3001/analyze", {
-  //     //   method: "POST",
-  //     //   headers: {
-  //     //     "Content-Type": "application/json",
-  //     //   },
-  //     //   body: JSON.stringify({ userInput: userQuery }),
-  //     // });
-
-  //     // const response = await fetch("http://localhost:3001/analyze", {
-  //     //   method: "POST",
-  //     //   headers: {
-  //     //     "Content-Type": "application/json",
-  //     //   },
-  //     //   body: JSON.stringify(requestBody),
-  //     // });
-
-  //     // const response = await fetch("https://jarvis-api.vercel.app/analyze", {
-  //     //   mode: 'no-cors',
-  //     //   method: "POST",
-  //     //   headers: {
-  //     //     "Content-Type": "application/json",
-  //     //   },
-  //     //   body: JSON.stringify(requestBody),
-  //     // });
-
-  //     const response = await fetch(
-  //       "https://jarvis-api.vercel.app/analyze",
-  //       {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         body: JSON.stringify(requestBody),
-  //       }
-  //     );
-
-  //     if (!response.ok) {
-  //       throw new Error(`HTTP error! Status: ${response.status}`);
-  //     }
-
-  //     const data = await response.json();
-  //     console.log("Data in client:", data);
-
-  //     // Check if response contains token addresses
-  //     if ("tokenOneAddress" in data && "tokenTwoAddress" in data && 'tokenPair' in data) {
-  //       // Update state with contract addresses
-  //       setContractAddresses({
-  //         tokenOneAddress: data.tokenOneAddress,
-  //         tokenTwoAddress: data.tokenTwoAddress,
-  //       });
-
-  //       setTokenPair(data.tokenPair);
-
-  //       console.log(
-  //         "Contract addresses:",
-  //         data.tokenOneAddress,
-  //         data.tokenTwoAddress
-  //       );
-
-  //       console.log("Token Pair:", data.tokenPair);
-
-  //       setResponseText('lp');
-  //       setShowCalculatorUI(true);
-  //     } else {
-  //       // Handle standard message response
-  //       addMessage({
-  //         role: "system",
-  //         content: data.message,
-  //       });
-  //       const formattedResponse = markdownToHtml(data.message);
-  //       setResponseText(formattedResponse);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching response:", error);
-  //   }
-  // }
 
   function isJsonObject(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value);
