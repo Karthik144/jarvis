@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Paper } from "@mui/material";
 import FollowUpQuestionBar from "../components/home/FollowUpQuestionBar";
-import { runConversation } from "../backend/assistant";
+import { runConversation } from "../backend/api";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
