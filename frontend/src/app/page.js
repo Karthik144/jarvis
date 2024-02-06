@@ -7,6 +7,7 @@ import PromptBar from "../components/home/PromptBar";
 import QuickPrompt from "../components/home/QuickPrompt";
 import SignUpButton from "../components/onboard/SignUpButton";
 import WelcomeModal from "../components/onboard/AuthModal";
+import Workflow from "../components/workflows/Workflow"; 
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
@@ -188,13 +189,13 @@ export default function Home() {
           onClick={() => router.push("/watchlist")}
           sx={{
             textTransform: "none",
-            color: "black", 
-            fontSize: "1rem", 
-            paddingRight: "20px", 
-            marginRight: "20px", 
-            backgroundColor: "transparent", 
+            color: "black",
+            fontSize: "1rem",
+            paddingRight: "20px",
+            marginRight: "20px",
+            backgroundColor: "transparent",
             "&:hover": {
-              backgroundColor: "transparent", 
+              backgroundColor: "transparent",
               color: "#555",
             },
           }}
@@ -230,12 +231,6 @@ export default function Home() {
             onPress={handleQuickPrompt}
           />
         </Grid>
-        {/* <Grid item>
-          <QuickPrompt
-            text="📱 What's the Twitter buzz on Injective?"
-            onPress={handleQuickPrompt}
-          />
-        </Grid> */}
       </Grid>
       <Grid
         container
@@ -268,6 +263,16 @@ export default function Home() {
         setPassword={setPassword}
         mode={mode}
       />
+      <Box
+        sx={{ maxWidth: "930px", margin: "0 auto", width: "100%", pt: "30px" }}
+      >
+        <Stack spacing={2} sx={{ mt: 2, mb: 2 }}>
+          <Typography variant="h5" sx={{ textAlign: "left" }}>
+            Automated Workflows
+          </Typography>
+          <Workflow />
+        </Stack>
+      </Box>
     </div>
   );
 }
