@@ -45,29 +45,30 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function Workflow() {
+export default function Workflow({ onButtonClick }) {
   return (
-      <StyledPaper square={false}>
-        <Typography
-          variant="subtitle1"
-          gutterBottom
-          sx={{
-            fontSize: "1.25rem",
-          }}
-        >
-          Filter pools on APY
-        </Typography>
-        <Stack direction="row" spacing={2}>
-          <StyledLabelPaper elevation={0}>{"Base APY > 10%"}</StyledLabelPaper>
-          <StyledLabelPaper elevation={0}>{"30D APY > 15%"}</StyledLabelPaper>
-        </Stack>
-        <StyledButton
-          variant="contained"
-          sx={{ textTransform: "none" }}
-          startIcon={<PlayArrowIcon />}
-        >
-          Run
-        </StyledButton>
-      </StyledPaper>
+    <StyledPaper square={false}>
+      <Typography
+        variant="subtitle1"
+        gutterBottom
+        sx={{
+          fontSize: "1.25rem",
+        }}
+      >
+        Filter pools on APY
+      </Typography>
+      <Stack direction="row" spacing={2}>
+        <StyledLabelPaper elevation={0}>{"Base APY > 10%"}</StyledLabelPaper>
+        <StyledLabelPaper elevation={0}>{"30D APY > 15%"}</StyledLabelPaper>
+      </Stack>
+      <StyledButton
+        variant="contained"
+        sx={{ textTransform: "none" }}
+        startIcon={<PlayArrowIcon />}
+        onClick={onButtonClick} 
+      >
+        Run
+      </StyledButton>
+    </StyledPaper>
   );
 }

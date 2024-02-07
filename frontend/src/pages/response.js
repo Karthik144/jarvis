@@ -100,6 +100,10 @@ export default function Response() {
       role: "system",
       content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
     },
+    {
+      role: "system",
+      content: `Call the filterByAPY function when user needs to filter by base APY and 30D APY. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
+    },
   ]);
 
   const [pulseAnimation, setPulseAnimation] = useState(false);

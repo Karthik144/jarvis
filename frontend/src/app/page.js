@@ -86,6 +86,13 @@ export default function Home() {
     router.push("/response");
   };
 
+  const handleWorkflowButtonClick = () => {
+    console.log("Workflow button was pressed!");
+    const query = 'Filter pools with base APY > 10% and 30D APY mean >15%?'
+    localStorage.setItem("userQuery", JSON.stringify(query));
+    router.push("/response");
+  };
+
   function stringToColor(string) {
     let hash = 0;
     let i;
@@ -270,7 +277,7 @@ export default function Home() {
           <Typography variant="h5" sx={{ textAlign: "left" }}>
             Automated Workflows
           </Typography>
-          <Workflow />
+          <Workflow onButtonClick={handleWorkflowButtonClick} />
         </Stack>
       </Box>
     </div>
