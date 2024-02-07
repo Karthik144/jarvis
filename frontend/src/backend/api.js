@@ -2,9 +2,9 @@
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
-// const { spawn } = require("child_process");
 
 let poolOffset = 0;
+let page = 1; 
 
 // GLOBAL VARS
 const openai = new OpenAI({
@@ -100,30 +100,6 @@ async function searchProducts(searchTerm) {
   return results;
 }
 
-// async function getSentiment(tokenName) {
-//   return new Promise((resolve, reject) => {
-//     const python = spawn("python3", [
-//       "./sentimentAnalysis/twitter.py",
-//       tokenName,
-//     ]);
-
-//     let sentimentDict = null;
-
-//     python.stdout.on("data", (data) => {
-//       sentimentDict = JSON.parse(data.toString());
-//     });
-
-//     python.stderr.on("data", (data) => {
-//       console.error(`stderror: ${data}`);
-//     });
-
-//     python.on("close", (code) => {
-//       console.log(`child process exited with code: ${code}`);
-//       resolve(sentimentDict);
-//     });
-//   });
-// }
-
 async function getLowBetaHighGrowthPairs() {
   const poolsWithBetaCalc = await addBetaCalcToExistingData();
 
@@ -146,6 +122,49 @@ async function predict_LP({ tokenOne, tokenTwo }) {
   console.log("RESULT IN PREDICT:", result);
   return result; // Should be a json object
 }
+
+async function filterPoolsByAPY(baseAPY, thirtyDayAPY) {
+  const chain = "ethereum";
+  const project = "uniswap-v3";
+  const pageSize = 10;
+  console.log("BASE APY:", baseAPY);
+  console.log("30 Day APY:", thirtyDayAPY);
+
+  try {
+    const requestURL = "https://yields.llama.fi/pools";
+    const response = await axios.get(requestURL);
+
+    if (response.data.status === "success") {
+      const filteredPools = response.data.data.filter(
+        (pool) =>
+          pool.chain &&
+          pool.chain.toLowerCase() === chain.toLowerCase() &&
+          pool.project &&
+          pool.project.toLowerCase() === project.toLowerCase() &&
+          !pool.stablecoin &&
+          pool.tvlUsd &&
+          pool.tvlUsd >= 1500000 &&
+          pool.apyBase &&
+          pool.apyBase >= baseAPY &&
+          pool.apyMean30d &&
+          pool.apyMean30d >= thirtyDayAPY
+      );
+
+      const startIndex = (page - 1) * pageSize;
+      const endIndex = startIndex + pageSize;
+      const paginatedPools = filteredPools.slice(startIndex, endIndex);
+      page += 1;
+      return paginatedPools;
+    } else {
+      console.error("API call was not successful.");
+      return null;
+    }
+  } catch (error) {
+    console.error("An error occurred while fetching pool data:", error);
+    return null;
+  }
+}
+
 
 // OPEN AI SETUP + RUN
 async function runConversation(query, messages) {
@@ -194,27 +213,6 @@ async function runConversation(query, messages) {
       },
     },
 
-    // sentimentAnalysis
-    {
-      type: "function",
-      function: {
-        name: "sentimentAnalysis",
-        description:
-          "Get sentiment analysis on data from Twitter posts regarding a crypto token.",
-        parameters: {
-          type: "object",
-          properties: {
-            query: {
-              type: "string",
-              description:
-                "The token name for which we're doing sentiment analysis on (i.e. Bitcoin)",
-            },
-          },
-          required: ["query"],
-        },
-      },
-    },
-
     // lowBetaHighGrowth
     {
       type: "function",
@@ -250,6 +248,30 @@ async function runConversation(query, messages) {
         },
       },
     },
+
+    // filterByAPY
+    {
+      type: "function",
+      function: {
+        name: "filterByAPY",
+        description:
+          "Filter pools by base APY and 30d mean APY based on user inputs.",
+        parameters: {
+          type: "object",
+          properties: {
+            baseAPY: {
+              type: "number",
+              description: "The base APY to filter by (e.g. 10.0)",
+            },
+            thirtyDayAPY: {
+              type: "number",
+              description: "The 30D APY to filter by (e.g. 15.0)",
+            },
+          },
+          required: ["baseAPY", "thirtyDayAPY"],
+        },
+      },
+    },
   ];
 
   const response = await openai.chat.completions.create({
@@ -266,7 +288,7 @@ async function runConversation(query, messages) {
     const availableFunctions = {
       tavilyAdvancedSearch: tavilyAdvancedSearch,
       checkForInsurance: searchProducts,
-    //   sentimentAnalysis: getSentiment,
+      filterByAPY: filterPoolsByAPY, 
       lowBetaHighGrowth: getLowBetaHighGrowthPairs,
       predict_LP: predict_LP,
     };
@@ -279,20 +301,30 @@ async function runConversation(query, messages) {
       const functionName = toolCall.function.name;
       const functionToCall = availableFunctions[functionName];
       const functionArgs = JSON.parse(toolCall.function.arguments);
-      // const functionResponse = await functionToCall(functionArgs.query);
 
       console.log("FUNCTION NAME:", functionName);
+      console.log("FUNCTION ARGS:", functionArgs); 
 
       if (functionName === "predict_LP") {
         functionResponse = await functionToCall(functionArgs);
         predictLPCalled = true;
         console.log("PREDICT LP CALLED:", predictLPCalled);
         console.log("FUNCTION RESPONSE IN AI:", functionResponse);
-      } else {
+      } else if (functionName === 'filterByAPY'){
+        console.log('FILTER BY APY CALLED'); 
+        functionResponse = await functionToCall(
+          functionArgs.baseAPY,
+          functionArgs.thirtyDayAPY
+        );
+      }else {
         functionResponse = await functionToCall(functionArgs.query);
       }
       if (functionName !== "lowBetaHighGrowth") {
         poolOffset = 0;
+      }
+
+      if (functionName !== 'filterByAPY') {
+        page = 0; 
       }
 
       const contentString = JSON.stringify(functionResponse);
