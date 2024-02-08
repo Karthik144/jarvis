@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Typography from "@mui/material/Typography";
 import { Box, Paper } from "@mui/material";
 import FollowUpQuestionBar from "../components/home/FollowUpQuestionBar";
-import { runConversation } from "../backend/api";
+import { runConversation } from "./api/api";
 import NotesIcon from "@mui/icons-material/Notes";
 import Grid from "@mui/material/Grid";
 import Skeleton from "@mui/material/Skeleton";
@@ -151,8 +151,17 @@ export default function Response() {
       }
       const allMessages = [...messages, structuredMessage]
       console.log("ALL MESSAGES:", allMessages); 
-      const assistantResponse = await runConversation(query, allMessages);
-      console.log('RESPONSE', assistantResponse); 
+      // const assistantResponse = await runConversation(query, allMessages);
+      const response = await fetch('/api/api', {
+        method: 'POST',
+        body: JSON.stringify({
+          query,
+          allMessages
+        })
+      })
+      const awaitStreamCompletion = await response.json(); // Parse the response body as JSON
+      const assistantResponse = awaitStreamCompletion.message
+      console.log('RESPONSE', assistantResponse);
 
       if (isJsonObject(assistantResponse)){
 
