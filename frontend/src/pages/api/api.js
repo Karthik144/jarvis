@@ -760,16 +760,16 @@ async function getDailyEthPrices() {
   }
 }
 
-// module.exports = { runConversation };
-export default async function handler(req, res) {
-  switch (req.method) {
-    case 'POST':
-      const { query, allMessages } = JSON.parse(req.body);
-      const response = await runConversation(query, allMessages);
+module.exports = { runConversation };
+// export default async function handler(req, res) {
+//   switch (req.method) {
+//     case 'POST':
+//       const { query, allMessages } = JSON.parse(req.body);
+//       const response = await runConversation(query, allMessages);
 
-      res.status(200).json({message: response});
+//       res.status(200).json({message: response});
 
-    default:
-      res.status(200).json({message: "Hello!" })
-  }
-}
+//     default:
+//       res.status(200).json({message: "Hello!" })
+//   }
+// }

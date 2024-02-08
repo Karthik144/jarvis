@@ -151,16 +151,16 @@ export default function Response() {
       }
       const allMessages = [...messages, structuredMessage]
       console.log("ALL MESSAGES:", allMessages); 
-      // const assistantResponse = await runConversation(query, allMessages);
-      const response = await fetch('/api/api', {
-        method: 'POST',
-        body: JSON.stringify({
-          query,
-          allMessages
-        })
-      })
-      const awaitStreamCompletion = await response.json(); // Parse the response body as JSON
-      const assistantResponse = awaitStreamCompletion.message
+      const assistantResponse = await runConversation(query, allMessages);
+      // const response = await fetch('/api/api', {
+      //   method: 'POST',
+      //   body: JSON.stringify({
+      //     query,
+      //     allMessages
+      //   })
+      // })
+      // const awaitStreamCompletion = await response.json(); // Parse the response body as JSON
+      // const assistantResponse = awaitStreamCompletion.message
       console.log('RESPONSE', assistantResponse);
 
       if (isJsonObject(assistantResponse)){
