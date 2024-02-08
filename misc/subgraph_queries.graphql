@@ -11,3 +11,13 @@ query MyQuery {
     }
   }
 }
+
+""" query for liquidityPool tokenPrices by blockNumber """
+query MyQuery {
+  liquidityPoolAmount(
+    id: "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443"
+    block: {number: 177000000}
+  ) {
+    tokenPrices
+  }
+}

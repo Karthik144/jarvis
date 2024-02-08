@@ -1,8 +1,8 @@
-//TO-DO: https://nextjs.org/docs/pages/building-your-application/routing/api-routes
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
 
+//GLOBAL STATE
 let poolOffset = 0;
 let page = 1; 
 
@@ -18,7 +18,6 @@ const openai = new OpenAI({
 
 // MAIN FUNCS - USED FOR FUNC CALLING
 async function tavilyAdvancedSearch(query) {
-  console.log("TAVILY ADVANCED SEARCH CALLED");
   console.log("QUERY IN TAVILY:", query);
   const endpoint = "https://api.tavily.com/search";
 
@@ -34,15 +33,13 @@ async function tavilyAdvancedSearch(query) {
       include_domains: [],
       exclude_domains: [],
     });
-
-    console.log(response.data);
     return response.data;
   } catch (error) {
     console.error("Error in tavilySearch:", error);
   }
 }
 
-async function searchProducts(searchTerm) {
+async function checkForInsurance(searchTerm) {
   const allProducts = await getInsuranceProducts();
 
   const results = {
@@ -116,11 +113,9 @@ async function getLowBetaHighGrowthPairs() {
 }
 
 async function predict_LP({ tokenOne, tokenTwo }) {
-  console.log("TOKEN ONE FROM AI:", tokenOne);
-  console.log("TOKEN TWO FROM AI:", tokenTwo);
   const result = await getLPTokenAddresses(tokenOne, tokenTwo);
   console.log("RESULT IN PREDICT:", result);
-  return result; // Should be a json object
+  return result; 
 }
 
 async function filterPoolsByAPY(baseAPY, thirtyDayAPY) {
@@ -166,7 +161,7 @@ async function filterPoolsByAPY(baseAPY, thirtyDayAPY) {
 }
 
 
-// OPEN AI SETUP + RUN
+// OPEN-AI START
 async function runConversation(query, messages) {
   console.log("INSIDE RUN CONVO");
   console.log("RUN CONVERSATION CALLED"); 
@@ -192,7 +187,6 @@ async function runConversation(query, messages) {
         },
       },
     },
-    // checkForInsurance
     {
       type: "function",
       function: {
@@ -212,18 +206,14 @@ async function runConversation(query, messages) {
         },
       },
     },
-
-    // lowBetaHighGrowth
     {
       type: "function",
       function: {
-        name: "lowBetaHighGrowth",
+        name: "getLowBetaHighGrowthPairs",
         description:
           "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
       },
     },
-
-    // predict_LP
     {
       type: "function",
       function: {
@@ -248,12 +238,10 @@ async function runConversation(query, messages) {
         },
       },
     },
-
-    // filterByAPY
     {
       type: "function",
       function: {
-        name: "filterByAPY",
+        name: "filterPoolsByAPY",
         description:
           "Filter pools by base APY and 30d mean APY based on user inputs.",
         parameters: {
@@ -284,14 +272,8 @@ async function runConversation(query, messages) {
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
 
-  if (responseMessage.tool_calls) {
-    const availableFunctions = {
-      tavilyAdvancedSearch: tavilyAdvancedSearch,
-      checkForInsurance: searchProducts,
-      filterByAPY: filterPoolsByAPY, 
-      lowBetaHighGrowth: getLowBetaHighGrowthPairs,
-      predict_LP: predict_LP,
-    };
+  if (toolCalls) {
+    const availableFunctions = {tavilyAdvancedSearch,checkForInsurance,filterPoolsByAPY,getLowBetaHighGrowthPairs,predict_LP};
 
     messages.push(responseMessage);
     let predictLPCalled = false;
@@ -310,7 +292,7 @@ async function runConversation(query, messages) {
         predictLPCalled = true;
         console.log("PREDICT LP CALLED:", predictLPCalled);
         console.log("FUNCTION RESPONSE IN AI:", functionResponse);
-      } else if (functionName === 'filterByAPY'){
+      } else if (functionName === 'filterPoolsByAPY'){
         console.log('FILTER BY APY CALLED'); 
         functionResponse = await functionToCall(
           functionArgs.baseAPY,
@@ -319,11 +301,11 @@ async function runConversation(query, messages) {
       }else {
         functionResponse = await functionToCall(functionArgs.query);
       }
-      if (functionName !== "lowBetaHighGrowth") {
+      if (functionName !== "getLowBetaHighGrowthPairs") {
         poolOffset = 0;
       }
 
-      if (functionName !== 'filterByAPY') {
+      if (functionName !== 'filterPoolsByAPY') {
         page = 0; 
       }
 
@@ -385,8 +367,8 @@ async function getLPTokenAddresses(tokenOne, tokenTwo) {
   }
 
   try {
-    // const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
-    const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=eth&include=base_token%2C%20quote_token&page=1`;
+    const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=arbitrum&include=base_token%2C%20quote_token&page=1`;
+    // const url = `https://api.geckoterminal.com/api/v2/search/pools?query=${tokenOne}&network=eth&include=base_token%2C%20quote_token&page=1`;
     const response = await axios.get(url);
     const pools = response.data;
 
@@ -518,7 +500,6 @@ async function addBetaCalcToExistingData() {
 
     // Append the beta value to the current pool object
     nextTenPools[i].beta = beta;
-    // await sleep(500); // Waits for half a second (1 second is 1000)
   }
 
   poolOffset += 10;
@@ -539,7 +520,6 @@ async function getPoolData(chain, project) {
   try {
     const requestURL = "https://yields.llama.fi/pools";
     const response = await axios.get(requestURL);
-
     // Note: Need to allow this to be customized (tvl value + stable coin) based on investor profile from db)
     if (response.data.status === "success") {
       const filteredPools = response.data.data.filter(
@@ -780,8 +760,16 @@ async function getDailyEthPrices() {
   }
 }
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+// module.exports = { runConversation };
+export default async function handler(req, res) {
+  switch (req.method) {
+    case 'POST':
+      const { query, allMessages } = JSON.parse(req.body);
+      const response = await runConversation(query, allMessages);
 
-module.exports = { runConversation };
+      res.status(200).json({message: response});
+
+    default:
+      res.status(200).json({message: "Hello!" })
+  }
+}
