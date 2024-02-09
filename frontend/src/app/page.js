@@ -26,7 +26,8 @@ export default function Home() {
   const [user, setUser] = useState(null); 
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
-
+  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
+  const workflowTwoFilters = ['Quantitative']; 
   const handleClick = (event) => {
     if (document.contains(event.currentTarget)) {
       console.log("Anchor element is in document.")
@@ -86,11 +87,15 @@ export default function Home() {
     router.push("/response");
   };
 
-  const handleWorkflowButtonClick = () => {
+  const handleWorkflowOneButtonClick = () => {
     console.log("Workflow button was pressed!");
     const query = 'Filter pools with base APY > 10% and 30D APY mean >15%?'
     localStorage.setItem("userQuery", JSON.stringify(query));
     router.push("/response");
+  };
+
+  const handleWorkflowTwoButtonClick = () => {
+    console.log("Workflow button two was pressed!");
   };
 
   function stringToColor(string) {
@@ -277,7 +282,18 @@ export default function Home() {
           <Typography variant="h5" sx={{ textAlign: "left" }}>
             Automated Workflows
           </Typography>
-          <Workflow onButtonClick={handleWorkflowButtonClick} />
+          <Stack direction="row" spacing={2}>
+            <Workflow
+              onButtonClick={handleWorkflowOneButtonClick}
+              title={"Filter Pools on APY"}
+              filterText={workflowOneFilters}
+            />
+            <Workflow
+              onButtonClick={handleWorkflowTwoButtonClick}
+              title={"Compare Watchlist Tokens"}
+              filterText={workflowTwoFilters}
+            />
+          </Stack>
         </Stack>
       </Box>
     </div>

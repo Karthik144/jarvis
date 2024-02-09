@@ -45,7 +45,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function Workflow({ onButtonClick }) {
+export default function Workflow({ onButtonClick, title, filterText }) {
   return (
     <StyledPaper square={false}>
       <Typography
@@ -55,17 +55,20 @@ export default function Workflow({ onButtonClick }) {
           fontSize: "1.25rem",
         }}
       >
-        Filter pools on APY
+        {title}
       </Typography>
       <Stack direction="row" spacing={2}>
-        <StyledLabelPaper elevation={0}>{"Base APY > 10%"}</StyledLabelPaper>
-        <StyledLabelPaper elevation={0}>{"30D APY > 15%"}</StyledLabelPaper>
+        {filterText.map((text, index) => (
+          <StyledLabelPaper key={index} elevation={0}>
+            {text}
+          </StyledLabelPaper>
+        ))}
       </Stack>
       <StyledButton
         variant="contained"
         sx={{ textTransform: "none" }}
         startIcon={<PlayArrowIcon />}
-        onClick={onButtonClick} 
+        onClick={onButtonClick}
       >
         Run
       </StyledButton>
