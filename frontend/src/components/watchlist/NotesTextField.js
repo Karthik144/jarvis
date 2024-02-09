@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Typography, Box } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
@@ -37,16 +37,28 @@ const CustomMultilineTextField = styled(CustomTextField)({
   },
 });
 
+export default function NotesTextField({ title, defaultValue, onChange }) {
+  const [value, setValue] = useState(`• ${defaultValue || ""}`);
 
-export default function NotesTextField({
-  title,
-  defaultValue,
-  onChange, 
-}) {
+  const handleChange = (event) => {
+    setValue(event.target.value);
+    if (onChange) {
+      onChange(event.target.value);
+    }
+  };
 
-    const handleChange = (event) => {
-        onChange(event.target.value); 
-    };
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      const newValue = value + "\n• ";
+      setValue(newValue);
+
+      if (onChange) {
+        onChange(newValue);
+      }
+    }
+  };
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
       <Typography
@@ -61,9 +73,10 @@ export default function NotesTextField({
       <CustomMultilineTextField
         multiline
         rows={4}
-        defaultValue={defaultValue}
+        value={value}
         variant="outlined"
-        onChange={handleChange} 
+        onChange={handleChange}
+        onKeyDown={handleKeyDown}
       />
     </Box>
   );
