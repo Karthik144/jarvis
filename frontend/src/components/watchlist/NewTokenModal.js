@@ -43,7 +43,7 @@ const closeButtonStyle = {
 };
 
 // VIEW
-export default function NewTokenModal({ handleClose, handleTokenAdded, open, rawList }) {
+export default function NewTokenModal({ handleClose, handleTokenAdded, open, rawList, maxCapacity }) {
   const [notes, setNotes] = useState("");
   const [tokenAddress, setTokenAddress] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState("");
@@ -78,8 +78,10 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
   }, []);
 
   async function getCoinID(symbol) {
+
+    console.log("COINGECKO GET ID METHOD CALLED"); 
     try {
-      const url = `https://api.coingecko.com/api/v3/search?query=${symbol}`;
+      const url = `https://api.coingecko.com/api/v3/search?query=${symbol}&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
       const coinData = response.data;
       const firstCoinId = coinData.coins[0].id;
@@ -131,45 +133,68 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style}>
-          <Typography
-            id="modal-modal-title"
-            sx={{
-              fontSize: "1.75rem",
-              fontWeight: "bold",
-              color: "black",
-            }}
-          >
-            Add to Watchlist
-          </Typography>
+        {maxCapacity ? (
+          <Box sx={style}>
+            <Stack spacing={2}>
+              <Typography
+                id="modal-modal-title"
+                sx={{
+                  fontSize: "1.75rem",
+                  fontWeight: "bold",
+                  color: "black",
+                }}
+              >
+                Watchlist Full
+              </Typography>
 
-          <Stack>
-            <Grid
-              container
-              spacing={2}
-              sx={{ paddingTop: "15px", paddingBottom: "15px" }}
+              <Typography> 
+                You've exceeded your watchlist capacity of 15 tokens. 
+              </Typography>
+            </Stack>
+          </Box>
+        ) : (
+          <Box sx={style}>
+            <Typography
+              id="modal-modal-title"
+              sx={{
+                fontSize: "1.75rem",
+                fontWeight: "bold",
+                color: "black",
+              }}
             >
-              <Grid item md={6}>
-                <CustomTextField
-                  title={"Token Address"}
-                  placeholder={"0x0000"}
-                  onChange={handleAddressChange}
-                />
-              </Grid>
-              <Grid item md={6}>
-                <CustomTextField
-                  title={"Symbol"}
-                  placeholder={"ETH"}
-                  onChange={handleSymbolChange}
-                />
-              </Grid>
-            </Grid>
+              Add to Watchlist
+            </Typography>
 
-            <NotesTextField title={"Notes"} onChange={handleNotesChange} />
+            <Stack>
+              <Grid
+                container
+                spacing={2}
+                sx={{ paddingTop: "15px", paddingBottom: "15px" }}
+              >
+                <Grid item md={6}>
+                  <CustomTextField
+                    title={"Token Address"}
+                    placeholder={"0x0000"}
+                    onChange={handleAddressChange}
+                  />
+                </Grid>
+                <Grid item md={6}>
+                  <CustomTextField
+                    title={"Symbol"}
+                    placeholder={"ETH"}
+                    onChange={handleSymbolChange}
+                  />
+                </Grid>
+              </Grid>
 
-            <AddTokenButton onClick={addToWatchlist}>Add Token</AddTokenButton>
-          </Stack>
-        </Box>
+              <NotesTextField title={"Notes"} onChange={handleNotesChange} />
+
+              <AddTokenButton onClick={addToWatchlist}>
+                Add Token
+              </AddTokenButton>
+            </Stack>
+          </Box>
+        )}
       </Modal>
     </div>
   );

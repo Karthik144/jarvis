@@ -35,44 +35,48 @@ export default function Watchlist() {
   
   // Get users watchlist once
   useEffect(() => {
-    if (user && watchlist.length===0) {
+    if (user) {
       // User is logged in, fetch their profile
-      const fetchWatchlist = async () => {
-        try {
-          const { data, error } = await supabase
-            .from("profiles")
-            .select("watchlist")
-            .eq("id", user.id)
-            .single();
-
-          if (error) {
-            throw error;
-          }
-
-          setRawList(data.watchlist || { coins: []}); 
-
-          const coinsInWatchlist = data.watchlist.coins.length; 
-          console.log("WATCHLIST LENGTH:", coinsInWatchlist);
-
-          const newWatchlist = [];
-
-          for (let i = 0; i < coinsInWatchlist; i++) {
-            // const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
-            const coinData = await getCachedCoinData(data.watchlist.coins[i].coin_id, i);
-            console.log("COIN DATA:", coinData);
-            newWatchlist.push(coinData);
-          }
-
-          setWatchlist(newWatchlist);
-
-        } catch (error) {
-          console.error("Error fetching investor profile:", error.message);
-        }
-      };
+      console.log("INSIDE IF STATEMENT"); 
 
       fetchWatchlist();
     } 
   }, [user]);
+
+  const fetchWatchlist = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("watchlist")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      setRawList(data.watchlist || { coins: [] });
+
+      const coinsInWatchlist = data.watchlist.coins.length;
+      console.log("WATCHLIST LENGTH:", coinsInWatchlist);
+
+      const newWatchlist = [];
+
+      for (let i = 0; i < coinsInWatchlist; i++) {
+        // const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
+        const coinData = await getCachedCoinData(
+          data.watchlist.coins[i].coin_id,
+          i
+        );
+        console.log("COIN DATA:", coinData);
+        newWatchlist.push(coinData);
+      }
+      console.log("NEW WATCHLIST:", newWatchlist);
+      setWatchlist(newWatchlist);
+    } catch (error) {
+      console.error("Error fetching investor profile:", error.message);
+    }
+  };
 
   async function getCachedCoinData(coinID, id) {
     const cacheKey = `coinData_${coinID}`;
@@ -81,12 +85,24 @@ export default function Watchlist() {
     if (cachedData) {
       const { timestamp, data } = JSON.parse(cachedData);
 
-      // Check if the cache is still valid - 1 hour
-      if (Date.now() - timestamp < 3600000) {
-        return data; // Return cached data
+      // Check if the cache is still valid - 5 hours
+      if (Date.now() - timestamp < 3600000 * 5) {
+        console.log('RETURNING CACHED DATA'); 
+
+        // Check if ids are same; if not, update 
+        if (data.id !== id) {
+          data.id = id; 
+
+          localStorage.setItem(
+            cacheKey,
+            JSON.stringify({ timestamp, data })
+          );
+        }
+        return data; 
       }
     }
 
+    console.log("FETCHING NEW DATA"); 
     // If no valid cache, fetch new data
     const newData = await getCoinData(coinID, id);
     if (newData) {
@@ -99,6 +115,7 @@ export default function Watchlist() {
   }
 
   async function getCoinData(coinID, rowID) {
+    console.log("GET COINGECKO DATA CALLED"); 
     try {
       console.log('ROW ID:', rowID);
       const result = {
@@ -113,7 +130,7 @@ export default function Watchlist() {
         category: "",
         marketCap: "",
       };
-      const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`;
+      const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
       const coinData = response.data;
 
@@ -153,7 +170,6 @@ export default function Watchlist() {
     }
   }
 
-
   const handleOpenModal = () => {
     setModalOpen(true);
   };
@@ -162,8 +178,9 @@ export default function Watchlist() {
     setModalOpen(false);
   };
 
-  const handleTokenAdded = () => {
+  const handleTokenAdded = async () => {
     setTokenAdded(true);
+    await fetchWatchlist(); 
   }
 
   const handleTokenNotAdded = (event, reason) => {
@@ -203,6 +220,7 @@ export default function Watchlist() {
         open={modalOpen}
         rawList={rawList}
         handleTokenAdded={handleTokenAdded}
+        maxCapacity={watchlist.length === 15 ? true : false}
       />
 
       <Snackbar
@@ -214,7 +232,7 @@ export default function Watchlist() {
           ".MuiSnackbarContent-root": {
             backgroundColor: "white",
             color: "black",
-          }, 
+          },
         }}
       />
     </Box>

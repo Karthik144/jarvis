@@ -56,13 +56,13 @@ export default function WatchlistTable({ watchlistData, rawList }) {
       width: 130,
     },
     {
-      field: "notes", // This is a new field for the action column
+      field: "notes",
       headerName: "Notes",
       sortable: false,
       width: 150,
       renderCell: (params) => {
         const onClick = (e) => {
-          e.stopPropagation(); // Don't select the row on button click
+          e.stopPropagation(); 
 
           const row = params.row;
           const coinID = row.coinID;
@@ -90,16 +90,16 @@ export default function WatchlistTable({ watchlistData, rawList }) {
   ];
 
   return (
-    <div style={{ height: 400, width: "100%" }}>
+    <div style={{ height: 450, width: "100%" }}>
       <DataGrid
         rows={watchlistData}
         columns={columns}
         initialState={{
           pagination: {
-            paginationModel: { page: 0, pageSize: 5 },
+            paginationModel: { page: 0, pageSize: 10 },
           },
         }}
-        pageSizeOptions={[5, 10]}
+        pageSizeOptions={[5, 10, 15]}
         checkboxSelection
       />
     </div>
