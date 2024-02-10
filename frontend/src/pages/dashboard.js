@@ -3,9 +3,10 @@ import WatchlistTable from "../components/watchlist/WatchlistTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
+import Workflow from "../components/workflows/Workflow"; 
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
-import { supabase } from "../../supabaseClient";
+import { supabase } from "../../supabaseClient.js";
 import Snackbar from "@mui/material/Snackbar";
 const axios = require("axios");
 
@@ -15,6 +16,8 @@ export default function Watchlist() {
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
+  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
+  const workflowTwoFilters = ['Quantitative']; 
 
   // Set current user
   useEffect(() => {
@@ -191,6 +194,31 @@ export default function Watchlist() {
     setTokenAdded(false);
   }
 
+  const handleWorkflowOneButtonClick = () => {
+    console.log("Workflow button was pressed!");
+    const userQuery = {
+      query:
+        'Filter pools with base APY > 10% and 30D APY mean >15%?',
+      watchlist: false,
+    };
+    localStorage.setItem("userQuery", JSON.stringify(userQuery));
+    router.push("/response");
+  };
+
+const handleWorkflowTwoButtonClick = async () => {
+  console.log("Workflow button two was pressed!");
+  if (user) {
+    await fetchWatchlist();
+    const userQuery = {
+      query:
+        "Provide a detailed quantitative analysis comparing my watchlist tokens.",
+      watchlist: true,
+    };
+    localStorage.setItem("userQuery", JSON.stringify(userQuery));
+    router.push("/response");
+  }
+};
+
 
   return (
     <Box sx={{ padding: "90px" }}>
@@ -214,6 +242,40 @@ export default function Watchlist() {
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
       <WatchlistTable watchlistData={watchlist} rawList={rawList} />
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "20px",
+          marginTop:"40px"
+        }}
+      >
+        <Typography
+          variant="h2"
+          sx={{
+            fontWeight: "500",
+            fontSize: "1.75rem",
+          }}
+        >
+          Workflows
+        </Typography>
+      </Box>
+
+      <Stack direction="row" spacing={2}>
+        <Workflow
+            onButtonClick={handleWorkflowOneButtonClick}
+            title={"Filter Pools on APY"}
+            filterText={workflowOneFilters}
+            type={"Token Discovery"}
+        />
+        <Workflow
+          onButtonClick={handleWorkflowTwoButtonClick}
+          title={"Compare Watchlist Tokens"}
+          filterText={workflowTwoFilters}
+          type={"Watchlist Action"}
+        />
+      </Stack>
 
       <NewTokenModal
         handleClose={handleCloseModal}

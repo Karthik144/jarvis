@@ -7,7 +7,6 @@ import PromptBar from "../components/home/PromptBar";
 import QuickPrompt from "../components/home/QuickPrompt";
 import SignUpButton from "../components/onboard/SignUpButton";
 import WelcomeModal from "../components/onboard/AuthModal";
-import Workflow from "../components/workflows/Workflow"; 
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Avatar from "@mui/material/Avatar";
@@ -27,8 +26,6 @@ export default function Home() {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const [watchlist, setWatchlist] = useState([]);
-  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
-  const workflowTwoFilters = ['Quantitative']; 
   const handleClick = (event) => {
     if (document.contains(event.currentTarget)) {
       console.log("Anchor element is in document.")
@@ -216,31 +213,6 @@ export default function Home() {
     router.push("/response");
   };
 
-  const handleWorkflowOneButtonClick = () => {
-    console.log("Workflow button was pressed!");
-    const userQuery = {
-      query:
-        'Filter pools with base APY > 10% and 30D APY mean >15%?',
-      watchlist: false,
-    };
-    localStorage.setItem("userQuery", JSON.stringify(userQuery));
-    router.push("/response");
-  };
-
-const handleWorkflowTwoButtonClick = async () => {
-  console.log("Workflow button two was pressed!");
-  if (user) {
-    await fetchWatchlist();
-    const userQuery = {
-      query:
-        "Provide a detailed quantitative analysis comparing my watchlist tokens.",
-      watchlist: true,
-    };
-    localStorage.setItem("userQuery", JSON.stringify(userQuery));
-    router.push("/response");
-  }
-};
-
   function stringToColor(string) {
     let hash = 0;
     let i;
@@ -341,7 +313,7 @@ const handleWorkflowTwoButtonClick = async () => {
         </Stack>
 
         <Button
-          onClick={() => router.push("/watchlist")}
+          onClick={() => router.push("/dashboard")}
           sx={{
             textTransform: "none",
             color: "black",
@@ -355,7 +327,7 @@ const handleWorkflowTwoButtonClick = async () => {
             },
           }}
         >
-          Watchlist
+          Dashboard
         </Button>
       </Box>
       <Typography variant="h3" sx={{ textAlign: "center", pt: "165px" }}>
@@ -418,27 +390,6 @@ const handleWorkflowTwoButtonClick = async () => {
         setPassword={setPassword}
         mode={mode}
       />
-      <Box
-        sx={{ maxWidth: "930px", margin: "0 auto", width: "100%", pt: "30px" }}
-      >
-        <Stack spacing={2} sx={{ mt: 2, mb: 2 }}>
-          <Typography variant="h5" sx={{ textAlign: "left" }}>
-            Automated Workflows
-          </Typography>
-          <Stack direction="row" spacing={2}>
-            <Workflow
-              onButtonClick={handleWorkflowOneButtonClick}
-              title={"Filter Pools on APY"}
-              filterText={workflowOneFilters}
-            />
-            <Workflow
-              onButtonClick={handleWorkflowTwoButtonClick}
-              title={"Compare Watchlist Tokens"}
-              filterText={workflowTwoFilters}
-            />
-          </Stack>
-        </Stack>
-      </Box>
     </div>
   );
 }

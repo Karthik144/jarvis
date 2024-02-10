@@ -45,9 +45,9 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function Workflow({ onButtonClick, title, filterText }) {
+export default function Workflow({ onButtonClick, title, filterText, type }) {
   return (
-    <StyledPaper square={false}>
+   <StyledPaper square={false}>
       <Typography
         variant="subtitle1"
         gutterBottom
@@ -56,6 +56,16 @@ export default function Workflow({ onButtonClick, title, filterText }) {
         }}
       >
         {title}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          fontSize: "1rem",
+          color: "text.secondary",
+          paddingBottom: "1em",
+        }}
+      >
+        {type}
       </Typography>
       <Stack direction="row" spacing={2}>
         {filterText.map((text, index) => (
