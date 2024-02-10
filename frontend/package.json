@@ -23,6 +23,7 @@
     "axios": "^1.6.7",
     "dayjs": "^1.11.10",
     "dotenv": "^16.4.1",
+    "llamaindex": "^0.1.10",
     "next": "14.0.4",
     "openai": "^4.26.0",
     "react": "^18",
@@ -30,7 +31,9 @@
     "react-scroll-box": "^0.3.5"
   },
   "devDependencies": {
+    "@types/pdf-parse": "^1.1.4",
     "autoprefixer": "^10.0.1",
+    "pdf-parse": "^1.1.1",
     "postcss": "^8",
     "tailwindcss": "^3.3.0"
   }
