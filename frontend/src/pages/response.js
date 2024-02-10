@@ -104,6 +104,11 @@ export default function Response() {
       role: "system",
       content: `Call the filterByAPY function when user needs to filter by base APY and 30D APY. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
     },
+    {
+      role: "system",
+      content:
+        "Analyze the provided watchlist tokens without external calls, focusing on key metrics like current price, price change (30D, 60D, 200D), volume, and market cap. Conduct a detailed comparison to uncover trends and differences, and clearly highlight the standout performers and those falling short, based on their quantitative data.",
+    },
   ]);
 
   const [pulseAnimation, setPulseAnimation] = useState(false);
@@ -208,14 +213,39 @@ export default function Response() {
 
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");
-    const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
-    setUserSearch(processedQuery);
+    if (userQuery){
 
-    fetchResponse(processedQuery);
-    // setShowCalculatorUI(true);
-    // setResponseText('lp');
-    // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-    // setResponseText(loremIpsumText);
+      const userQueryObj = JSON.parse(userQuery);
+
+      // Process query to remove extra quotes 
+      let processedQuery = userQueryObj.query.replace(/^"|"$/g, "");
+      setUserSearch(processedQuery);
+
+      // Check if query is for watchlist comparison 
+      if (userQueryObj.watchlist){
+        const savedWatchlist = localStorage.getItem("watchlist");
+        const watchlist = savedWatchlist ? JSON.parse(savedWatchlist) : [];
+
+        let watchlistDetails = watchlist
+          .map((item) => {
+            return `${item.name} (Current Price: ${item.currentPrice}, 30D Change: ${item.priceChange30}, 60D Change: ${item.priceChange60}, 200D Change: ${item.priceChange200}, Volume: ${item.volume}, Market Cap: ${item.marketCap})`;
+          })
+          .join("; ");
+
+        processedQuery += ` | Watchlist Analysis: ${watchlistDetails}`;
+
+      } 
+      fetchResponse(processedQuery);
+      // const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
+      // setUserSearch(processedQuery);
+
+      // fetchResponse(processedQuery);
+      // setShowCalculatorUI(true);
+      // setResponseText('lp');
+      // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
+      // setResponseText(loremIpsumText);
+    }
+
   }, []);
 
   return (

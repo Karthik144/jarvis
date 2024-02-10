@@ -273,6 +273,7 @@ async function runConversation(query, messages) {
   const toolCalls = responseMessage.tool_calls;
 
   if (toolCalls) {
+    console.log("INSIDE TOOL CALLS"); 
     const availableFunctions = {tavilyAdvancedSearch,checkForInsurance,filterPoolsByAPY,getLowBetaHighGrowthPairs,predict_LP};
 
     messages.push(responseMessage);
@@ -349,6 +350,19 @@ async function runConversation(query, messages) {
         return lastMessageContent;
       }
     }
+  } else {
+    console.log('INSIDE ELSE'); 
+    const secondResponse = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo-1106",
+      messages: messages,
+    }); // get a new response from the model where it can see the function response
+
+    const conversationResult = secondResponse.choices;
+    const lastMessageContent =
+      conversationResult[conversationResult.length - 1].message.content;
+    console.log("LAST MESSAGE:", lastMessageContent); 
+    return lastMessageContent;
+    
   }
 }
 
