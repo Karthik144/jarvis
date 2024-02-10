@@ -7,6 +7,7 @@ import Workflow from "../components/workflows/Workflow";
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient.js";
+import { useRouter } from "next/router.js";
 import Snackbar from "@mui/material/Snackbar";
 const axios = require("axios");
 
@@ -18,6 +19,8 @@ export default function Watchlist() {
   const [tokenAdded, setTokenAdded] = useState(false);
   const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
   const workflowTwoFilters = ['Quantitative']; 
+
+  const router = useRouter();
 
   // Set current user
   useEffect(() => {
