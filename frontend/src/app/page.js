@@ -203,7 +203,11 @@ export default function Home() {
   }; 
 
   const handleSubmit = (query) => {
-    localStorage.setItem("userQuery", JSON.stringify(query));
+    const userQuery = {
+      query: query,
+      watchlist: false,
+    };
+    localStorage.setItem("userQuery", JSON.stringify(userQuery));
     router.push("/response");
   };
 
@@ -214,8 +218,12 @@ export default function Home() {
 
   const handleWorkflowOneButtonClick = () => {
     console.log("Workflow button was pressed!");
-    const query = 'Filter pools with base APY > 10% and 30D APY mean >15%?';
-    localStorage.setItem("userQuery", JSON.stringify(query));
+    const userQuery = {
+      query:
+        'Filter pools with base APY > 10% and 30D APY mean >15%?',
+      watchlist: false,
+    };
+    localStorage.setItem("userQuery", JSON.stringify(userQuery));
     router.push("/response");
   };
 

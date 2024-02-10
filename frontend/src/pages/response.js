@@ -16,6 +16,25 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 
 const markdownToHtml = (text) => {
   let html = text;
+
+  // Convert Markdown H1 headers (#) to HTML <h1> tags
+  html = html.replace(/(?:^|\n)#\s?(.*?)(?=\n|$)/g, "<h1>$1</h1>");
+
+  // Convert Markdown H2 headers (##) to HTML <h2> tags
+  html = html.replace(/(?:^|\n)##\s?(.*?)(?=\n|$)/g, "<h2>$1</h2>");
+
+  // Convert Markdown H3 headers (###) to HTML <h3> tags
+  html = html.replace(/(?:^|\n)###\s?(.*?)(?=\n|$)/g, "<h3>$1</h3>");
+
+  // Convert Markdown H4 headers (####) to HTML <h4> tags
+  html = html.replace(/(?:^|\n)####\s?(.*?)(?=\n|$)/g, "<h4>$1</h4>");
+
+  // Convert Markdown H5 headers (#####) to HTML <h5> tags
+  html = html.replace(/(?:^|\n)#####\s?(.*?)(?=\n|$)/g, "<h5>$1</h5>");
+
+  // Convert Markdown H6 headers (######) to HTML <h6> tags
+  html = html.replace(/(?:^|\n)######\s?(.*?)(?=\n|$)/g, "<h6>$1</h6>");
+
   // Convert Markdown headers (###) to HTML <h3> tags
   html = html.replace(/(?:^|\n)###\s?(.*?)(?=\n|$)/g, "<h3>$1</h3>");
 
@@ -86,7 +105,7 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Do not call this function for watchlist token analysis. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
     },
     {
       role: "system",
@@ -107,7 +126,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "Analyze the provided watchlist tokens without external calls, focusing on key metrics like current price, price change (30D, 60D, 200D), volume, and market cap. Conduct a detailed comparison to uncover trends and differences, and clearly highlight the standout performers and those falling short, based on their quantitative data.",
+        "When asked to perform a quantitative analysis on a watchlist of tokens, don't make any function calls. Just categorize the pairs of tokens into groups showing high, moderate, and low price correlation based on 30D, 60D, and 200D price changes. Please also do a volatility analysis on the tokens, listing high to low volatility tokens. Emphasize the analysis on the degree of correlation in price movements among the tokens.",
     },
   ]);
 
