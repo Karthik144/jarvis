@@ -237,7 +237,13 @@ export default function Response() {
       const userQueryObj = JSON.parse(userQuery);
 
       // Process query to remove extra quotes 
-      let processedQuery = userQueryObj.query.replace(/^"|"$/g, "");
+      let processedQuery;
+      if (userQuery.query) {
+        processedQuery = userQueryObj.query.replace(/^"|"$/g, "");
+      }
+      else {
+        processedQuery =  userQuery;
+      }
       setUserSearch(processedQuery);
 
       // Check if query is for watchlist comparison 

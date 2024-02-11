@@ -9,6 +9,13 @@ import { useRouter } from "next/router";
 export default function WatchlistTable({ watchlistData, rawList }) {
   const router = useRouter(); 
 
+  const [selectionModel, setSelectionModel] = React.useState([]);
+
+  const handleSelectionChange = (newSelectionModel) => {
+    setSelectionModel(newSelectionModel);
+    console.log(selectionModel)
+  };
+
   const columns = [
     {
       field: "name",
@@ -94,6 +101,7 @@ export default function WatchlistTable({ watchlistData, rawList }) {
       <DataGrid
         rows={watchlistData}
         columns={columns}
+        onRowSelectionModelChange={handleSelectionChange}
         initialState={{
           pagination: {
             paginationModel: { page: 0, pageSize: 10 },
