@@ -104,21 +104,37 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
       coin_id: coinID,
       notes: notes,
       address: tokenAddress, 
+      token_symbol: tokenSymbol,
     };
 
     rawList.coins.push(watchlistToken);
 
     try {
-      const { error } = await supabase
+      // Update the watchlist in the profiles table
+      let { error: profileError } = await supabase
         .from("profiles")
         .update({ watchlist: rawList })
         .eq("id", user.id);
 
-      if (error) {
-        throw error;
+      if (profileError) {
+        throw profileError;
       }
-      handleTokenAdded(); 
-      handleClose(); 
+
+      // Insert the watchlist token into the watchlist table
+      let { error: watchlistError } = await supabase.from("watchlist").insert([
+        {
+          symbol: watchlistToken.token_symbol, 
+          coin_id: watchlistToken.coin_id,
+          address: watchlistToken.address,
+        },
+      ]);
+
+      if (watchlistError) {
+        throw watchlistError;
+      }
+
+      handleTokenAdded();
+      handleClose();
       console.log("Watchlist updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error.message);
