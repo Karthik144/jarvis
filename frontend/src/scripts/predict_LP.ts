@@ -10,7 +10,6 @@ import { Pool } from "@uniswap/v3-sdk";
 import axios from "axios";
 //import { ethers, providers } from 'ethers'
 //import IUniswapV3PoolABI from '@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json'
-import { Response } from "express";
 require('dotenv').config()
 
 //0x912CE59144191C1204E64559FE8253a0e49E6548 0x82aF49447D8a07e3bd95BD0d56f35241523fBab1
@@ -106,14 +105,14 @@ export async function predict_LP(LP_dict: any) {
 //     return deltaL;
 // }
 
-// //ETH token0 is higher address, ARB token0 is lower address
-// const example_object = {
-//     chain: 'arbitrum',
-//     chainId: 42161,
-//     token0: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //WETH
-//     token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //USDC
-//     feeTier: 500,
-//     depositAmt: 1000,
-// }
-// const result = predict_LP(example_object)
-// console.log(result)
+//ETH token0 is higher address, ARB token0 is lower address
+const example_object = {
+    chain: 'arbitrum',
+    chainId: 42161,
+    token0: '0x82aF49447D8a07e3bd95BD0d56f35241523fBab1', //WETH
+    token1: '0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8', //USDC
+    feeTier: 500,
+    depositAmt: 1000,
+}
+const result = predict_LP(example_object)
+console.log(result)

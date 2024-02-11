@@ -276,7 +276,7 @@ const handleWorkflowTwoButtonClick = async () => {
           onButtonClick={handleWorkflowTwoButtonClick}
           title={"Compare Watchlist Tokens"}
           filterText={workflowTwoFilters}
-          type={"Watchlist Action"}
+          type={"Watchlist"}
         />
       </Stack>
 

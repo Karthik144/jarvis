@@ -1,10 +1,9 @@
 """ query for macro historical data on a pool """
 query MyQuery {
   liquidityPool(id: "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443") {
-    dailySnapshots(first: 30, where: {timestamp_gte: "1704157667"}) {
+    dailySnapshots(where: {day_gt: 19703}) {
       blockNumber
       timestamp
-      inputTokenWeights
       pool {
         name
       }
