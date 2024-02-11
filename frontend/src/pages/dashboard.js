@@ -261,7 +261,7 @@ const handleWorkflowTwoButtonClick = async () => {
             fontSize: "1.75rem",
           }}
         >
-          Workflows
+          Tasks
         </Typography>
       </Box>
 
