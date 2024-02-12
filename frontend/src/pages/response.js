@@ -106,12 +106,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "When asked about insurance, list insurance options for crypto protocols as needed, using bullet points. Provide context only upon request.",
-    },
-    {
-      role: "system",
-      content:
-        "Identify low beta, high growth crypto tokens using the available function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info unless specifically requested.",
+        "When asked to 'Perform correlation analysis on watchlist tokens', perform correlation analysis between watchlist tokens, manually calculate the correlation between each pair of tokens over 30, 60, and 200 days. Classify the token pairs into high, moderate, or low price correlation categories, including specific correlation values. This task must be performed manually and should not involve any external functions like predict_LP or tavilySearch.",
     },
     {
       role: "system",
@@ -120,21 +115,27 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `Only call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Do not call it to perform correlation analysis. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+      content:
+        "Identify low beta, high growth crypto tokens using the available function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info unless specifically requested.",
     },
+
     {
       role: "system",
       content: `Call the filterByAPY function when user needs to filter by base APY and 30D APY. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
     },
     {
       role: "system",
-      content:
-        "For correlation analysis between watchlist tokens, manually calculate the correlation between each pair of tokens over 30, 60, and 200 days. Classify the token pairs into high, moderate, or low price correlation categories, including specific correlation values. This task must be performed manually and should not involve any external functions like predict_LP or tavilySearch.",
+      content: `Only call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Do not call it to perform correlation analysis. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
     },
     {
       role: "system",
       content:
         "Use the Tavily Search Function only for investigating applications and latest updates for specific tokens. This function is not to be used for correlation analysis between watchlist tokens. Responses should be concise, under 175 words unless more detail is requested, and maintain information density without redundancy. Append 'crypto' to queries for optimized search results.",
+    },
+    {
+      role: "system",
+      content:
+        "When asked about insurance, list insurance options for crypto protocols as needed, using bullet points. Provide context only upon request.",
     },
   ]);
 
