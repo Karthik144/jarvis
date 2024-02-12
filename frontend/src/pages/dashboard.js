@@ -141,14 +141,6 @@ export default function Watchlist() {
       const response = await axios.get(url);
       const coinData = response.data;
 
-      let token_addr;
-      if (coinData.platforms['arbitrum-one']) {
-        token_addr  = coinData.platforms['arbitrum-one'];
-      }
-      else {
-        token_addr = ''
-      }
-
       // Stores values in the result object
       result["name"] = coinData.name;
       result[
@@ -176,7 +168,6 @@ export default function Watchlist() {
       result[
         "marketCap"
       ] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
-      result["address"] = `${token_addr}`
 
       console.log("RESULT:", result); 
       return result;
