@@ -115,6 +115,11 @@ export default function Response() {
     },
     {
       role: "system",
+      content:
+        "IMPORTANT: When responding to queries about correlation between watchlist tokens, always perform a manual correlation analysis as specified in the Correlation Analysis message. Do not use the Tavily Search Function or predict_LP function or any other external functions for these queries.",
+    },
+    {
+      role: "system",
       content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
     },
     {
@@ -123,15 +128,13 @@ export default function Response() {
     },
     {
       role: "system",
-      content: "For correlation analysis between watchlist tokens, manually calculate the correlation between each pair of tokens over 30, 60, and 200 days. Classify the token pairs into high, moderate, or low price correlation categories, including specific correlation values. This task must be performed manually and should not involve any external functions like predict_LP or tavilySearch."
+      content:
+        "For correlation analysis between watchlist tokens, manually calculate the correlation between each pair of tokens over 30, 60, and 200 days. Classify the token pairs into high, moderate, or low price correlation categories, including specific correlation values. This task must be performed manually and should not involve any external functions like predict_LP or tavilySearch.",
     },
     {
       role: "system",
-      content: "IMPORTANT: When responding to queries about correlation between watchlist tokens, always perform a manual correlation analysis as specified in the Correlation Analysis message. Do not use the Tavily Search Function or any other external functions for these queries."
-    }, 
-    {
-      role: "system",
-      content: "Use the Tavily Search Function only for investigating applications and latest updates for specific tokens. This function is not to be used for correlation analysis between watchlist tokens. Responses should be concise, under 175 words unless more detail is requested, and maintain information density without redundancy. Append 'crypto' to queries for optimized search results."
+      content:
+        "Use the Tavily Search Function only for investigating applications and latest updates for specific tokens. This function is not to be used for correlation analysis between watchlist tokens. Responses should be concise, under 175 words unless more detail is requested, and maintain information density without redundancy. Append 'crypto' to queries for optimized search results.",
     },
   ]);
 
