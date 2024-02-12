@@ -135,10 +135,19 @@ export default function Watchlist() {
         volume: "",
         category: "",
         marketCap: "",
+        address: "",
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
       const coinData = response.data;
+
+      let token_addr;
+      if (coinData.platforms['arbitrum-one']) {
+        token_addr  = coinData.platforms['arbitrum-one'];
+      }
+      else {
+        token_addr = ''
+      }
 
       // Stores values in the result object
       result["name"] = coinData.name;
@@ -167,6 +176,7 @@ export default function Watchlist() {
       result[
         "marketCap"
       ] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
+      result["address"] = `${token_addr}`
 
       console.log("RESULT:", result); 
       return result;
