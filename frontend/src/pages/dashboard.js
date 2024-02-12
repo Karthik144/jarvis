@@ -140,41 +140,30 @@ export default function Watchlist() {
       const response = await axios.get(url);
       const coinData = response.data;
 
-      // Stores values in the result object
-      result["name"] = coinData.name;
-      result[
-        "currentPrice"
-      ] = `$${coinData.market_data.current_price.usd.toLocaleString()}`;
-      result[
-        "priceChange30"
-      ] = `${coinData.market_data.price_change_percentage_30d_in_currency.usd.toFixed(
-        2
-      )}%`;
-      result[
-        "priceChange60"
-      ] = `${coinData.market_data.price_change_percentage_60d_in_currency.usd.toFixed(
-        2
-      )}%`;
-      result[
-        "priceChange200"
-      ] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(
-        2
-      )}%`;
-      result[
-        "volume"
-      ] = `$${coinData.market_data.total_volume.usd.toLocaleString()}`;
-      result["category"] = coinData.categories.join(", ");
-      result[
-        "marketCap"
-      ] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
+      // Check if all required properties exist before accessing them
+      if (coinData && coinData.market_data && coinData.market_data.current_price && coinData.market_data.price_change_percentage_30d_in_currency && coinData.market_data.price_change_percentage_60d_in_currency && coinData.market_data.price_change_percentage_200d_in_currency && coinData.market_data.total_volume && coinData.categories && coinData.market_data.market_cap) {
+        // Stores values in the result object
+        result["name"] = coinData.name;
+        result["currentPrice"] = `$${coinData.market_data.current_price.usd.toLocaleString()}`;
+        result["priceChange30"] = `${coinData.market_data.price_change_percentage_30d_in_currency.usd.toFixed(2)}%`;
+        result["priceChange60"] = `${coinData.market_data.price_change_percentage_60d_in_currency.usd.toFixed(2)}%`;
+        result["priceChange200"] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(2)}%`;
+        result["volume"] = `$${coinData.market_data.total_volume.usd.toLocaleString()}`;
+        result["category"] = coinData.categories.join(", ");
+        result["marketCap"] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
 
-      console.log("RESULT:", result); 
-      return result;
+        console.log("RESULT:", result); 
+        return result;
+      } else {
+        console.error("Error: Required properties are missing in coin data");
+        return null;
+      }
     } catch (error) {
       console.error("Error fetching coin data:", error);
       return null;
     }
   }
+
 
   const handleOpenModal = () => {
     setModalOpen(true);

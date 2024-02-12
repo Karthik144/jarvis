@@ -85,7 +85,6 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
       const response = await axios.get(url);
       const coinData = response.data;
       const firstCoinId = coinData.coins[0].id;
-      console.log("YUHH", firstCoinId)
       return firstCoinId;
     } catch (error) {
       console.log("Error retrieving coin id:", error);
