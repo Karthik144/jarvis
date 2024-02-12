@@ -57,7 +57,7 @@ export default function Workflow({ onButtonClick, title, filterText, type }) {
       >
         {title}
       </Typography>
-      <Typography
+      {/* <Typography
         variant="body2"
         sx={{
           fontSize: "1rem",
@@ -66,7 +66,7 @@ export default function Workflow({ onButtonClick, title, filterText, type }) {
         }}
       >
         {type}
-      </Typography>
+      </Typography> */}
       <Stack direction="row" spacing={2}>
         {filterText.map((text, index) => (
           <StyledLabelPaper key={index} elevation={0}>

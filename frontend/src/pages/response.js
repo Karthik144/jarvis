@@ -126,7 +126,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "When asked to perform a quantitative analysis on a watchlist of tokens, don't make any function calls. Just categorize the pairs of tokens into groups showing high, moderate, and low price correlation based on 30D, 60D, and 200D price changes. Please also do a volatility analysis on the tokens, listing high to low volatility tokens. Emphasize the analysis on the degree of correlation in price movements among the tokens.",
+        "When asked to identify the correlation between watchlist tokens, don't make any function calls. Just categorize the pairs of tokens (for possible LP pools) into groups showing high, moderate, and low price correlation based on 30D, 60D, and 200D price changes. Add their correlation metrics for each pair. Please also do a volatility analysis on the tokens, listing high to low volatility tokens. Emphasize the analysis on the degree of correlation in price movements among the tokens.",
     },
   ]);
 
@@ -233,18 +233,23 @@ export default function Response() {
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");
     if (userQuery){
-
+      console.log('INSIDE USER QUERY');
       const userQueryObj = JSON.parse(userQuery);
 
       // Process query to remove extra quotes 
       let processedQuery;
-      if (userQuery.query) {
+      if (userQueryObj.query) {
+        console.log("INSIDE .QUERY"); 
         processedQuery = userQueryObj.query.replace(/^"|"$/g, "");
+        console.log("processed query:", processedQuery); 
+        setUserSearch(processedQuery);
       }
       else {
-        processedQuery =  userQuery;
+        console.log("INSIDE NORMAL QUERY")
+        processedQuery = userQuery.replace(/^"|"$/g, "");
+        setUserSearch(processedQuery);
       }
-      setUserSearch(processedQuery);
+      
 
       // Check if query is for watchlist comparison 
       if (userQueryObj.watchlist){

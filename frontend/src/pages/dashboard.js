@@ -210,11 +210,11 @@ export default function Watchlist() {
 
 const handleWorkflowTwoButtonClick = async () => {
   console.log("Workflow button two was pressed!");
+  // Provide a detailed quantitative analysis comparing my watchlist tokens.
   if (user) {
     await fetchWatchlist();
     const userQuery = {
-      query:
-        "Provide a detailed quantitative analysis comparing my watchlist tokens.",
+      query: "Identify the correlation between my watchlist tokens and analyze their volatility.",
       watchlist: true,
     };
     localStorage.setItem("userQuery", JSON.stringify(userQuery));
