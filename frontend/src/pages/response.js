@@ -176,15 +176,6 @@ export default function Response() {
       const allMessages = [...messages, structuredMessage]
       console.log("ALL MESSAGES:", allMessages); 
       const assistantResponse = await runConversation(query, allMessages);
-      // const response = await fetch('/api/api', {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     query,
-      //     allMessages
-      //   })
-      // })
-      // const awaitStreamCompletion = await response.json(); // Parse the response body as JSON
-      // const assistantResponse = awaitStreamCompletion.message
       console.log('RESPONSE', assistantResponse);
 
       if (isJsonObject(assistantResponse)){
@@ -261,14 +252,6 @@ export default function Response() {
 
       } 
       fetchResponse(processedQuery);
-      // const processedQuery = userQuery ? userQuery.replace(/^"|"$/g, "") : "";
-      // setUserSearch(processedQuery);
-
-      // fetchResponse(processedQuery);
-      // setShowCalculatorUI(true);
-      // setResponseText('lp');
-      // const loremIpsumText = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident`;
-      // setResponseText(loremIpsumText);
     }
 
   }, []);

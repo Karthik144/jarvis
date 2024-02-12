@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient.js";
 import Snackbar from "@mui/material/Snackbar";
+import { useRouter } from "next/router.js";
 const axios = require("axios");
 
 export const fetchWatchlist = async () => {
@@ -52,8 +53,9 @@ export default function Watchlist() {
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
-  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
-  const workflowTwoFilters = ['Quantitative']; 
+  const quickActionFilter = ['Base APY', "30D APY"]; 
+
+  const router = useRouter()
 
   // Set current user
   useEffect(() => {
@@ -195,10 +197,10 @@ export default function Watchlist() {
     setTokenAdded(false);
   }
 
-  const handleWorkflowOneButtonClick = () => {
+  const handleWorkflowOneButtonClick = (baseAPY, avgAPY) => {
     console.log("Workflow button was pressed!");
     const userQuery = {
-      query: "Filter pools with base APY > 10% and 30D APY mean >15%?",
+      query: `Filter pools with base APY > ${baseAPY}% and 30D APY mean >${avgAPY}%?`,
       watchlist: false,
     };
     localStorage.setItem("userQuery", JSON.stringify(userQuery));
@@ -300,14 +302,14 @@ export default function Watchlist() {
           <Stack direction="row" spacing={2} sx={{paddingTop: '15px'}}>
             <QuickAction
               onButtonClick={handleWorkflowOneButtonClick}
-              title={"Filter Pools on APY"}
-              filterText={workflowOneFilters}
+              title={"Find Pools by APY"}
+              filterText={quickActionFilter}
               type={"Token Discovery"}
             />
             <QuickAction
               onButtonClick={handleWorkflowTwoButtonClick}
               title={"Compare Watchlist Tokens"}
-              filterText={workflowTwoFilters}
+              filterText={null}
               type={"Watchlist"}
             />
           </Stack>

@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import TextField from "@mui/material/TextField";
 import { styled } from "@mui/material/styles";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -26,8 +27,8 @@ const StyledLabelPaper = styled(Paper)(({ theme }) => ({
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: "center",
-  color: "white",
-  background: "black",
+  color: theme.palette.text.primary, // Use primary text color
+  background: theme.palette.background.default, // Use default background color
   borderRadius: "10px",
 }));
 
@@ -45,7 +46,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function QuickAction({ onButtonClick, title, filterText, type }) {
+export default function QuickAction({ onButtonClick, title, filterText }) {
   return (
     <StyledPaper square={false}>
       <Typography
@@ -57,14 +58,25 @@ export default function QuickAction({ onButtonClick, title, filterText, type }) 
       >
         {title}
       </Typography>
+      {filterText !== null ? (
+        <Stack direction="row" spacing={2}>
+          {filterText.map((text, index) => (
+            <StyledLabelPaper key={index} elevation={0}>
+              <Typography>{text}</Typography>
+              <TextField
+                type="number"
+                id={`filter-${index}`}
+                name={`filter-${index}`}
+                placeholder={`Enter a number for ${text}`}
+                variant="outlined"
+                size="small"
+                sx={{ width: "100%", marginTop: 1 }}
+              />
+            </StyledLabelPaper>
+          ))}
+        </Stack>
+      ) : null}
 
-      <Stack direction="row" spacing={2}>
-        {filterText.map((text, index) => (
-          <StyledLabelPaper key={index} elevation={0}>
-            {text}
-          </StyledLabelPaper>
-        ))}
-      </Stack>
       <StyledButton
         variant="contained"
         sx={{ textTransform: "none" }}
