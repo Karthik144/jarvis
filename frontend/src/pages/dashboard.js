@@ -222,7 +222,7 @@ export default function Watchlist() {
           alignItems: "center",
           justifyContent: "space-between",
           marginBottom: "20px",
-          marginTop:"40px"
+          marginTop: "40px",
         }}
       >
         <Typography
@@ -232,23 +232,29 @@ export default function Watchlist() {
             fontSize: "1.75rem",
           }}
         >
-          Tasks
+          Automated Workflows
         </Typography>
       </Box>
 
       <Stack direction="row" spacing={2}>
         <Workflow
-            user={user}
-            title={"Workflow #1"}
-            prompts={["Filter pools with base APY > 10% and 30D APY mean >15%?"]}
-            type={"Token Discovery"}
+          user={user}
+          title={"Identify Top LP Pairs"}
+          prompts={[
+            "Identify low beta, high growth tokens",
+            "Research token use cases, vision, and tokenomics",
+            "Analyze Twitter & community sentiment",
+            "Analyze contract security and previous hacks",
+            "Estimate best ranges for LP ranges",
+          ]}
+          type={"Token Discovery"}
         />
-        <Workflow
+        {/* <Workflow
           user={user}
           title={"Workflow #2"}
           prompts={["Provide a detailed quantitative analysis comparing my watchlist tokens.", "Give me Liquidity Pool ranges for the highly correlated tokens"]}
           type={"Watchlist"}
-        />
+        /> */}
       </Stack>
 
       <NewTokenModal

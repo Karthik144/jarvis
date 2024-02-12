@@ -18,34 +18,76 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   alignItems: "flex-start",
   justifyContent: "center",
   margin: theme.spacing(2),
-  maxWidth: '275px',
+  width: "100%", 
+  maxWidth: "600px", 
+  minWidth: "275px", 
   borderRadius: theme.shape.borderRadius,
-  border: `1px solid ${theme.palette.grey[300]}`, 
-  boxShadow: "none", 
+  border: `1px solid ${theme.palette.grey[300]}`,
+  boxShadow: "none",
 }));
 
-const StyledLabelPaper = styled(Paper)(({ theme }) => ({
-  ...theme.typography.body2,
-  padding: theme.spacing(1),
-  textAlign: "center",
-  color: "white",
-  background: "black",
-  borderRadius: "10px",
-}));
+// const StyledLabelPaper = styled(Paper)(({ theme }) => ({
+//   ...theme.typography.body2,
+//   padding: theme.spacing(1),
+//   textAlign: "center",
+//   color: "white",
+//   background: "black",
+//   borderRadius: "10px",
+// }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
   marginTop: theme.spacing(2),
-  color: "#fff", 
-  background: "#4CAF50", 
-  borderRadius: "20px", 
-  padding: "6px 16px", 
+  color: "black",
+  backgroundColor: "transparent",
+  border: "2px solid #CECECE",
+  borderRadius: "10px",
+  padding: theme.spacing(0.5),
+  paddingLeft: theme.spacing(1),
+  paddingRight: theme.spacing(1),
+  textTransform: "none",
   "&:hover": {
-    background: "#388E3C", 
+    backgroundColor: theme.palette.action.hover, 
+    boxShadow: `0 2px 4px 0 ${theme.palette.grey[300]}`, 
   },
-  startIcon: {
-    color: "#fff", 
+  "& .MuiButton-startIcon": {
+    color: "#0D9276",
+    marginRight: theme.spacing(0.75),
   },
+  boxShadow: "none",
 }));
+
+const CirclePaper = styled(Paper)({
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  width: 25,
+  height: 25,
+  borderRadius: "50%",
+  backgroundColor: "black",
+  boxShadow: "none", 
+});
+
+const StyledEditButton = styled(Button)({
+  backgroundColor: "#000000",
+  color: "white",
+  borderRadius: "20px",
+  textTransform: "none",
+  transition: "box-shadow 0.3s ease",
+  padding: "4px 16px", 
+  fontSize: "0.875rem", 
+  "&:hover": {
+    backgroundColor: "#808080",
+  },
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+});
+
+const CircleText = styled(Typography)({
+  color: "white", 
+  fontWeight: "semibold", 
+});
+
 
 export default function Workflow({ title, prompts, type, user }) {
   const router = useRouter();
@@ -76,19 +118,29 @@ export default function Workflow({ title, prompts, type, user }) {
 
   return (
     <StyledPaper square={false}>
-      <Typography
-        variant="subtitle1"
-        gutterBottom
-        sx={{
-          fontSize: "1.25rem",
-        }}
+      <Box
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        width="100%"
       >
-        {title}
-      </Typography>
+        <Typography
+          variant="subtitle1"
+          gutterBottom
+          sx={{
+            fontSize: "1.75rem",
+          }}
+        >
+          {title}
+        </Typography>
+
+        <StyledEditButton>Edit</StyledEditButton>
+      </Box>
+
       <Typography
         variant="body2"
         sx={{
-          fontSize: "1rem",
+          fontSize: "1.25rem",
           color: "text.secondary",
           paddingBottom: "1em",
         }}
@@ -97,18 +149,22 @@ export default function Workflow({ title, prompts, type, user }) {
       </Typography>
       <Stack direction="column" spacing={2}>
         {prompts.map((prompt, index) => (
-          <StyledLabelPaper key={index} elevation={0}>
-            {prompt}
-          </StyledLabelPaper>
+          <Stack direction="row" spacing={2} sx={{ paddingLeft: "5px" }}>
+            <CirclePaper elevation={4}>
+              <CircleText>{index + 1}</CircleText>
+            </CirclePaper>
+
+            <Typography>{prompt}</Typography>
+          </Stack>
         ))}
       </Stack>
       <StyledButton
         variant="contained"
         sx={{ textTransform: "none" }}
-        startIcon={<PlayArrowIcon />}
+        startIcon={<PlayArrowIcon sx={{ fontSize: "1.5rem" }} />}
         onClick={handleWorkflowButtonClick}
       >
-        Run
+        Run Workflow
       </StyledButton>
     </StyledPaper>
   );
