@@ -214,7 +214,7 @@ const handleWorkflowTwoButtonClick = async () => {
   if (user) {
     await fetchWatchlist();
     const userQuery = {
-      query: "Identify the correlation between my watchlist tokens and analyze their volatility.",
+      query: "Perform correlation analysis on watchlist tokens.",
       watchlist: true,
     };
     localStorage.setItem("userQuery", JSON.stringify(userQuery));

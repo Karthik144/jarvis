@@ -105,15 +105,13 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Do not call this function for watchlist token analysis. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+      content:
+        "When asked about insurance, list insurance options for crypto protocols as needed, using bullet points. Provide context only upon request.",
     },
     {
       role: "system",
-      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
-    },
-    {
-      role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
+      content:
+        "Identify low beta, high growth crypto tokens using the available function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info unless specifically requested.",
     },
     {
       role: "system",
@@ -125,10 +123,18 @@ export default function Response() {
     },
     {
       role: "system",
-      content:
-        "When asked to identify the correlation between watchlist tokens, don't make any function calls. Just categorize the pairs of tokens (for possible LP pools) into groups showing high, moderate, and low price correlation based on 30D, 60D, and 200D price changes. Add their correlation metrics for each pair. Please also do a volatility analysis on the tokens, listing high to low volatility tokens. Emphasize the analysis on the degree of correlation in price movements among the tokens.",
+      content: "For correlation analysis between watchlist tokens, manually calculate the correlation between each pair of tokens over 30, 60, and 200 days. Classify the token pairs into high, moderate, or low price correlation categories, including specific correlation values. This task must be performed manually and should not involve any external functions like predict_LP or tavilySearch."
+    },
+    {
+      role: "system",
+      content: "IMPORTANT: When responding to queries about correlation between watchlist tokens, always perform a manual correlation analysis as specified in the Correlation Analysis message. Do not use the Tavily Search Function or any other external functions for these queries."
+    }, 
+    {
+      role: "system",
+      content: "Use the Tavily Search Function only for investigating applications and latest updates for specific tokens. This function is not to be used for correlation analysis between watchlist tokens. Responses should be concise, under 175 words unless more detail is requested, and maintain information density without redundancy. Append 'crypto' to queries for optimized search results."
     },
   ]);
+
 
   const [pulseAnimation, setPulseAnimation] = useState(false);
 
@@ -188,7 +194,7 @@ export default function Response() {
       console.log('RESPONSE', assistantResponse);
 
       if (isJsonObject(assistantResponse)){
-
+        console.log('INSIDE IS JSON OBJECT'); 
         // Check if response contains token addresses
         if (
           "tokenOneAddress" in assistantResponse &&
