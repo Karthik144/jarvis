@@ -106,7 +106,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "When asked to perform correlation analysis on watchlist tokens, immediately calculate the correlation between each pair of tokens over 30, 60, and 200 days. Present the numeric correlation coefficients values in the response all at once and then categorize the token pairs into 'high', 'moderate', or 'low' price correlation categories based on their values. The correlation analysis must be done manually within the response without indicating a future completion or use of external functions like predict_LP or tavilySearch.",
+        "Upon a request for correlation analysis of watchlist tokens, immediately calculate and present the price correlation coefficients for each token pair, alongside their names. Classify each pair as 'high', 'moderate', or 'low' correlation based on these values. Include all details in a single, comprehensive response without delay or reference to future completion. Avoid using external tools like predict_LP or tavilySearch; the analysis must be manual and fully detailed within your response.",
     },
     {
       role: "system",
