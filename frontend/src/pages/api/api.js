@@ -271,10 +271,28 @@ async function runConversation(query, messages) {
 
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
+  console.log("QUERY INSIDE RUN CONVERSATION:", query); 
+  console.log(
+    "RESULT TRUE OR FALSE:",
+    query
+      .toLowerCase()
+      .includes("perform correlation analysis on watchlist tokens")
+  );
 
-  if (toolCalls) {
-    console.log("INSIDE TOOL CALLS"); 
-    const availableFunctions = {tavilyAdvancedSearch,checkForInsurance,filterPoolsByAPY,getLowBetaHighGrowthPairs,predict_LP};
+  if (
+    toolCalls &&
+    !query
+      .toLowerCase()
+      .includes("perform correlation analysis on watchlist tokens")
+  ) {
+    console.log("INSIDE TOOL CALLS");
+    const availableFunctions = {
+      tavilyAdvancedSearch,
+      checkForInsurance,
+      filterPoolsByAPY,
+      getLowBetaHighGrowthPairs,
+      predict_LP,
+    };
 
     messages.push(responseMessage);
     let predictLPCalled = false;
@@ -286,28 +304,28 @@ async function runConversation(query, messages) {
       const functionArgs = JSON.parse(toolCall.function.arguments);
 
       console.log("FUNCTION NAME:", functionName);
-      console.log("FUNCTION ARGS:", functionArgs); 
+      console.log("FUNCTION ARGS:", functionArgs);
 
       if (functionName === "predict_LP") {
         functionResponse = await functionToCall(functionArgs);
         predictLPCalled = true;
         console.log("PREDICT LP CALLED:", predictLPCalled);
         console.log("FUNCTION RESPONSE IN AI:", functionResponse);
-      } else if (functionName === 'filterPoolsByAPY'){
-        console.log('FILTER BY APY CALLED'); 
+      } else if (functionName === "filterPoolsByAPY") {
+        console.log("FILTER BY APY CALLED");
         functionResponse = await functionToCall(
           functionArgs.baseAPY,
           functionArgs.thirtyDayAPY
         );
-      }else {
+      } else {
         functionResponse = await functionToCall(functionArgs.query);
       }
       if (functionName !== "getLowBetaHighGrowthPairs") {
         poolOffset = 0;
       }
 
-      if (functionName !== 'filterPoolsByAPY') {
-        page = 0; 
+      if (functionName !== "filterPoolsByAPY") {
+        page = 0;
       }
 
       const contentString = JSON.stringify(functionResponse);
@@ -351,7 +369,7 @@ async function runConversation(query, messages) {
       }
     }
   } else {
-    console.log('INSIDE ELSE'); 
+    console.log("INSIDE ELSE");
     const secondResponse = await openai.chat.completions.create({
       model: "gpt-3.5-turbo-1106",
       messages: messages,
@@ -360,9 +378,8 @@ async function runConversation(query, messages) {
     const conversationResult = secondResponse.choices;
     const lastMessageContent =
       conversationResult[conversationResult.length - 1].message.content;
-    console.log("LAST MESSAGE:", lastMessageContent); 
+    console.log("LAST MESSAGE:", lastMessageContent);
     return lastMessageContent;
-    
   }
 }
 
