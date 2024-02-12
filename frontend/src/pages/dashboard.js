@@ -135,7 +135,6 @@ export default function Watchlist() {
         volume: "",
         category: "",
         marketCap: "",
-        address: "",
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
