@@ -1,8 +1,10 @@
 import React from "react";
+import { fetchWatchlist } from "@/pages/dashboard";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
+import { useRouter } from "next/router.js";
 import Box from "@mui/material/Box";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { styled } from "@mui/material/styles";
@@ -45,9 +47,35 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function Workflow({ onButtonClick, title, filterText, type }) {
+export default function Workflow({ title, prompts, type, user }) {
+  const router = useRouter();
+
+  
+  const handleWorkflowButtonClick = async () => {
+    console.log("Workflow button was pressed!");
+    if (type === "Watchlist") {
+      if (user) {
+        await fetchWatchlist();
+        const userQuery = {
+          query: prompts[0],
+          watchlist: true,
+        };
+        localStorage.setItem("userQuery", JSON.stringify(userQuery));
+        router.push("/response");
+      }
+    }
+    else {
+      const userQuery = {
+        query: prompts[0],
+        watchlist: false,
+      };
+      localStorage.setItem("userQuery", JSON.stringify(userQuery));
+      router.push("/response");
+    }
+  };
+
   return (
-   <StyledPaper square={false}>
+    <StyledPaper square={false}>
       <Typography
         variant="subtitle1"
         gutterBottom
@@ -67,10 +95,10 @@ export default function Workflow({ onButtonClick, title, filterText, type }) {
       >
         {type}
       </Typography>
-      <Stack direction="row" spacing={2}>
-        {filterText.map((text, index) => (
+      <Stack direction="column" spacing={2}>
+        {prompts.map((prompt, index) => (
           <StyledLabelPaper key={index} elevation={0}>
-            {text}
+            {prompt}
           </StyledLabelPaper>
         ))}
       </Stack>
@@ -78,7 +106,7 @@ export default function Workflow({ onButtonClick, title, filterText, type }) {
         variant="contained"
         sx={{ textTransform: "none" }}
         startIcon={<PlayArrowIcon />}
-        onClick={onButtonClick}
+        onClick={handleWorkflowButtonClick}
       >
         Run
       </StyledButton>

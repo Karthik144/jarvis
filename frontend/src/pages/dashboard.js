@@ -7,49 +7,10 @@ import Workflow from "../components/workflows/Workflow";
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient.js";
-import { useRouter } from "next/router.js";
 import Snackbar from "@mui/material/Snackbar";
 const axios = require("axios");
 
-export default function Watchlist() {
-  const [user, setUser] = useState(null);
-  const [watchlist, setWatchlist] = useState([]);
-  const [rawList, setRawList] = useState([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [tokenAdded, setTokenAdded] = useState(false);
-  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
-  const workflowTwoFilters = ['Quantitative']; 
-
-  const router = useRouter();
-
-  // Set current user
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    // Cleanup function
-    return () => {
-      if (authListener && typeof authListener.unsubscribe === "function") {
-        authListener.unsubscribe();
-      }
-    };
-  }, []);
-
-  
-  // Get users watchlist once
-  useEffect(() => {
-    if (user) {
-      // User is logged in, fetch their profile
-      console.log("INSIDE IF STATEMENT"); 
-
-      fetchWatchlist();
-    } 
-  }, [user]);
-
-  const fetchWatchlist = async () => {
+export const fetchWatchlist = async () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -83,6 +44,42 @@ export default function Watchlist() {
       console.error("Error fetching investor profile:", error.message);
     }
   };
+
+export default function Watchlist() {
+  const [user, setUser] = useState(null);
+  const [watchlist, setWatchlist] = useState([]);
+  const [rawList, setRawList] = useState([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [tokenAdded, setTokenAdded] = useState(false);
+  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
+  const workflowTwoFilters = ['Quantitative']; 
+
+  // Set current user
+  useEffect(() => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    // Cleanup function
+    return () => {
+      if (authListener && typeof authListener.unsubscribe === "function") {
+        authListener.unsubscribe();
+      }
+    };
+  }, []);
+
+  
+  // Get users watchlist once
+  useEffect(() => {
+    if (user) {
+      // User is logged in, fetch their profile
+      console.log("INSIDE IF STATEMENT"); 
+
+      fetchWatchlist();
+    } 
+  }, [user]);
 
   async function getCachedCoinData(coinID, id) {
     const cacheKey = `coinData_${coinID}`;
@@ -197,32 +194,6 @@ export default function Watchlist() {
     setTokenAdded(false);
   }
 
-  const handleWorkflowOneButtonClick = () => {
-    console.log("Workflow button was pressed!");
-    const userQuery = {
-      query:
-        'Filter pools with base APY > 10% and 30D APY mean >15%?',
-      watchlist: false,
-    };
-    localStorage.setItem("userQuery", JSON.stringify(userQuery));
-    router.push("/response");
-  };
-
-const handleWorkflowTwoButtonClick = async () => {
-  console.log("Workflow button two was pressed!");
-  if (user) {
-    await fetchWatchlist();
-    const userQuery = {
-      query:
-        "Provide a detailed quantitative analysis comparing my watchlist tokens.",
-      watchlist: true,
-    };
-    localStorage.setItem("userQuery", JSON.stringify(userQuery));
-    router.push("/response");
-  }
-};
-
-
   return (
     <Box sx={{ padding: "90px" }}>
       <Box
@@ -267,15 +238,15 @@ const handleWorkflowTwoButtonClick = async () => {
 
       <Stack direction="row" spacing={2}>
         <Workflow
-            onButtonClick={handleWorkflowOneButtonClick}
-            title={"Filter Pools on APY"}
-            filterText={workflowOneFilters}
+            user={user}
+            title={"Workflow #1"}
+            prompts={["Filter pools with base APY > 10% and 30D APY mean >15%?"]}
             type={"Token Discovery"}
         />
         <Workflow
-          onButtonClick={handleWorkflowTwoButtonClick}
-          title={"Compare Watchlist Tokens"}
-          filterText={workflowTwoFilters}
+          user={user}
+          title={"Workflow #2"}
+          prompts={["Provide a detailed quantitative analysis comparing my watchlist tokens.", "Give me Liquidity Pool ranges for the highly correlated tokens"]}
           type={"Watchlist"}
         />
       </Stack>
