@@ -4,6 +4,7 @@ import AddButton from "../components/watchlist/AddButton.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
 import Workflow from "../components/workflows/Workflow"; 
+import QuickAction from "../components/workflows/QuickAction"; 
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient.js";
@@ -194,6 +195,30 @@ export default function Watchlist() {
     setTokenAdded(false);
   }
 
+  const handleWorkflowOneButtonClick = () => {
+    console.log("Workflow button was pressed!");
+    const userQuery = {
+      query: "Filter pools with base APY > 10% and 30D APY mean >15%?",
+      watchlist: false,
+    };
+    localStorage.setItem("userQuery", JSON.stringify(userQuery));
+    router.push("/response");
+  };
+
+  const handleWorkflowTwoButtonClick = async () => {
+    console.log("Workflow button two was pressed!");
+    if (user) {
+      await fetchWatchlist();
+      const userQuery = {
+        query:
+          "Provide a detailed quantitative analysis comparing my watchlist tokens.",
+        watchlist: true,
+      };
+      localStorage.setItem("userQuery", JSON.stringify(userQuery));
+      router.push("/response");
+    }
+  };
+
   return (
     <Box sx={{ padding: "90px" }}>
       <Box
@@ -216,46 +241,78 @@ export default function Watchlist() {
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
       <WatchlistTable watchlistData={watchlist} rawList={rawList} />
+
+      {/* Main container for the two sections */}
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "20px",
-          marginTop: "40px",
+          gap: "20px",
+          alignItems: "flex-start",
+          marginTop: "50px",
         }}
       >
-        <Typography
-          variant="h2"
-          sx={{
-            fontWeight: "500",
-            fontSize: "1.75rem",
-          }}
-        >
-          Automated Workflows
-        </Typography>
-      </Box>
+        {/* Automated Workflows Section */}
+        <Box sx={{ width: "50%" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "500",
+              fontSize: "1.75rem",
+              paddingBottom: "15px",
+            }}
+          >
+            Automated Workflows
+          </Typography>
 
-      <Stack direction="row" spacing={2}>
-        <Workflow
-          user={user}
-          title={"Identify Top LP Pairs"}
-          prompts={[
-            "Identify low beta, high growth tokens",
-            "Research token use cases, vision, and tokenomics",
-            "Analyze Twitter & community sentiment",
-            "Analyze contract security and previous hacks",
-            "Estimate best ranges for LP ranges",
-          ]}
-          type={"Token Discovery"}
-        />
-        {/* <Workflow
-          user={user}
-          title={"Workflow #2"}
-          prompts={["Provide a detailed quantitative analysis comparing my watchlist tokens.", "Give me Liquidity Pool ranges for the highly correlated tokens"]}
-          type={"Watchlist"}
-        /> */}
-      </Stack>
+          <Stack direction="row" spacing={2}>
+            <Workflow
+              user={user}
+              title={"Identify Top LP Pairs"}
+              prompts={[
+                "Identify low beta, high growth tokens",
+                "Research token use cases, vision, and tokenomics",
+                "Analyze Twitter & community sentiment",
+                "Analyze contract security and previous hacks",
+                "Estimate best ranges for LP ranges",
+              ]}
+              type={"Token Discovery"}
+            />
+            {/* <Workflow
+              user={user}
+              title={"Workflow #2"}
+              prompts={["Provide a detailed quantitative analysis comparing my watchlist tokens.", "Give me Liquidity Pool ranges for the highly correlated tokens"]}
+              type={"Watchlist"}
+            /> */}
+          </Stack>
+        </Box>
+
+        {/* Box for Quick Tasks */}
+        <Box sx={{ width: "50%" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "500",
+              fontSize: "1.75rem",
+            }}
+          >
+            Quick Tasks
+          </Typography>
+          <Stack direction="row" spacing={2} sx={{paddingTop: '15px'}}>
+            <QuickAction
+              onButtonClick={handleWorkflowOneButtonClick}
+              title={"Filter Pools on APY"}
+              filterText={workflowOneFilters}
+              type={"Token Discovery"}
+            />
+            <QuickAction
+              onButtonClick={handleWorkflowTwoButtonClick}
+              title={"Compare Watchlist Tokens"}
+              filterText={workflowTwoFilters}
+              type={"Watchlist"}
+            />
+          </Stack>
+        </Box>
+      </Box>
 
       <NewTokenModal
         handleClose={handleCloseModal}
