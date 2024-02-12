@@ -120,7 +120,7 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+      content: `Only call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Do not call it to perform correlation analysis. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
     },
     {
       role: "system",
