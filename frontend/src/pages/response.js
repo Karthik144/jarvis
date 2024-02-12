@@ -111,7 +111,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "IMPORTANT: When responding to queries about correlation between watchlist tokens, always perform a manual correlation analysis as specified in the Correlation Analysis message. Do not use the Tavily Search Function or predict_LP function or any other external functions for these queries.",
+        "IMPORTANT: When responding to queries, like 'Perform correlation analysis on watchlist tokens', always perform a manual correlation analysis as specified in the Correlation Analysis message. Do NOT call the Tavily Search Function or predict_LP function or any other external functions for these queries.",
     },
     {
       role: "system",
