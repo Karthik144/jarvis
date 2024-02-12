@@ -138,8 +138,9 @@ export default function Watchlist() {
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
+      console.log("RESPONSE DATA:", response.data);
       const coinData = response.data;
-
+    
       // Check if all required properties exist before accessing them
       if (coinData && coinData.market_data && coinData.market_data.current_price && coinData.market_data.price_change_percentage_30d_in_currency && coinData.market_data.price_change_percentage_60d_in_currency && coinData.market_data.price_change_percentage_200d_in_currency && coinData.market_data.total_volume && coinData.categories && coinData.market_data.market_cap) {
         // Stores values in the result object
