@@ -157,7 +157,7 @@ export default function Watchlist() {
         2
         )}%`;
       
-      if (Object.keys(coinData.market_data.price_change_percentage_200d_in_currency.usd).length !== 0) {
+      if (coinData.market_data.price_change_percentage_200d_in_currency.usd !== undefined) {
         result["priceChange200"] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(2)}%`;
       }
       else {
