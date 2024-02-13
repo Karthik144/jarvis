@@ -172,7 +172,6 @@ export default function Watchlist() {
         "marketCap"
       ] = `$${coinData.market_data.market_cap.usd.toLocaleString()}`;
 
-      console.log("RESULT:", result); 
       return result;
     } catch (error) {
       console.error("Error fetching coin data:", error);
