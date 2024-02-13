@@ -3,8 +3,6 @@
 // This enables autocomplete, go to definition, etc.
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.1';
 
-console.log("Hello from Functions!")
-
 const supabaseUrl = "https://nibfafwhlabdjvkzpvuv.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU";
 
@@ -62,12 +60,8 @@ async function update_momentum_score(symbol: string, data: any) {
             .filter('symbol', 'eq', symbol)
             .single();
 
-        if (error) {
-            console.error(`Error reading momentum-list: ${error.message}`);
-        }
-
         let current_score = 0;
-        let momentum_scores_30D: number[] = [];
+        let momentum_scores_30D: Number[] = [];
 
         if (momentum_list_row) {
             current_score = momentum_list_row.momentum_score_current || 0;
@@ -96,7 +90,7 @@ async function update_momentum_score(symbol: string, data: any) {
     }
 }
 
-async function calculate_momentum_score(data: any, current_score: number = 0) {
+async function calculate_momentum_score(data: any, current_score: number) {
     try {
         let new_score = current_score;
 
