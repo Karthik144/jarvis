@@ -105,30 +105,40 @@ export default function Response() {
     },
     {
       role: "system",
-      content: `When necessary, use the Tavily Search Function to investigate tokenomics, applications, and latest updates for a specific token, ensuring concise responses under 175 words unless more detail is requested. Do not call this function for watchlist token analysis. Maintain information density, avoiding filler content. Append 'crypto' to queries for optimized search results. Cite all sources and avoid redundancy.`,
+      content:
+        "Upon a request for correlation analysis of watchlist tokens, immediately calculate and present the price correlation coefficients for each token pair, alongside their names. Classify each pair as 'high', 'moderate', or 'low' correlation based on these values. Include all details in a single, comprehensive response without delay or reference to future completion. Avoid using external tools like predict_LP or tavilySearch; the analysis must be manual and fully detailed within your response.",
     },
     {
       role: "system",
-      content: `List insurance options for protocols as needed, using bullet points. Provide context only upon request.`,
+      content:
+        "IMPORTANT: When responding to queries, like 'Perform correlation analysis on watchlist tokens', always perform a manual correlation analysis as specified in the Correlation Analysis message. Do NOT call the Tavily Search Function or predict_LP function or any other external functions for these queries.",
     },
     {
       role: "system",
-      content: `Identify low beta, high growth crypto tokens using the function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
+      content:
+        "Identify low beta, high growth crypto tokens using the available function. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info unless specifically requested.",
     },
-    {
-      role: "system",
-      content: `Call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
-    },
+
     {
       role: "system",
       content: `Call the filterByAPY function when user needs to filter by base APY and 30D APY. Initially list 10; call function for 10 more upon request. For each, list APY, APY Base, TVL USD, AVL PCT 7D, APY 30D, APY Mean 30D, and beta value in bullets. Do not include any other extra info other than what was specified before. Contextualize only if asked.`,
     },
     {
       role: "system",
+      content: `Only call the predict_LP function when user needs to estimate the liqudity pool (LP) range. Do not call it to perform correlation analysis. Return a JSON object with the contract addresses of the token, which is already returned by the function.`,
+    },
+    {
+      role: "system",
       content:
-        "When asked to perform a quantitative analysis on a watchlist of tokens, don't make any function calls. Just categorize the pairs of tokens into groups showing high, moderate, and low price correlation based on 30D, 60D, and 200D price changes. Please also do a volatility analysis on the tokens, listing high to low volatility tokens. Emphasize the analysis on the degree of correlation in price movements among the tokens.",
+        "Use the Tavily Search Function only for investigating applications and latest updates for specific tokens. This function is not to be used for correlation analysis between watchlist tokens. Responses should be concise, under 175 words unless more detail is requested, and maintain information density without redundancy. Append 'crypto' to queries for optimized search results.",
+    },
+    {
+      role: "system",
+      content:
+        "When asked about insurance, list insurance options for crypto protocols as needed, using bullet points. Provide context only upon request.",
     },
   ]);
+
 
   const [pulseAnimation, setPulseAnimation] = useState(false);
 
@@ -179,7 +189,7 @@ export default function Response() {
       console.log('RESPONSE', assistantResponse);
 
       if (isJsonObject(assistantResponse)){
-
+        console.log('INSIDE IS JSON OBJECT'); 
         // Check if response contains token addresses
         if (
           "tokenOneAddress" in assistantResponse &&
@@ -224,18 +234,23 @@ export default function Response() {
   useEffect(() => {
     const userQuery = localStorage.getItem("userQuery");
     if (userQuery){
-
+      console.log('INSIDE USER QUERY');
       const userQueryObj = JSON.parse(userQuery);
 
       // Process query to remove extra quotes 
       let processedQuery;
-      if (userQuery.query) {
+      if (userQueryObj.query) {
+        console.log("INSIDE .QUERY"); 
         processedQuery = userQueryObj.query.replace(/^"|"$/g, "");
+        console.log("processed query:", processedQuery); 
+        setUserSearch(processedQuery);
       }
       else {
-        processedQuery =  userQuery;
+        console.log("INSIDE NORMAL QUERY")
+        processedQuery = userQuery.replace(/^"|"$/g, "");
+        setUserSearch(processedQuery);
       }
-      setUserSearch(processedQuery);
+      
 
       // Check if query is for watchlist comparison 
       if (userQueryObj.watchlist){

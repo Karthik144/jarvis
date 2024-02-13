@@ -138,6 +138,7 @@ export default function Watchlist() {
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
+      console.log("RESPONSE:", response.data)
       const coinData = response.data;
 
       // Stores values in the result object
@@ -154,12 +155,15 @@ export default function Watchlist() {
         "priceChange60"
       ] = `${coinData.market_data.price_change_percentage_60d_in_currency.usd.toFixed(
         2
-      )}%`;
-      result[
-        "priceChange200"
-      ] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(
-        2
-      )}%`;
+        )}%`;
+      
+      if (coinData.market_data.price_change_percentage_200d_in_currency.usd !== undefined) {
+        result["priceChange200"] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(2)}%`;
+      }
+      else {
+        result["priceChange200"] = 'N/A'
+      }
+      
       result[
         "volume"
       ] = `$${coinData.market_data.total_volume.usd.toLocaleString()}`;
@@ -209,17 +213,19 @@ export default function Watchlist() {
 
   const handleWorkflowTwoButtonClick = async () => {
     console.log("Workflow button two was pressed!");
+    // Provide a detailed quantitative analysis comparing my watchlist tokens.
     if (user) {
       await fetchWatchlist();
       const userQuery = {
-        query:
-          "Provide a detailed quantitative analysis comparing my watchlist tokens.",
+        query: "Perform correlation analysis on watchlist tokens.",
         watchlist: true,
       };
       localStorage.setItem("userQuery", JSON.stringify(userQuery));
       router.push("/response");
     }
   };
+
+
 
   return (
     <Box sx={{ padding: "90px" }}>
