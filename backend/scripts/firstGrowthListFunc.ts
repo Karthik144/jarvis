@@ -7,10 +7,7 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // TO-DO: 
-
-// 1. Check if there are other endpoints where we can query data based on network 
 // 4. Schedule the edge function 
-
 
 interface Token {
     id: string;
@@ -39,6 +36,15 @@ interface Token {
     atl_date: string;
     last_updated: string;
     price_change_percentage_30d_in_currency: number;
+    ethereum_address?: string; 
+    arbitrum_one_address?: string; 
+}
+
+interface CoinGeckoToken {
+    id: string;
+    platforms: {
+        [key: string]: string | undefined; 
+    };
 }
 
 // SOURCE: https://www.coingecko.com/en/categories/meme-token
@@ -46,7 +52,7 @@ const memeTokens = ['DOGE', 'SHIB', 'BONK', 'CORGIAI', 'PEPE', 'WIF', 'FLOKI', '
 
 async function main(){
     const filteredTokens = await filterTopTokens(); 
-    
+    // console.log('LIST:', filteredTokens); 
     await updateData(filteredTokens); 
 }
 
@@ -98,8 +104,20 @@ async function filterTopTokens() {
     try {
         const topTokens = await getTopTokens();
         
-        // Sort tokens from lowest to highest 30 day price change 
-        const sortedTokens = topTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
+        // Filter out top scam tokens 
+        const filteredFromScamTokens = removeScamTokens(topTokens); 
+
+        // const sortedTokens = filteredFromScamTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
+
+        // Sort tokens from lowest to highest 30 day price change while giving volume some weightage 
+        const sortedTokens = filteredFromScamTokens.sort((a, b) => {
+
+            // Calculate weighted metric for comparison
+            const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * (a.total_volume);
+            const metricB = 0.7 * b.price_change_percentage_30d_in_currency + 0.3 * (b.total_volume);
+
+            return metricA - metricB; 
+        });
 
         const twentyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.25);
         const seventyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.75);
@@ -107,10 +125,10 @@ async function filterTopTokens() {
         // Filter out the top 25th and bottom 25th percentiles
         const filteredTokens = sortedTokens.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
         
-        // Filter out top scam tokens 
-        const filteredFromScamTokens = removeScamTokens(filteredTokens); 
+        // Add in token addresses 
+        const finalListOfTokens = await addTokenAddresses(filteredFromScamTokens); 
 
-        return filteredFromScamTokens;
+        return finalListOfTokens;
 
     } catch (error) {
         console.error("Error filtering top tokens:", error);
@@ -121,6 +139,33 @@ async function filterTopTokens() {
 function removeScamTokens(tokens: Token[]): Token[] {
     // Filter out tokens whose symbols are in the memeTokens list
     return tokens.filter(token => !memeTokens.includes(token.symbol.toUpperCase()));
+}
+
+async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
+    try {
+        const response = await axios.get(`https://api.coingecko.com/api/v3/coins/list?include_platform=true`);
+        const tokensWithAddress: CoinGeckoToken[] = response.data; 
+
+        // Map with token id as the key and token platforms as the value 
+        const addressMap = new Map<string, CoinGeckoToken['platforms']>(tokensWithAddress.map(token => [token.id, token.platforms]));
+
+        // Iterate over the tokens array and append addresses if a match is found
+        const updatedTokens = tokens.map(token => {
+            const platforms = addressMap.get(token.id);
+            if (platforms) {
+                // Add Ethereum and Arbitrum-One addresses if they exist
+                token.ethereum_address = platforms['ethereum'] || '';
+                token.arbitrum_one_address = platforms['arbitrum-one'] || '';
+            }
+            return token;
+        });
+        
+        return updatedTokens;
+
+    } catch (error){
+        console.log("Error while appending token addresses:", (error)); 
+        throw error; 
+    }
 }
 
 main(); 
