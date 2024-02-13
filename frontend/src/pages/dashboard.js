@@ -275,7 +275,7 @@ export default function Watchlist() {
           <Stack direction="row" spacing={2}>
             <Workflow
               user={user}
-              title={"Identify Top LP Pairs"}
+              title={"Identify Top LP Pairs(soon full walkthru)"}
               prompts={[
                 "Identify low beta, high growth tokens",
                 "Research token use cases, vision, and tokenomics",
