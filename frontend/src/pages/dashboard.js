@@ -138,6 +138,7 @@ export default function Watchlist() {
       };
       const url = `https://api.coingecko.com/api/v3/coins/${coinID}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
       const response = await axios.get(url);
+      console.log("RESPONSE:", response.data)
       const coinData = response.data;
 
       // Stores values in the result object
@@ -156,7 +157,7 @@ export default function Watchlist() {
         2
         )}%`;
       
-      if (coinData.market_data.price_change_percentage_200d_in_currency.usd != {}) {
+      if (Object.keys(coinData.market_data.price_change_percentage_200d_in_currency.usd).length !== 0) {
         result["priceChange200"] = `${coinData.market_data.price_change_percentage_200d_in_currency.usd.toFixed(2)}%`;
       }
       else {
