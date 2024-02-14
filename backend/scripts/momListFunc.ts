@@ -43,12 +43,8 @@ async function update_momentum_score(symbol: string, data: any) {
             .filter('symbol', 'eq', symbol)
             .single();
 
-        if (error) {
-            console.error(`Error reading momentum-list: ${error.message}`);
-        }
-
         let current_score = 0;
-        let momentum_scores_30D: number[] = [];
+        let momentum_scores_30D: Number[] = [];
 
         if (momentum_list_row) {
             current_score = momentum_list_row.momentum_score_current || 0;
@@ -77,36 +73,69 @@ async function update_momentum_score(symbol: string, data: any) {
     }
 }
 
-async function calculate_momentum_score(data: any, current_score: number = 0) {
+async function calculate_momentum_score(data: any, current_score: number) {
     try {
-        let new_score = current_score;
+      let new_score = current_score;
 
+      let daily_pct_change_list: Number[] = []
+      let monthly_pct_change_list: Number[] = []
+      let volume_list: Number[] = []
+      
+      for (let entry of data['seven_day_data']) {
         // Calculate momentum score based on provided data
-        const day_pct_change = Number(data['price_change_percentage_24h']);
-        const month_pct_change = Number(data['price_change_percentage_30d_in_currency']);
+        const day_pct_change = Number(entry['price_change_percentage_24h']);
+        const month_pct_change = Number(entry['price_change_percentage_30d_in_currency']);
+        const volume = Number(entry['total_volume'])
+        
+        daily_pct_change_list.push(day_pct_change);
+        monthly_pct_change_list.push(month_pct_change);
+        volume_list.push(volume);
+      }
 
-        if (day_pct_change > 0 && month_pct_change > 0) {
-            new_score += 1;
-        } else if (day_pct_change < 0 && month_pct_change < 0) {
-            new_score -= 1;
-        }
+      let roc_daily_pct = await calc_derivative(daily_pct_change_list)
+      let roc_monthly_pct = await calc_derivative(monthly_pct_change_list)
+      let roc_volume = await calc_derivative(volume_list)
 
-        const total_volume = Number(data['total_volume']);
-        const market_cap = Number(data['market_cap']);
+      //1.
+      if (roc_daily_pct > 0) {
+        new_score += 1;
+      }
+      else {
+        new_score -= 1;
+      }
 
-        const volume_ratio = (total_volume / market_cap) * 100;
-        if (volume_ratio >= 10) {
-            new_score += 1;
-        } else if (volume_ratio >= 5) {
-            new_score += 0;
-        } else {
-            new_score -= 1;
-        }
+      //2.
+      if (roc_monthly_pct > 2) {
+        new_score += 1;
+      }
 
-        return new_score;
+      //3.
+      if (roc_volume > 0) {
+        new_score += 1;
+      }
+      else {
+        new_score -= 1;
+      }
+
+      return new_score;
     } catch (error) {
         throw new Error(`Error calculating momentum score: ${error}`);
     }
 }
 
-main();
+function calc_derivative(values: Number[]) {
+  const rocValues: number[] = [];
+
+    for (let i = 1; i < values.length; i++) {
+        const dailyChange = Number(values[i]) - Number(values[i - 1]);
+        const roc = (dailyChange / Number(values[i - 1]) * 100); 
+        rocValues.push(roc);
+    }
+  
+    const sum = rocValues.reduce((acc, val) => acc + val, 0);
+    const averageSecondDerivative = sum / rocValues.length;
+
+    return averageSecondDerivative;
+}
+
+main()

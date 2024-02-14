@@ -8,6 +8,15 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
+//Momentum factors:
+    // 1. ROC 2nd price-derivative: if ROC of %24Hr_change over last 7 days is positive +1 else -1
+    // 2. ROC 2nd price-derivative: if ROC of %30D_volume over last 7 days is > 2% +1
+    // 3. ROC 1st volume-derivative: if volume grew from beginning of week to end +1 else -1
+  
+
+    // 4. 2. Volume: % of V / MC(> 10 % +1, 5 - 10 % 0, <5% -1) (SIDELINED)
+    //  X. Sentiment(EVENTUALLY)
+
 Deno.serve(async (req) => {
   const { time } = await req.json()
   const data = {
@@ -92,45 +101,65 @@ async function update_momentum_score(symbol: string, data: any) {
 
 async function calculate_momentum_score(data: any, current_score: number) {
     try {
-        let new_score = current_score;
+      let new_score = current_score;
 
+      let daily_pct_change_list: Number[] = []
+      let monthly_pct_change_list: Number[] = []
+      let volume_list: Number[] = []
+      
+      for (let entry of data['seven_day_data']) {
         // Calculate momentum score based on provided data
-        const day_pct_change = Number(data['price_change_percentage_24h']);
-        const month_pct_change = Number(data['price_change_percentage_30d_in_currency']);
+        const day_pct_change = Number(entry['price_change_percentage_24h']);
+        const month_pct_change = Number(entry['price_change_percentage_30d_in_currency']);
+        const volume = Number(entry['total_volume'])
+        
+        daily_pct_change_list.push(day_pct_change);
+        monthly_pct_change_list.push(month_pct_change);
+        volume_list.push(volume);
+      }
 
-        if (day_pct_change > 0 && month_pct_change > 0) {
-            new_score += 1;
-        } else if (day_pct_change < 0 && month_pct_change < 0) {
-            new_score -= 1;
-        }
+      let roc_daily_pct = await calc_derivative(daily_pct_change_list)
+      let roc_monthly_pct = await calc_derivative(monthly_pct_change_list)
+      let roc_volume = await calc_derivative(volume_list)
 
-        const total_volume = Number(data['total_volume']);
-        const market_cap = Number(data['market_cap']);
+      //1.
+      if (roc_daily_pct > 0) {
+        new_score += 1;
+      }
+      else {
+        new_score -= 1;
+      }
 
-        const volume_ratio = (total_volume / market_cap) * 100;
-        if (volume_ratio >= 10) {
-            new_score += 1;
-        } else if (volume_ratio >= 5) {
-            new_score += 0;
-        } else {
-            new_score -= 1;
-        }
+      //2.
+      if (roc_monthly_pct > 2) {
+        new_score += 1;
+      }
 
-        return new_score;
+      //3.
+      if (roc_volume > 0) {
+        new_score += 1;
+      }
+      else {
+        new_score -= 1;
+      }
+
+      return new_score;
     } catch (error) {
         throw new Error(`Error calculating momentum score: ${error}`);
     }
 }
 
+function calc_derivative(values: Number[]) {
+  const rocValues: number[] = [];
 
-/* To invoke locally:
+    for (let i = 1; i < values.length; i++) {
+        const dailyChange = Number(values[i]) - Number(values[i - 1]);
+        const roc = (dailyChange / Number(values[i - 1]) * 100); 
+        rocValues.push(roc);
+    }
+  
+    const sum = rocValues.reduce((acc, val) => acc + val, 0);
+    const averageSecondDerivative = sum / rocValues.length;
 
-  1. Run `supabase start` (see: https://supabase.com/docs/reference/cli/supabase-start)
-  2. Make an HTTP request:
-
-  curl -i --location --request POST 'http://127.0.0.1:54321/functions/v1/momentum-rank' \
-    --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0' \
-    --header 'Content-Type: application/json' \
-    --data '{"name":"Functions"}'
-
-*/
+    return averageSecondDerivative;
+}
