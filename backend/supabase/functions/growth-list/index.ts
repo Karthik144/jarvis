@@ -127,44 +127,45 @@ async function getTopTokens(){
 }
 
 // Filter top tokens based on % change in 30d price 
-async function filterTopTokens() {
-    try {
-        const topTokens = await getTopTokens();
+// async function filterTopTokens() {
+//     try {
+//         const topTokens = await getTopTokens();
         
-        // Filter out top scam tokens 
-        const filteredFromScamTokens = removeScamTokens(topTokens); 
+//         // Filter out top scam tokens 
+//         const filteredFromScamTokens = removeScamTokens(topTokens); 
 
-        // const sortedTokens = filteredFromScamTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
+//         // const sortedTokens = filteredFromScamTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
 
-        // (a.total_volume) / (a.market_cap)
+//         // (a.total_volume) / (a.market_cap)
 
-        // Sort tokens from lowest to highest 30 day price change while giving volume some weightage 
-        const sortedTokens = filteredFromScamTokens.sort((a, b) => {
+//         // Sort tokens from lowest to highest 30 day price change while giving volume some weightage 
+//         const sortedTokens = filteredFromScamTokens.sort((a, b) => {
 
-            // Calculate weighted metric for comparison
-            const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * ((a.total_volume) / (a.market_cap));
-            const metricB = 0.7 * b.price_change_percentage_30d_in_currency + 0.3 * (b.total_volume);
+//             // Calculate weighted metric for comparison
+//             const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * ((a.total_volume) / (a.market_cap));
+//             const metricB = 0.7 * b.price_change_percentage_30d_in_currency + 0.3 * (b.total_volume);
 
-            return metricA - metricB; 
-        });
+//             return metricA - metricB; 
+//         });
 
-        const twentyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.25);
-        const seventyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.75);
+//         const twentyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.25);
+//         const seventyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.75);
 
-        // Filter out the top 25th and bottom 25th percentiles
-        const filteredTokens = sortedTokens.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
+//         // Filter out the top 25th and bottom 25th percentiles
+//         const filteredTokens = sortedTokens.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
         
-        // Add in token addresses 
-        const finalListOfTokens = await addTokenAddresses(filteredFromScamTokens); 
+//         // Add in token addresses 
+//         const finalListOfTokens = await addTokenAddresses(filteredFromScamTokens); 
 
-        return finalListOfTokens;
+//         return finalListOfTokens;
 
-    } catch (error) {
-        console.error("Error filtering top tokens:", error);
-        throw error; 
-    }
-}
+//     } catch (error) {
+//         console.error("Error filtering top tokens:", error);
+//         throw error; 
+//     }
+// }
 
+// Filter top tokens based on % change in 30d price 
 async function filterTopTokens() {
     try {
 
