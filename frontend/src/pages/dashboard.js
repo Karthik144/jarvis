@@ -368,13 +368,12 @@ export default function Watchlist() {
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
 
-      {/* {viewMomentumList ? (
-        <MomentumTable watch
+      {viewMomentumList ? (
+        <MomentumTable momentumList={momentumList} />
       ) : (
         <WatchlistTable watchlistData={watchlist} rawList={rawList} />
-
       )
-      } */}
+      }
 
       {/* Main container for the two sections */}
       <Box

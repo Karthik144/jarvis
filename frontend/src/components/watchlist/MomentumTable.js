@@ -65,7 +65,7 @@ export default function MomentumTable({ momentumList }) {
   return (
     <div style={{ height: 450, width: "100%" }}>
       <DataGrid
-        rows={watchlistData}
+        rows={momentumList}
         columns={columns}
         onRowSelectionModelChange={handleSelectionChange}
         initialState={{
