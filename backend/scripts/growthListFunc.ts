@@ -114,7 +114,6 @@ async function clearOldData() {
     const { error } = await supabase
         .from('growth-list')
         .delete()
-        .eq('some_column', 'someValue')
 
     if (error) {
         console.error('Error clearing old data:', error);
