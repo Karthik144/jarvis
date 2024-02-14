@@ -1,26 +1,65 @@
 import React, { useState, useEffect } from "react";
 import WatchlistTable from "../components/watchlist/WatchlistTable.js";
+import MomentumTable from "../components/watchlist/MomentumTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
+import SwitchButton from "../components/watchlist/SwitchButton.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
 import Workflow from "../components/workflows/Workflow"; 
+import QuickAction from "../components/workflows/QuickAction"; 
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
 import { supabase } from "../../supabaseClient.js";
-import { useRouter } from "next/router.js";
 import Snackbar from "@mui/material/Snackbar";
+import { useRouter } from "next/router.js";
 const axios = require("axios");
+
+// export const fetchWatchlist = async () => {
+//     try {
+//       const { data, error } = await supabase
+//         .from("profiles")
+//         .select("watchlist")
+//         .eq("id", user.id)
+//         .single();
+
+//       if (error) {
+//         throw error;
+//       }
+
+//       setRawList(data.watchlist || { coins: [] });
+
+//       const coinsInWatchlist = data.watchlist.coins.length;
+//       console.log("WATCHLIST LENGTH:", coinsInWatchlist);
+
+//       const newWatchlist = [];
+
+//       for (let i = 0; i < coinsInWatchlist; i++) {
+//         // const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
+//         const coinData = await getCachedCoinData(
+//           data.watchlist.coins[i].coin_id,
+//           i
+//         );
+//         console.log("COIN DATA:", coinData);
+//         newWatchlist.push(coinData);
+//       }
+//       console.log("NEW WATCHLIST:", newWatchlist);
+//       setWatchlist(newWatchlist);
+//     } catch (error) {
+//       console.error("Error fetching investor profile:", error.message);
+//     }
+//   };
 
 export default function Watchlist() {
   const [user, setUser] = useState(null);
   const [watchlist, setWatchlist] = useState([]);
+  const [momentumList, setMomentumList] = useState([]); 
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
-  const workflowOneFilters = ['Base APY > 10%', "30D APY > 15%"]; 
-  const workflowTwoFilters = ['Quantitative']; 
+  const [viewMomentumList, setViewMomentumList] = useState(false); 
+  // const quickActionFilter = ['Base APY', "30D APY"]; 
 
-  const router = useRouter();
+  const router = useRouter()
 
   // Set current user
   useEffect(() => {
@@ -38,7 +77,6 @@ export default function Watchlist() {
     };
   }, []);
 
-  
   // Get users watchlist once
   useEffect(() => {
     if (user) {
@@ -179,6 +217,86 @@ export default function Watchlist() {
     }
   }
 
+  async function getMomentumList() {
+
+    // Get momentum list 
+    let { data: momentumList, error: momentumError } = await supabase
+      .from("momentum-list")
+      .select("symbol, momentum_score_current");
+
+    // Get growth list 
+    let { data: growthList, error: growthError } = await supabase
+      .from("growth-list")
+      .select("symbol, data");
+
+    if (momentumError) {
+      console.error("Error fetching momentum list:", momentumError);
+      return;
+    }
+
+    if (growthError) {
+      console.error("Error fetching growth list:", growthError);
+      return;
+    }
+
+    // Create a list of objects to pass over to table
+    let mergedData = momentumList.map((momentumItem, index) => {
+      // Find the corresponding growth item based on the symbol
+      let growthItem = growthList.find(
+        (item) => item.symbol === momentumItem.symbol
+      );
+
+      let extractedGrowthData = {};
+
+      if (growthItem && growthItem.data && growthItem.data.seven_day_data) {
+        
+        const sevenDayData = growthItem.data.seven_day_data;
+        // Get data for most recent element 
+        const mostRecentElement = sevenDayData[sevenDayData.length - 1];
+
+        // Extract only the data that's useful to display 
+        extractedGrowthData = {
+          name: mostRecentElement.name,
+          market_cap: mostRecentElement.market_cap,
+          max_supply: mostRecentElement.max_supply,
+          total_supply: mostRecentElement.total_supply,
+          total_volume: mostRecentElement.total_volume,
+          current_price: mostRecentElement.current_price,
+          price_change_percentage_24h: mostRecentElement.price_change_percentage_24h,
+          market_cap_change_percentage_24h: mostRecentElement.market_cap_change_percentage_24h,
+          price_change_percentage_30d_in_currency: mostRecentElement.price_change_percentage_30d_in_currency,
+        };
+      }
+
+      return {
+        id: index + 1, 
+        symbol: momentumItem.symbol,
+        momentum_score_current: momentumItem.momentum_score_current,
+        ...extractedGrowthData,
+      };
+    });
+
+    mergedData.sort(
+      (a, b) => b.momentum_score_current - a.momentum_score_current
+    );
+    
+    setMomentumList(mergedData); 
+    console.log('MERGED DATA:', mergedData); 
+    // return mergedData;
+  }
+
+
+  const handleMomentumList = async (watchlist) => {
+
+    if (watchlist){
+      setViewMomentumList(false); 
+    } else {
+      await getMomentumList();
+      setViewMomentumList(true); 
+    }
+
+  }
+
   const handleOpenModal = () => {
     setModalOpen(true);
   };
@@ -203,27 +321,27 @@ export default function Watchlist() {
   const handleWorkflowOneButtonClick = () => {
     console.log("Workflow button was pressed!");
     const userQuery = {
-      query:
-        'Filter pools with base APY > 10% and 30D APY mean >15%?',
+      query: `Filter pools with base APY > 15% and 30D APY mean >10%?`,
       watchlist: false,
     };
     localStorage.setItem("userQuery", JSON.stringify(userQuery));
     router.push("/response");
   };
 
-const handleWorkflowTwoButtonClick = async () => {
-  console.log("Workflow button two was pressed!");
-  // Provide a detailed quantitative analysis comparing my watchlist tokens.
-  if (user) {
-    await fetchWatchlist();
-    const userQuery = {
-      query: "Perform correlation analysis on watchlist tokens.",
-      watchlist: true,
-    };
-    localStorage.setItem("userQuery", JSON.stringify(userQuery));
-    router.push("/response");
-  }
-};
+  const handleWorkflowTwoButtonClick = async () => {
+    console.log("Workflow button two was pressed!");
+    // Provide a detailed quantitative analysis comparing my watchlist tokens.
+    if (user) {
+      await fetchWatchlist();
+      const userQuery = {
+        query: "Perform correlation analysis on watchlist tokens.",
+        watchlist: true,
+      };
+      localStorage.setItem("userQuery", JSON.stringify(userQuery));
+      router.push("/response");
+    }
+  };
+
 
 
   return (
@@ -236,52 +354,111 @@ const handleWorkflowTwoButtonClick = async () => {
           marginBottom: "20px",
         }}
       >
-        <Typography
-          variant="h2"
-          sx={{
-            fontWeight: "500",
-            fontSize: "1.75rem",
-          }}
-        >
-          Watchlist
-        </Typography>
+        <Stack direction="row" spacing={2}>
+          {viewMomentumList ? (
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: "500",
+                fontSize: "1.75rem",
+              }}
+            >
+              Momentum List
+            </Typography>
+          ) : (
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: "500",
+                fontSize: "1.75rem",
+              }}
+            >
+              Watchlist
+            </Typography>
+          )}
+
+          {viewMomentumList ? (
+            <SwitchButton onClick={() => handleMomentumList(true)}>
+              View Watchlist
+            </SwitchButton>
+          ) : (
+            <SwitchButton onClick={() => handleMomentumList(false)}>
+              View Momentum List
+            </SwitchButton>
+          )}
+        </Stack>
+
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
-      <WatchlistTable watchlistData={watchlist} rawList={rawList} />
+
+      {viewMomentumList ? (
+        <MomentumTable momentumList={momentumList} />
+      ) : (
+        <WatchlistTable watchlistData={watchlist} rawList={rawList} />
+      )}
+
+      {/* Main container for the two sections */}
       <Box
         sx={{
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: "20px",
-          marginTop:"40px"
+          gap: "20px",
+          alignItems: "flex-start",
+          marginTop: "50px",
         }}
       >
-        <Typography
-          variant="h2"
-          sx={{
-            fontWeight: "500",
-            fontSize: "1.75rem",
-          }}
-        >
-          Tasks
-        </Typography>
-      </Box>
+        {/* <Box sx={{ width: "50%" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "500",
+              fontSize: "1.75rem",
+              paddingBottom: "15px",
+            }}
+          >
+            Automated Workflows
+          </Typography>
 
-      <Stack direction="row" spacing={2}>
-        <Workflow
-            onButtonClick={handleWorkflowOneButtonClick}
-            title={"Filter Pools on APY"}
-            filterText={workflowOneFilters}
-            type={"Token Discovery"}
-        />
-        <Workflow
-          onButtonClick={handleWorkflowTwoButtonClick}
-          title={"Compare Watchlist Tokens"}
-          filterText={workflowTwoFilters}
-          type={"Watchlist"}
-        />
-      </Stack>
+          <Stack direction="row" spacing={2}>
+            <Workflow
+              user={user}
+              title={"Identify Top LP Pairs"}
+              prompts={[
+                "Identify low beta, high growth tokens",
+                "Research token use cases, vision, and tokenomics",
+                "Analyze Twitter & community sentiment",
+                "Analyze contract security and previous hacks",
+                "Estimate best ranges for LP ranges",
+              ]}
+              type={"Token Discovery"}
+            />
+          </Stack>
+        </Box> */}
+
+        {/* Box for Quick Tasks */}
+        <Box sx={{ width: "50%" }}>
+          <Typography
+            variant="h2"
+            sx={{
+              fontWeight: "500",
+              fontSize: "1.75rem",
+            }}
+          >
+            Quick Tasks
+          </Typography>
+          <Stack direction="row" spacing={2} sx={{ paddingTop: "15px" }}>
+            <QuickAction
+              onButtonClick={handleWorkflowOneButtonClick}
+              title={"Find Pools by APY"}
+              type={"Base APY > 15%, 30D Mean > 10%"}
+            />
+            <QuickAction
+              onButtonClick={handleWorkflowTwoButtonClick}
+              title={"Compare Watchlist Tokens"}
+              type={"Watchlist"}
+            />
+          </Stack>
+        </Box>
+      </Box>
 
       <NewTokenModal
         handleClose={handleCloseModal}
