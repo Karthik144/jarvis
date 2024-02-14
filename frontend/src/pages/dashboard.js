@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import WatchlistTable from "../components/watchlist/WatchlistTable.js";
+import MomentumTable from "../components/watchlist/MomentumTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
 import SwitchButton from "../components/watchlist/SwitchButton.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
@@ -51,6 +52,7 @@ const axios = require("axios");
 export default function Watchlist() {
   const [user, setUser] = useState(null);
   const [watchlist, setWatchlist] = useState([]);
+  const [momentumList, setMomentumList] = useState([]); 
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
@@ -239,7 +241,7 @@ export default function Watchlist() {
     }
 
     // Create a list of objects to pass over to table
-    let mergedData = momentumList.map((momentumItem) => {
+    let mergedData = momentumList.map((momentumItem, index) => {
       // Find the corresponding growth item based on the symbol
       let growthItem = growthList.find(
         (item) => item.symbol === momentumItem.symbol
@@ -249,8 +251,9 @@ export default function Watchlist() {
 
       if (growthItem && growthItem.data && growthItem.data.seven_day_data) {
         
+        const sevenDayData = growthItem.data.seven_day_data;
         // Get data for most recent element 
-        const mostRecentElement = growthItem.data.seven_day_data[seven_day_data.length - 1];
+        const mostRecentElement = sevenDayData[sevenDayData.length - 1];
 
         // Extract only the data that's useful to display 
         extractedGrowthData = {
@@ -267,18 +270,25 @@ export default function Watchlist() {
       }
 
       return {
+        id: index + 1, 
         symbol: momentumItem.symbol,
         momentum_score_current: momentumItem.momentum_score_current,
-        ...extractedGrowthData, 
+        ...extractedGrowthData,
       };
     });
 
-    return mergedData;
+    mergedData.sort(
+      (a, b) => b.momentum_score_current - a.momentum_score_current
+    );
+    
+    setMomentumList(mergedData); 
+    console.log('MERGED DATA:', mergedData); 
+    // return mergedData;
   }
 
 
-
-  const handleMomentumList = () => {
+  const handleMomentumList = async () => {
+    await getMomentumList(); 
     setViewMomentumList(true); 
   }
 
@@ -358,9 +368,13 @@ export default function Watchlist() {
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
       </Box>
 
-      {!viewMomentumList && (
+      {/* {viewMomentumList ? (
+        <MomentumTable watch
+      ) : (
         <WatchlistTable watchlistData={watchlist} rawList={rawList} />
-      )}
+
+      )
+      } */}
 
       {/* Main container for the two sections */}
       <Box

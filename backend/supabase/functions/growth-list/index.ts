@@ -136,11 +136,13 @@ async function filterTopTokens() {
 
         // const sortedTokens = filteredFromScamTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
 
+        // (a.total_volume) / (a.market_cap)
+
         // Sort tokens from lowest to highest 30 day price change while giving volume some weightage 
         const sortedTokens = filteredFromScamTokens.sort((a, b) => {
 
             // Calculate weighted metric for comparison
-            const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * (a.total_volume);
+            const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * ((a.total_volume) / (a.market_cap));
             const metricB = 0.7 * b.price_change_percentage_30d_in_currency + 0.3 * (b.total_volume);
 
             return metricA - metricB; 
@@ -163,6 +165,45 @@ async function filterTopTokens() {
     }
 }
 
+async function filterTopTokens() {
+    try {
+
+        // Get top tokens by market cap in decending order 
+        const topTokens = await getTopTokens();
+        
+        // Filter out top scam tokens 
+        const filteredFromScamTokens = removeScamTokens(topTokens);
+
+        // Sort by the ratio of volume to market cap and return in decending order 
+        const sortedByVolumeToMarketCap = filteredFromScamTokens.sort((a, b) => {
+            const ratioA = a.total_volume / a.market_cap;
+            const ratioB = b.total_volume / b.market_cap;
+            return ratioA - ratioB; 
+        });
+
+        // Then sort by the 30-day price change percentage
+        const sortedByPriceChange = sortedByVolumeToMarketCap.sort((a, b) => {
+            return b.price_change_percentage_30d_in_currency - a.price_change_percentage_30d_in_currency;
+        });
+
+        const twentyFifthPercentileIndex = Math.floor(sortedByPriceChange.length * 0.25);
+        const seventyFifthPercentileIndex = Math.floor(sortedByPriceChange.length * 0.75);
+
+        // Filter out the top 25th and bottom 25th percentiles
+        const filteredTokens = sortedByPriceChange.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
+        
+        // Add in token addresses
+        const finalListOfTokens = await addTokenAddresses(filteredTokens); 
+
+        return finalListOfTokens;
+
+    } catch (error) {
+        console.error("Error filtering top tokens:", error);
+        throw error;
+    }
+}
+
+
 function removeScamTokens(tokens: Token[]): Token[] {
     // Filter out tokens whose symbols are in the memeTokens list
     return tokens.filter(token => !memeTokens.includes(token.symbol.toUpperCase()));
@@ -179,7 +220,7 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
         // Map with token id as the key and token platforms as the value 
         const addressMap = new Map<string, CoinGeckoToken['platforms']>(tokensWithAddress.map(token => [token.id, token.platforms]));
 
-        // Iterate over the tokens array and append addresses if a match is found
+        // Iterate over the tokens array, append addresses if found, and filter out tokens without Ethereum or Arbitrum-One addresses
         const updatedTokens = tokens.map(token => {
             const platforms = addressMap.get(token.id);
             if (platforms) {
@@ -188,7 +229,7 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
                 token.arbitrum_one_address = platforms['arbitrum-one'] || '';
             }
             return token;
-        });
+        }).filter(token => token.ethereum_address || token.arbitrum_one_address); 
         
         return updatedTokens;
 
