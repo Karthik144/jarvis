@@ -335,6 +335,8 @@ export default function Watchlist() {
           price_change_percentage_24h: mostRecentElement.price_change_percentage_24h,
           market_cap_change_percentage_24h: mostRecentElement.market_cap_change_percentage_24h,
           price_change_percentage_30d_in_currency: mostRecentElement.price_change_percentage_30d_in_currency,
+          ethereum_address: mostRecentElement.ethereum_address, 
+          arbitrum_one_address: mostRecentElement.arbitrum_one_address, 
         };
       }
 
