@@ -241,10 +241,15 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
 }
 
 Deno.serve(async (req) => {
-    await main();
+    const { time } = await req.json()
+    const data = {
+        message: `Ran at: ${time}!`,
+    }
 
+    await main();
+    
     return new Response(
-        JSON.stringify({ message: "Tokens filtered and updated in db successfully" }),
+        JSON.stringify(data),
         { headers: { "Content-Type": "application/json" } },
-    );
+    )
 });
