@@ -287,9 +287,15 @@ export default function Watchlist() {
   }
 
 
-  const handleMomentumList = async () => {
-    await getMomentumList(); 
-    setViewMomentumList(true); 
+  const handleMomentumList = async (watchlist) => {
+
+    if (watchlist){
+      setViewMomentumList(false); 
+    } else {
+      await getMomentumList();
+      setViewMomentumList(true); 
+    }
+
   }
 
   const handleOpenModal = () => {
@@ -350,19 +356,37 @@ export default function Watchlist() {
         }}
       >
         <Stack direction="row" spacing={2}>
-          <Typography
-            variant="h2"
-            sx={{
-              fontWeight: "500",
-              fontSize: "1.75rem",
-            }}
-          >
-            Watchlist
-          </Typography>
+          {viewMomentumList ? (
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: "500",
+                fontSize: "1.75rem",
+              }}
+            >
+              Momentum List
+            </Typography>
+          ) : (
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: "500",
+                fontSize: "1.75rem",
+              }}
+            >
+              Watchlist
+            </Typography>
+          )}
 
-          <SwitchButton onClick={() => handleMomentumList()}>
-            View Momentum List
-          </SwitchButton>
+          {viewMomentumList ? (
+            <SwitchButton onClick={() => handleMomentumList(true)}>
+              View Watchlist
+            </SwitchButton>
+          ) : (
+            <SwitchButton onClick={() => handleMomentumList(false)}>
+              View Momentum List
+            </SwitchButton>
+          )}
         </Stack>
 
         <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
@@ -372,8 +396,7 @@ export default function Watchlist() {
         <MomentumTable momentumList={momentumList} />
       ) : (
         <WatchlistTable watchlistData={watchlist} rawList={rawList} />
-      )
-      }
+      )}
 
       {/* Main container for the two sections */}
       <Box
@@ -384,8 +407,7 @@ export default function Watchlist() {
           marginTop: "50px",
         }}
       >
-        {/* Automated Workflows Section */}
-        <Box sx={{ width: "50%" }}>
+        {/* <Box sx={{ width: "50%" }}>
           <Typography
             variant="h2"
             sx={{
@@ -410,14 +432,8 @@ export default function Watchlist() {
               ]}
               type={"Token Discovery"}
             />
-            {/* <Workflow
-              user={user}
-              title={"Workflow #2"}
-              prompts={["Provide a detailed quantitative analysis comparing my watchlist tokens.", "Give me Liquidity Pool ranges for the highly correlated tokens"]}
-              type={"Watchlist"}
-            /> */}
           </Stack>
-        </Box>
+        </Box> */}
 
         {/* Box for Quick Tasks */}
         <Box sx={{ width: "50%" }}>

@@ -27,9 +27,10 @@ const StyledLabelPaper = styled(Paper)(({ theme }) => ({
   ...theme.typography.body2,
   padding: theme.spacing(1),
   textAlign: "center",
-  color: theme.palette.text.primary, // Use primary text color
-  background: theme.palette.background.default, // Use default background color
+  color: theme.palette.text.primary,
+  background: theme.palette.background.default,
   borderRadius: "10px",
+  margin: 0,
 }));
 
 const StyledButton = styled(Button)(({ theme }) => ({
@@ -59,7 +60,7 @@ export default function QuickAction({ onButtonClick, title, filterText }) {
         {title}
       </Typography>
       {filterText !== null ? (
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} alignItems="flex-start">
           {filterText.map((text, index) => (
             <StyledLabelPaper key={index} elevation={0}>
               <Typography>{text}</Typography>
