@@ -245,7 +245,7 @@ export default function Watchlist() {
         .from("momentum-list")
         .select("symbol, momentum_score_current");
 
-    if (momentumError) {
+    if (!momentumError) {
         console.error("Error fetching momentum list:", momentumError);
         return null;
     }
@@ -258,7 +258,7 @@ export default function Watchlist() {
         .from("growth-list")
         .select("symbol, data");
 
-    if (growthList) {
+    if (!growthList) {
         console.error("Error fetching growth list:", growthError);
         return null;
     }
