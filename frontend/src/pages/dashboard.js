@@ -57,7 +57,7 @@ export default function Watchlist() {
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
   const [viewMomentumList, setViewMomentumList] = useState(false); 
-  const quickActionFilter = ['Base APY', "30D APY"]; 
+  // const quickActionFilter = ['Base APY', "30D APY"]; 
 
   const router = useRouter()
 
@@ -319,10 +319,10 @@ export default function Watchlist() {
     setTokenAdded(false);
   }
 
-  const handleWorkflowOneButtonClick = (baseAPY, avgAPY) => {
+  const handleWorkflowOneButtonClick = () => {
     console.log("Workflow button was pressed!");
     const userQuery = {
-      query: `Filter pools with base APY > ${baseAPY}% and 30D APY mean >${avgAPY}%?`,
+      query: `Filter pools with base APY > 15% and 30D APY mean >10%?`,
       watchlist: false,
     };
     localStorage.setItem("userQuery", JSON.stringify(userQuery));
@@ -450,13 +450,11 @@ export default function Watchlist() {
             <QuickAction
               onButtonClick={handleWorkflowOneButtonClick}
               title={"Find Pools by APY"}
-              filterText={quickActionFilter}
-              type={"Token Discovery"}
+              type={"Base APY > 15%, 30D Mean > 10%"}
             />
             <QuickAction
               onButtonClick={handleWorkflowTwoButtonClick}
               title={"Compare Watchlist Tokens"}
-              filterText={null}
               type={"Watchlist"}
             />
           </Stack>

@@ -47,7 +47,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-export default function QuickAction({ onButtonClick, title, filterText }) {
+export default function QuickAction({ onButtonClick, title, type }) {
   return (
     <StyledPaper square={false}>
       <Typography
@@ -59,25 +59,12 @@ export default function QuickAction({ onButtonClick, title, filterText }) {
       >
         {title}
       </Typography>
-      {filterText !== null ? (
-        <Stack direction="row" spacing={2} alignItems="flex-start">
-          {filterText.map((text, index) => (
-            <StyledLabelPaper key={index} elevation={0}>
-              <Typography>{text}</Typography>
-              <TextField
-                type="number"
-                id={`filter-${index}`}
-                name={`filter-${index}`}
-                placeholder={`Enter a number for ${text}`}
-                variant="outlined"
-                size="small"
-                sx={{ width: "100%", marginTop: 1 }}
-              />
-            </StyledLabelPaper>
-          ))}
-        </Stack>
-      ) : null}
-
+      <Typography
+        variant="subtitle3"
+        color='textSecondary'
+      >
+        {type}
+      </Typography>
       <StyledButton
         variant="contained"
         sx={{ textTransform: "none" }}
