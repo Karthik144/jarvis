@@ -69,7 +69,6 @@ async function updateData(tokens: Token[]) {
 
             if (fetchError) {
                 console.error('Error fetching existing data:', fetchError);
-                continue; // Skip this iteration if there's an error 
             }
 
             let sevenDayDataArray = existingData?.data?.seven_day_data || [];
@@ -114,6 +113,7 @@ async function clearOldData() {
     const { error } = await supabase
         .from('growth-list')
         .delete()
+        .eq('symbol', '*')
 
     if (error) {
         console.error('Error clearing old data:', error);
