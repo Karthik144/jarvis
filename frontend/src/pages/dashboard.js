@@ -245,7 +245,7 @@ export default function Watchlist() {
         .from("momentum-list")
         .select("symbol, momentum_score_current");
 
-    if (!momentumError) {
+    if (!momentumList) {
         console.error("Error fetching momentum list:", momentumError);
         return null;
     }
