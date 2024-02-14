@@ -217,27 +217,97 @@ export default function Watchlist() {
     }
   }
 
-  async function getMomentumList() {
+  const cacheDuration = 24 * 60 * 60 * 1000; // 24 hours
+  async function getCachedMomentumList() {
+      const cachedData = localStorage.getItem('momentumListData');
+      if (cachedData) {
+          const { timestamp, data } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < cacheDuration) {
+              return data;
+          }
+      }
+      return null;
+  }
 
-    // Get momentum list 
+  async function getCachedGrowthList() {
+      const cachedData = localStorage.getItem('growthListData');
+      if (cachedData) {
+          const { timestamp, data } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < cacheDuration) {
+              return data;
+          }
+      }
+      return null;
+  }
+
+  async function getMomentumListFromSupabase() {
     let { data: momentumList, error: momentumError } = await supabase
-      .from("momentum-list")
-      .select("symbol, momentum_score_current");
-
-    // Get growth list 
-    let { data: growthList, error: growthError } = await supabase
-      .from("growth-list")
-      .select("symbol, data");
+        .from("momentum-list")
+        .select("symbol, momentum_score_current");
 
     if (momentumError) {
-      console.error("Error fetching momentum list:", momentumError);
-      return;
+        console.error("Error fetching momentum list:", momentumError);
+        return null;
     }
 
-    if (growthError) {
-      console.error("Error fetching growth list:", growthError);
-      return;
+    return momentumList;
+  }
+
+  async function getGrowthListFromSupabase() {
+    let { data: growthList, error: growthError } = await supabase
+        .from("growth-list")
+        .select("symbol, data");
+
+    if (growthList) {
+        console.error("Error fetching growth list:", growthError);
+        return null;
     }
+
+    return growthList;
+  }
+  
+  async function getMomentumList() {
+    const cachedMomentumList = await getCachedMomentumList();
+    if (cachedMomentumList) {
+        console.log('Returning cached momentum list');
+        return cachedMomentumList;
+    }
+
+    console.log('Fetching new momentum list');
+    const momentumList = await getMomentumListFromSupabase();
+    if (momentumList) {
+        localStorage.setItem('momentumListData', JSON.stringify({
+            timestamp: Date.now(),
+            data: momentumList
+        }));
+    }
+    return momentumList;
+  }
+
+  async function getGrowthList() {
+    const cachedGrowthList = await getCachedGrowthList();
+    if (cachedGrowthList) {
+        console.log('Returning cached growth list');
+        return cachedGrowthList;
+    }
+
+    console.log('Fetching new growth list');
+    const growthList = await getGrowthListFromSupabase();
+    if (growthList) {
+        localStorage.setItem('growthListData', JSON.stringify({
+            timestamp: Date.now(),
+            data: growthList
+        }));
+    }
+    return growthList;
+  }
+
+  async function getMomentumList_complex() {
+
+    // Get momentum list 
+    let momentumList = await getMomentumList()
+    let growthList = await getGrowthList()
+
 
     // Create a list of objects to pass over to table
     let mergedData = momentumList.map((momentumItem, index) => {
@@ -291,7 +361,7 @@ export default function Watchlist() {
     if (watchlist){
       setViewMomentumList(false); 
     } else {
-      await getMomentumList();
+      await getMomentumList_complex();
       setViewMomentumList(true); 
     }
 
