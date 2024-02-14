@@ -6,9 +6,6 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// TO-DO: 
-// 4. Schedule the edge function 
-
 interface Token {
     id: string;
     symbol: string;
@@ -53,6 +50,8 @@ const memeTokens = ['DOGE', 'SHIB', 'BONK', 'CORGIAI', 'PEPE', 'WIF', 'FLOKI', '
 async function main(){
     const filteredTokens = await filterTopTokens(); 
     // console.log('LIST:', filteredTokens); 
+    // First clear the table and insert new data 
+    await clearOldData(); 
     await updateData(filteredTokens); 
 }
 
@@ -61,15 +60,40 @@ async function updateData(tokens: Token[]) {
 
         for (const token of tokens){
 
-            const record = {
-                symbol: token.symbol, 
-                data: token 
+            // Fetch the existing record from the 'growth-list' table
+            let { data: existingData, error: fetchError } = await supabase
+                .from('growth-list')
+                .select('data')
+                .eq('symbol', token.symbol)
+                .single();
+
+            if (fetchError) {
+                console.error('Error fetching existing data:', fetchError);
+                continue; // Skip this iteration if there's an error 
+            }
+
+            let sevenDayDataArray = existingData?.data?.seven_day_data || [];
+
+            // If array has 7 days of data, then it's full so remove the first element 
+            if (sevenDayDataArray.length === 7){
+                sevenDayDataArray.shift(); // Removes the first element 
+            }
+
+            sevenDayDataArray.push(token);
+
+            const updatedData = {
+                seven_day_data: sevenDayDataArray
             };
 
-            // Upsert the record into the growth-list table
+            const record = {
+                symbol: token.symbol, 
+                data: updatedData 
+            };
+
+            // Insert the record into the growth-list table
             const { data, error } = await supabase
                 .from('growth-list')
-                .upsert(record);
+                .insert(record);
 
             if (error) {
                 console.error('Error upserting token data:', error);
@@ -85,10 +109,25 @@ async function updateData(tokens: Token[]) {
     }
 }
 
+async function clearOldData() {
+    
+    const { error } = await supabase
+        .from('growth-list')
+        .delete()
+        .eq('some_column', 'someValue')
+
+    if (error) {
+        console.error('Error clearing old data:', error);
+        throw error; 
+    }
+          
+}
+
 // Get top tokens by market cap
 async function getTopTokens(){
 
     try {
+
         const response = await axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false&price_change_percentage=30d&locale=en&precision=full`);
         const tokens = response.data;
         return tokens; 
@@ -98,43 +137,46 @@ async function getTopTokens(){
 
 }
 
+
 // Filter top tokens based on % change in 30d price 
-// Note: Need to get volume data for tokens as well 
 async function filterTopTokens() {
     try {
+
+        // Get top tokens by market cap in decending order 
         const topTokens = await getTopTokens();
         
         // Filter out top scam tokens 
-        const filteredFromScamTokens = removeScamTokens(topTokens); 
+        const filteredFromScamTokens = removeScamTokens(topTokens);
 
-        // const sortedTokens = filteredFromScamTokens.sort((a: Token, b: Token) => a.price_change_percentage_30d_in_currency - b.price_change_percentage_30d_in_currency);
-
-        // Sort tokens from lowest to highest 30 day price change while giving volume some weightage 
-        const sortedTokens = filteredFromScamTokens.sort((a, b) => {
-
-            // Calculate weighted metric for comparison
-            const metricA = 0.7 * a.price_change_percentage_30d_in_currency + 0.3 * (a.total_volume);
-            const metricB = 0.7 * b.price_change_percentage_30d_in_currency + 0.3 * (b.total_volume);
-
-            return metricA - metricB; 
+        // Sort by the ratio of volume to market cap and return in decending order 
+        const sortedByVolumeToMarketCap = filteredFromScamTokens.sort((a, b) => {
+            const ratioA = a.total_volume / a.market_cap;
+            const ratioB = b.total_volume / b.market_cap;
+            return ratioA - ratioB; 
         });
 
-        const twentyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.25);
-        const seventyFifthPercentileIndex = Math.floor(sortedTokens.length * 0.75);
+        // Then sort by the 30-day price change percentage
+        const sortedByPriceChange = sortedByVolumeToMarketCap.sort((a, b) => {
+            return b.price_change_percentage_30d_in_currency - a.price_change_percentage_30d_in_currency;
+        });
+
+        const twentyFifthPercentileIndex = Math.floor(sortedByPriceChange.length * 0.25);
+        const seventyFifthPercentileIndex = Math.floor(sortedByPriceChange.length * 0.75);
 
         // Filter out the top 25th and bottom 25th percentiles
-        const filteredTokens = sortedTokens.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
+        const filteredTokens = sortedByPriceChange.slice(twentyFifthPercentileIndex, seventyFifthPercentileIndex);
         
-        // Add in token addresses 
-        const finalListOfTokens = await addTokenAddresses(filteredFromScamTokens); 
+        // Add in token addresses
+        const finalListOfTokens = await addTokenAddresses(filteredTokens); 
 
         return finalListOfTokens;
 
     } catch (error) {
         console.error("Error filtering top tokens:", error);
-        throw error; 
+        throw error;
     }
 }
+
 
 function removeScamTokens(tokens: Token[]): Token[] {
     // Filter out tokens whose symbols are in the memeTokens list
@@ -149,7 +191,7 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
         // Map with token id as the key and token platforms as the value 
         const addressMap = new Map<string, CoinGeckoToken['platforms']>(tokensWithAddress.map(token => [token.id, token.platforms]));
 
-        // Iterate over the tokens array and append addresses if a match is found
+        // Iterate over the tokens array, append addresses if found, and filter out tokens without Ethereum or Arbitrum-One addresses
         const updatedTokens = tokens.map(token => {
             const platforms = addressMap.get(token.id);
             if (platforms) {
@@ -158,7 +200,7 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
                 token.arbitrum_one_address = platforms['arbitrum-one'] || '';
             }
             return token;
-        });
+        }).filter(token => token.ethereum_address || token.arbitrum_one_address); 
         
         return updatedTokens;
 
@@ -167,6 +209,7 @@ async function addTokenAddresses(tokens: Token[]): Promise<Token[]> {
         throw error; 
     }
 }
+
 
 main(); 
 
