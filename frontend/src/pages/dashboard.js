@@ -85,6 +85,7 @@ export default function Watchlist() {
 
       fetchWatchlist();
     } 
+
   }, [user]);
 
   const fetchWatchlist = async () => {
@@ -537,7 +538,7 @@ export default function Watchlist() {
         open={modalOpen}
         rawList={rawList}
         handleTokenAdded={handleTokenAdded}
-        maxCapacity={watchlist.length === 15 ? true : false}
+        maxCapacity={watchlist.length === 30 ? true : false}
       />
 
       <Snackbar

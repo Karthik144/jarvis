@@ -14,6 +14,8 @@ import { supabase } from "../../../supabaseClient";
 import CustomTextField from "./CustomTextField"; 
 import NotesTextField from "./NotesTextField";
 import AddTokenButton from "./AddTokenButton";
+import allCoins from "./coinsMap.json";
+
 const axios = require("axios");
 
 // STYLING
@@ -77,19 +79,27 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
     };
   }, []);
 
-  async function getCoinID(symbol) {
+  // async function getCoinID(symbol) {
 
-    console.log("COINGECKO GET ID METHOD CALLED"); 
-    try {
-      const url = `https://api.coingecko.com/api/v3/search?query=${symbol}&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
-      const response = await axios.get(url);
-      const coinData = response.data;
-      const firstCoinId = coinData.coins[0].id;
-      return firstCoinId;
-    } catch (error) {
-      console.log("Error retrieving coin id:", error);
-      return null;
-    }
+  //   console.log("COINGECKO GET ID METHOD CALLED"); 
+  //   try {
+  //     const url = `https://api.coingecko.com/api/v3/search?query=${symbol}&x_cg_demo_api_key=CG-LEPn4oEPjTDCk2b4N4hNpeYG`;
+  //     const response = await axios.get(url);
+  //     const coinData = response.data;
+  //     const firstCoinId = coinData.coins[0].id;
+  //     return firstCoinId;
+  //   } catch (error) {
+  //     console.log("Error retrieving coin id:", error);
+  //     return null;
+  //   }
+  // }
+
+  function getCoinID(symbol) {
+    console.log("ALL COINS IN FUNC:", allCoins);
+    const coin_id = allCoins[symbol.toLowerCase()]; 
+    console.log("Returning symbol from hash map...");
+    console.log("COIN ID IN FUNC:", coin_id);
+    return coin_id;
   }
 
   const addToWatchlist = async () => {
@@ -98,7 +108,7 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
       return;
     }
 
-    const coinID = await getCoinID(tokenSymbol);
+    const coinID = getCoinID(tokenSymbol);
 
     const watchlistToken = {
       coin_id: coinID,
@@ -121,17 +131,17 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
       }
 
       // Insert the watchlist token into the watchlist table
-      let { error: watchlistError } = await supabase.from("watchlist").insert([
-        {
-          symbol: watchlistToken.token_symbol, 
-          coin_id: watchlistToken.coin_id,
-          address: watchlistToken.address,
-        },
-      ]);
+      // let { error: watchlistError } = await supabase.from("watchlist").insert([
+      //   {
+      //     symbol: watchlistToken.token_symbol, 
+      //     coin_id: watchlistToken.coin_id,
+      //     address: watchlistToken.address,
+      //   },
+      // ]);
 
-      if (watchlistError) {
-        throw watchlistError;
-      }
+      // if (watchlistError) {
+      //   throw watchlistError;
+      // }
 
       handleTokenAdded();
       handleClose();
@@ -164,7 +174,7 @@ export default function NewTokenModal({ handleClose, handleTokenAdded, open, raw
               </Typography>
 
               <Typography> 
-                You've exceeded your watchlist capacity of 15 tokens. 
+                You've exceeded your watchlist capacity of 30 tokens. 
               </Typography>
             </Stack>
           </Box>
