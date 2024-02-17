@@ -111,7 +111,7 @@ export default function Response() {
     {
       role: "system",
       content:
-        "IMPORTANT: When responding to queries, like 'Perform correlation analysis on watchlist tokens', always perform a manual correlation analysis as specified in the Correlation Analysis message. Do NOT call the Tavily Search Function or predict_LP function or any other external functions for these queries.",
+        "To create a 'Momentum List Report', use the getTopMomentumScores function to retrieve the top 10 tokens by highest momentum in JSON format. For each token, include: its momentum score, a brief summary, example applications, recent updates, and an analysis of past momentum scores. You can call the tavilySearch function to get info for the token summary, applications, and new updates. Present this information in a clear, well-organized report format.",
     },
     {
       role: "system",

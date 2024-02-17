@@ -81,6 +81,25 @@ export default function Watchlist() {
     };
   }, []);
 
+  async function getTopMomentumScores() {
+    console.log("INSIDE GET TOP MOMENTUM SCORES"); 
+    const { data, error } = await supabase
+      .from("momentum-list")
+      .select("symbol, momentum_scores_30D, momentum_score_current")
+      .order("momentum_score_current", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    console.log("MOMENTUM SCORES:", data);
+
+    const topMomentumScores = data;
+
+    return topMomentumScores;
+  }
   // Get users watchlist once
   useEffect(() => {
     if (user) {
@@ -88,6 +107,7 @@ export default function Watchlist() {
       console.log("INSIDE IF STATEMENT"); 
 
       fetchWatchlist();
+      getTopMomentumScores();
     } 
 
   }, [user]);
@@ -222,28 +242,28 @@ export default function Watchlist() {
     }
   }
 
-    const cacheDuration = 24 * 60 * 60 * 1000; // 24 hours
-    async function getCachedMomentumList() {
-        const cachedData = localStorage.getItem('momentumListData');
-        if (cachedData) {
-            const { timestamp, data } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < cacheDuration) {
-                return data;
-            }
-        }
-        return null;
-    }
+  const cacheDuration = 24 * 60 * 60 * 1000; // 24 hours
+  async function getCachedMomentumList() {
+      const cachedData = localStorage.getItem('momentumListData');
+      if (cachedData) {
+          const { timestamp, data } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < cacheDuration) {
+              return data;
+          }
+      }
+      return null;
+  }
 
-    async function getCachedGrowthList() {
-        const cachedData = localStorage.getItem('growthListData');
-        if (cachedData) {
-            const { timestamp, data } = JSON.parse(cachedData);
-            if (Date.now() - timestamp < cacheDuration) {
-                return data;
-            }
-        }
-        return null;
-    }
+  async function getCachedGrowthList() {
+      const cachedData = localStorage.getItem('growthListData');
+      if (cachedData) {
+          const { timestamp, data } = JSON.parse(cachedData);
+          if (Date.now() - timestamp < cacheDuration) {
+              return data;
+          }
+      }
+      return null;
+  }
 
   async function getMomentumListFromSupabase() {
     let { data: momentumList, error: momentumError } = await supabase
