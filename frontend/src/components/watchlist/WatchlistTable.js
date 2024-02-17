@@ -6,14 +6,19 @@ import { useRouter } from "next/router";
 
 
 
-export default function WatchlistTable({ watchlistData, rawList }) {
+export default function WatchlistTable({ watchlistData, rawList, onSelectionChange }) {
   const router = useRouter(); 
 
   const [selectionModel, setSelectionModel] = React.useState([]);
 
   const handleSelectionChange = (newSelectionModel) => {
     setSelectionModel(newSelectionModel);
-    console.log(selectionModel)
+    console.log(newSelectionModel);
+
+    // Call the callback prop with the new selection model
+    if (onSelectionChange) {
+      onSelectionChange(newSelectionModel);
+    }
   };
 
   const columns = [
