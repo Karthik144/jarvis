@@ -181,9 +181,35 @@ async function getTopMomentumScores() {
 
   console.log("MOMENTUM SCORES:", data);
 
-  const topMomentumScores = data;
+  // Transform the data into the desired hashmap structure
+  const momentumScoresMap = data.reduce((acc, item) => {
+    acc[item.symbol] = [
+      item.momentum_scores_30D, // Array of momentum scores for the past 30 days
+      item.momentum_score_current, // Current momentum score
+      // Add more placeholders or actual data as needed
+    ];
+    return acc;
+  }, {});
 
-  return topMomentumScores;
+  const searchPromises = Object.keys(momentumScoresMap).map(async (symbol) => {
+    const summaryResult = await tavilyAdvancedSearch(`Summary of ${symbol} crypto`);
+
+    // Retrieve the latest updates on the token
+    // const updatesResult = await tavilyAdvancedSearch(
+    //   `Updates on ${symbol} crypto`
+    // );
+    
+    console.log("SUMMARY RESULT:", summaryResult); 
+    // console.log("UPDATE RESULTS:", updatesResult); 
+
+    momentumScoresMap[symbol].push(summaryResult);
+  });
+
+  await Promise.all(searchPromises);
+
+  console.log("Transformed Momentum Scores:", momentumScoresMap);
+
+  return momentumScoresMap;
 }
 
 
@@ -245,7 +271,7 @@ async function runConversation(query, messages) {
       function: {
         name: "getTopMomentumScores",
         description:
-          "Get a list top 10 tokens with the highest momentum scores along with the token symbol and historical momentum scores.",
+          "Get a list top 10 tokens with the highest momentum scores along with their token symbol, current momentum score, historical momentum scores, token summary, and token updates.",
       },
     },
     {
@@ -306,7 +332,7 @@ async function runConversation(query, messages) {
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
   console.log("QUERY INSIDE RUN CONVERSATION:", query); 
-
+  console.log("TOOLS CALLS LENGTH:", toolCalls.length); 
   if (
     toolCalls &&
     !query

@@ -106,12 +106,17 @@ export default function Response() {
     {
       role: "system",
       content:
+        "Important: When creating the momentum report, call the getTopMomentumScores func to get the list of tokens then use the symbols in this list to make multiple function calls to Tavily Search function to summarize the token, understand its applications, and provide any updates.",
+    },
+    {
+      role: "system",
+      content:
         "Upon a request for correlation analysis of watchlist tokens, immediately calculate and present the price correlation coefficients for each token pair, alongside their names. Classify each pair as 'high', 'moderate', or 'low' correlation based on these values. Include all details in a single, comprehensive response without delay or reference to future completion. Avoid using external tools like predict_LP or tavilySearch; the analysis must be manual and fully detailed within your response.",
     },
     {
       role: "system",
       content:
-        "To create a 'Momentum List Report', use the getTopMomentumScores function to retrieve the top 10 tokens by highest momentum in JSON format. For each token, include: its momentum score, a brief summary, example applications, recent updates, and an analysis of past momentum scores. You can call the tavilySearch function to get info for the token summary, applications, and new updates. Present this information in a clear, well-organized report format.",
+        "Initiate the 'Momentum List Report' generation by invoking the getTopMomentumScores function. This function will return each token's historical momentum scores, current momentum score, search data on the token's summary, and search data on the token's updates. Create a detailed report for these 10 tokens. For each token, list the current momentum score, historical momentum scores (w/o brackets), summary of what the token is about (don't include price data in the summary), and recent token updates (non price related). Do not return a response until you have completed the requested task for each of the 10 tokens.",
     },
     {
       role: "system",
