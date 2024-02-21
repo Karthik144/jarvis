@@ -106,12 +106,17 @@ export default function Response() {
     {
       role: "system",
       content:
+        "Important: When creating the momentum report, call the getTopMomentumScores func to get the list of tokens then use the symbols in this list to make multiple function calls to Tavily Search function to summarize the token, understand its applications, and provide any updates.",
+    },
+    {
+      role: "system",
+      content:
         "Upon a request for correlation analysis of watchlist tokens, immediately calculate and present the price correlation coefficients for each token pair, alongside their names. Classify each pair as 'high', 'moderate', or 'low' correlation based on these values. Include all details in a single, comprehensive response without delay or reference to future completion. Avoid using external tools like predict_LP or tavilySearch; the analysis must be manual and fully detailed within your response.",
     },
     {
       role: "system",
       content:
-        "IMPORTANT: When responding to queries, like 'Perform correlation analysis on watchlist tokens', always perform a manual correlation analysis as specified in the Correlation Analysis message. Do NOT call the Tavily Search Function or predict_LP function or any other external functions for these queries.",
+        "Initiate the 'Momentum List Report' generation by invoking the getTopMomentumScores function. This function will return each token's historical momentum scores, current momentum score, search data on the token's summary, and search data on the token's updates. Create a detailed report for these 10 tokens. For each token, list the current momentum score, historical momentum scores (w/o brackets), summary of what the token is about (don't include price data in the summary), and recent token updates (non price related). Do not return a response until you have completed the requested task for each of the 10 tokens.",
     },
     {
       role: "system",

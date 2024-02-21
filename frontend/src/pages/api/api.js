@@ -1,6 +1,7 @@
 // IMPORTS
 const { OpenAI } = require("openai");
 const axios = require("axios");
+const { createClient } = require("@supabase/supabase-js");
 
 //GLOBAL STATE
 let poolOffset = 0;
@@ -15,6 +16,12 @@ const openai = new OpenAI({
     "Helicone-Auth": `Bearer sk-iqcbg7a-2diev6a-xrelkyq-5vfnb5a`,
   },
 });
+
+const supabaseUrl = "https://nibfafwhlabdjvkzpvuv.supabase.co";
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5pYmZhZndobGFiZGp2a3pwdnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDQ5MDk3NTUsImV4cCI6MjAyMDQ4NTc1NX0.jWvB1p6VVEgG0sqjjsbL9EXNZpSWZfaAqA3uMCKx5AU";
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // MAIN FUNCS - USED FOR FUNC CALLING
 async function tavilyAdvancedSearch(query) {
@@ -160,6 +167,51 @@ async function filterPoolsByAPY(baseAPY, thirtyDayAPY) {
   }
 }
 
+async function getTopMomentumScores() {
+  const { data, error } = await supabase
+    .from("momentum-list")
+    .select("symbol, momentum_scores_30D, momentum_score_current")
+    .order("momentum_score_current", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error("Error fetching data:", error);
+    return;
+  }
+
+  console.log("MOMENTUM SCORES:", data);
+
+  // Transform the data into the desired hashmap structure
+  const momentumScoresMap = data.reduce((acc, item) => {
+    acc[item.symbol] = [
+      item.momentum_scores_30D, // Array of momentum scores for the past 30 days
+      item.momentum_score_current, // Current momentum score
+      // Add more placeholders or actual data as needed
+    ];
+    return acc;
+  }, {});
+
+  const searchPromises = Object.keys(momentumScoresMap).map(async (symbol) => {
+    const summaryResult = await tavilyAdvancedSearch(`Summary of ${symbol} crypto`);
+
+    // Retrieve the latest updates on the token
+    // const updatesResult = await tavilyAdvancedSearch(
+    //   `Updates on ${symbol} crypto`
+    // );
+    
+    console.log("SUMMARY RESULT:", summaryResult); 
+    // console.log("UPDATE RESULTS:", updatesResult); 
+
+    momentumScoresMap[symbol].push(summaryResult);
+  });
+
+  await Promise.all(searchPromises);
+
+  console.log("Transformed Momentum Scores:", momentumScoresMap);
+
+  return momentumScoresMap;
+}
+
 
 // OPEN-AI START
 async function runConversation(query, messages) {
@@ -212,6 +264,14 @@ async function runConversation(query, messages) {
         name: "getLowBetaHighGrowthPairs",
         description:
           "Get a list of low beta, high growth tokens along with some details for each pool (i.e. APY)",
+      },
+    },
+    {
+      type: "function",
+      function: {
+        name: "getTopMomentumScores",
+        description:
+          "Get a list top 10 tokens with the highest momentum scores along with their token symbol, current momentum score, historical momentum scores, token summary, and token updates.",
       },
     },
     {
@@ -272,13 +332,7 @@ async function runConversation(query, messages) {
   const responseMessage = response.choices[0].message;
   const toolCalls = responseMessage.tool_calls;
   console.log("QUERY INSIDE RUN CONVERSATION:", query); 
-  console.log(
-    "RESULT TRUE OR FALSE:",
-    query
-      .toLowerCase()
-      .includes("perform correlation analysis on watchlist tokens")
-  );
-
+  console.log("TOOLS CALLS LENGTH:", toolCalls.length); 
   if (
     toolCalls &&
     !query
@@ -291,6 +345,7 @@ async function runConversation(query, messages) {
       checkForInsurance,
       filterPoolsByAPY,
       getLowBetaHighGrowthPairs,
+      getTopMomentumScores,
       predict_LP,
     };
 

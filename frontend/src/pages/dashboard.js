@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import WatchlistTable from "../components/watchlist/WatchlistTable.js";
 import MomentumTable from "../components/watchlist/MomentumTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
+import DeleteButton from "../components/watchlist/DeleteButton.js"; 
 import SwitchButton from "../components/watchlist/SwitchButton.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
@@ -56,7 +57,10 @@ export default function Watchlist() {
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [watchlistRowsSelected, setWatchlistRowsSelected] = useState(false);
   const [viewMomentumList, setViewMomentumList] = useState(false); 
+
   // const quickActionFilter = ['Base APY', "30D APY"]; 
 
   const router = useRouter()
@@ -77,6 +81,25 @@ export default function Watchlist() {
     };
   }, []);
 
+  async function getTopMomentumScores() {
+    console.log("INSIDE GET TOP MOMENTUM SCORES"); 
+    const { data, error } = await supabase
+      .from("momentum-list")
+      .select("symbol, momentum_scores_30D, momentum_score_current")
+      .order("momentum_score_current", { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error("Error fetching data:", error);
+      return;
+    }
+
+    console.log("MOMENTUM SCORES:", data);
+
+    const topMomentumScores = data;
+
+    return topMomentumScores;
+  }
   // Get users watchlist once
   useEffect(() => {
     if (user) {
@@ -84,7 +107,9 @@ export default function Watchlist() {
       console.log("INSIDE IF STATEMENT"); 
 
       fetchWatchlist();
+      getTopMomentumScores();
     } 
+
   }, [user]);
 
   const fetchWatchlist = async () => {
@@ -357,6 +382,60 @@ export default function Watchlist() {
     // return mergedData;
   }
 
+  async function returnWatchlist(){
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("watchlist")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+      const coinsInWatchlist = data.watchlist.coins; // Returns just the array 
+      return coinsInWatchlist; 
+    } catch (error) {
+      console.error("Error fetching investor profile:", error.message);
+    }
+  }
+
+  async function updateWatchlist(newUserWatchlist) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ watchlist: newUserWatchlist }) 
+      .eq("id", user.id);
+
+    if (error) {
+      console.error("Error updating watchlist:", error);
+      return;
+    }
+
+    console.log("Watchlist updated successfully:", data);
+  }
+
+  async function deleteWatchlistItem(coinIds) {
+
+    console.log("COIND IDS:", coinIds); 
+    const userWatchlist = await returnWatchlist();
+    console.log("USER WATCHLISTTTT:", userWatchlist); 
+
+    // Iterate through each coin ID to be removed
+    coinIds.forEach((coinId) => {
+      // Iterate backward through the user watchlist
+      for (let i = userWatchlist.length - 1; i >= 0; i--) {
+        if (coinId === userWatchlist[i].coin_id) {
+          userWatchlist.splice(i, 1); // Remove the matching element
+        }
+      }
+    });
+
+    const newList = {
+      coins: userWatchlist,
+    };
+
+    await updateWatchlist(newList);
+  }
 
   const handleMomentumList = async (watchlist) => {
 
@@ -368,6 +447,33 @@ export default function Watchlist() {
     }
 
   }
+
+  const handleSelectionChange = (selectedItems) => {
+    if (selectedItems){
+      setWatchlistRowsSelected(true); 
+      setSelectedRows(selectedItems); 
+      console.log("Selected items in parent:", selectedItems);
+    }
+
+  };
+
+  const handleDelete = async () => {
+    let coinIds = [];
+    const newWatchlist = watchlist.filter((item, index) => {
+      const isSelected = selectedRows.includes(item.id);
+      if (isSelected) {
+        coinIds.push(item.coinID);
+        return false; // Exclude this item from the new array
+      }
+      return true; // Include this item in the new array
+    });
+
+    // Update the watchlist state with the new array
+    setWatchlist(newWatchlist);
+
+    // Remove them from db in profiles table
+    await deleteWatchlistItem(coinIds);
+  };
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -460,13 +566,26 @@ export default function Watchlist() {
           )}
         </Stack>
 
-        <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
+        {watchlistRowsSelected ? (
+          <Stack direction="row" spacing={2}>
+            <DeleteButton onClick={() => handleDelete()}>
+              Delete
+            </DeleteButton>
+            <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
+          </Stack>
+        ) : (
+          <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
+        )}
       </Box>
 
       {viewMomentumList ? (
         <MomentumTable momentumList={momentumList} />
       ) : (
-        <WatchlistTable watchlistData={watchlist} rawList={rawList} />
+        <WatchlistTable
+          watchlistData={watchlist}
+          rawList={rawList}
+          onSelectionChange={handleSelectionChange}
+        />
       )}
 
       {/* Main container for the two sections */}
@@ -537,7 +656,7 @@ export default function Watchlist() {
         open={modalOpen}
         rawList={rawList}
         handleTokenAdded={handleTokenAdded}
-        maxCapacity={watchlist.length === 15 ? true : false}
+        maxCapacity={watchlist.length === 30 ? true : false}
       />
 
       <Snackbar
