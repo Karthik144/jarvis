@@ -1,5 +1,5 @@
 import React from "react";
-import { fetchWatchlist } from "@/pages/dashboard";
+// import { fetchWatchlist } from "@/pages/dashboard";
 import Button from "@mui/material/Button";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
@@ -97,7 +97,7 @@ export default function Workflow({ title, prompts, type, user }) {
     console.log("Workflow button was pressed!");
     if (type === "Watchlist") {
       if (user) {
-        await fetchWatchlist();
+        // await fetchWatchlist();
         const userQuery = {
           query: prompts[0],
           watchlist: true,

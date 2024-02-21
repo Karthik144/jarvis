@@ -13,10 +13,10 @@ const GET_BLOCK_NUMBERS_QUERY = (pool_addr: string, start_timestamp: number, end
 }
 `
 
-const GET_TOKEN_PRICE_QUERY = (blockNumber: number) => `
+const GET_TOKEN_PRICE_QUERY = (pool_addr: string, blockNumber: number) => `
 {
   liquidityPoolAmount(
-    id: "0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443",
+    id: "${pool_addr}",
     block: {number: ${blockNumber}}
   ) {
     tokenPrices
@@ -39,7 +39,7 @@ async function main(days_of_data: number, pool_addr: string[]) {
       const response = await axios.post(SUBGRAPH_API, { query: GET_BLOCK_NUMBERS_QUERY(pool_addr[i], start_timestamp, end_timestamp) });
       const blockNumbers = response.data.data.liquidityPool.dailySnapshots.map((snapshot: Snapshot) => snapshot.blockNumber);
       const tokenPricePromises = blockNumbers.map(async (blockNumber: number) => {
-          const priceResponse = await axios.post(SUBGRAPH_API, { query: GET_TOKEN_PRICE_QUERY(blockNumber) });
+          const priceResponse = await axios.post(SUBGRAPH_API, { query: GET_TOKEN_PRICE_QUERY(pool_addr[i],blockNumber) });
           
           //simplifies to price quoted in second-token/token2
           return Number(priceResponse.data.data.liquidityPoolAmount.tokenPrices[1]);
@@ -55,7 +55,7 @@ async function main(days_of_data: number, pool_addr: string[]) {
   console.log(pool_data)
 }
 
-main(30, ["0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443", "0xdbaeB7f0DFe3a0AAFD798CCECB5b22E708f7852c"])
+main(60, ["0xC31E54c7a869B9FcBEcc14363CF510d1c41fa443", "0xdbaeB7f0DFe3a0AAFD798CCECB5b22E708f7852c", "0x47b6De853d181626918EEcb1E0ed946A5cf96449"])
 
 //types
 interface Snapshot {
