@@ -17,6 +17,7 @@ async function getAllFilteredPools() {
 
     let filteredPools = pools.filter(pool => pool.chain.toLowerCase() === 'ethereum' && pool.project.toLowerCase() === 'uniswap-v3' && !pool.stablecoin);
 
+    // Sort the pools by their 7-day USD volume in descending order
     filteredPools.sort((a: Pool, b: Pool) => {
         if (a.volumeUsd7d !== null && b.volumeUsd7d !== null) return b.volumeUsd7d - a.volumeUsd7d;
         if (a.volumeUsd7d === null) return 1;
@@ -24,33 +25,30 @@ async function getAllFilteredPools() {
         return 0;
     });
 
-    const cutoffIndex = Math.ceil(filteredPools.length * 0.75);
-    const top75PercentPools = filteredPools.slice(0, cutoffIndex);
+    // Take the top 50 pools based on their volume, or all pools if there are fewer than 50
+    const topPools = filteredPools.slice(0, Math.min(50, filteredPools.length));
 
-    const chunkSize = 10; 
+    const chunkSize = 10;
     const updatedPools: Pool[] = [];
 
-    for (let i = 0; i < top75PercentPools.length; i += chunkSize) {
-        const chunk = top75PercentPools.slice(i, i + chunkSize);
+    // Process the top pools in chunks
+    for (let i = 0; i < topPools.length; i += chunkSize) {
+        const chunk = topPools.slice(i, i + chunkSize);
         const processedChunk = await processChunk(chunk);
         updatedPools.push(...processedChunk);
     }
 
-    // Sort updatedPools based on how close their ratio is to 1
-    // Note: Ratio of close to 1 indicates that percent changes in price over three weeks is relatively same 
+    // Sort the updated pools based on how close their ratio is to 1
     updatedPools.sort((a, b) => {
-        // Calculate the absolute difference from 1 for both ratios
         const diffA = typeof a.ratio === 'number' ? Math.abs(1 - a.ratio) : Number.MAX_VALUE;
         const diffB = typeof b.ratio === 'number' ? Math.abs(1 - b.ratio) : Number.MAX_VALUE;
-
         return diffA - diffB;
     });
 
-    const newCutoffIndex = Math.ceil(updatedPools.length * 0.75);
-    const top75PercentUpdatedPools = updatedPools.slice(0, newCutoffIndex);
-    console.log(top75PercentUpdatedPools);
-    return top75PercentUpdatedPools;
+    console.log(updatedPools);
+    return updatedPools;
 }
+
 
 async function processChunk(chunk: Pool[]): Promise<Pool[]> {
     const comparisonPromises = chunk.map(async (pool) => {
