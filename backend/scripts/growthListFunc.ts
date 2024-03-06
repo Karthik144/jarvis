@@ -35,6 +35,28 @@ interface Token {
     price_change_percentage_30d_in_currency: number;
     ethereum_address?: string; 
     arbitrum_one_address?: string; 
+    seven_day_data?: TokenPriceData[]; 
+}
+
+interface TokenPriceData {
+    current_price: number;
+    market_cap: number;
+    market_cap_rank: number;
+    fully_diluted_valuation: number;
+    total_volume: number;
+    high_24h: number;
+    low_24h: number;
+    price_change_24h: number;
+    price_change_percentage_24h: number;
+    market_cap_change_24h: number;
+    market_cap_change_percentage_24h: number;
+    circulating_supply: number;
+    total_supply: number;
+    max_supply: number | null; 
+    ath: number;
+    ath_change_percentage: number;
+    atl: number;
+    atl_change_percentage: number;
 }
 
 interface CoinGeckoToken {
@@ -49,84 +71,143 @@ const memeTokens = ['DOGE', 'SHIB', 'BONK', 'CORGIAI', 'PEPE', 'WIF', 'FLOKI', '
 
 async function main(){
     const filteredTokens = await filterTopTokens(); 
-    // console.log('LIST:', filteredTokens); 
-    // First clear the table and insert new data 
+    const updatedTokens = await updateData(filteredTokens); 
     await clearOldData(); 
-    await updateData(filteredTokens); 
+    await addNewTokens(updatedTokens);
 }
 
-async function updateData(tokens: Token[]) {
+async function updateData(tokens: Token[]): Promise<Token[]> {
     try {
+        const symbols = tokens.map(token => token.symbol);
 
-        for (const token of tokens){
+        let { data: existingRecords, error: fetchError } = await supabase
+            .from('growth-list')
+            .select('symbol, data')  
+            .in('symbol', symbols);
 
-            // Fetch the existing record from the 'growth-list' table
-            let { data: existingData, error: fetchError } = await supabase
-                .from('growth-list')
-                .select('data')
-                .eq('symbol', token.symbol)
-                .single();
+        if (fetchError) {
+            console.error('Error fetching existing data:', fetchError);
+            throw fetchError; 
+        }
 
-            if (fetchError) {
-                console.error('Error fetching existing data:', fetchError);
+        tokens.forEach(token => {
+            if (!existingRecords) {
+                console.error('No existing records found');
+                return;
+            }
+            const existingRecord = existingRecords.find(record => record.symbol === token.symbol);
+
+            if (!existingRecord) {
+                console.error(`No existing record found for symbol: ${token.symbol}`);
+                const sevenDayDataArray = [];
+
+                const tokenPriceData: TokenPriceData = {
+                    current_price: token.current_price, 
+                    market_cap: token.market_cap, 
+                    market_cap_rank: token.market_cap_rank, 
+                    fully_diluted_valuation: token.fully_diluted_valuation, 
+                    total_volume: token.total_volume, 
+                    high_24h: token.high_24h, 
+                    low_24h: token.low_24h, 
+                    price_change_24h: token.price_change_24h, 
+                    price_change_percentage_24h: token.price_change_percentage_24h, 
+                    market_cap_change_24h: token.market_cap_change_24h, 
+                    market_cap_change_percentage_24h: token.market_cap_change_percentage_24h, 
+                    circulating_supply: token.circulating_supply, 
+                    total_supply: token.total_supply, 
+                    max_supply: token.max_supply, 
+                    ath: token.ath, 
+                    ath_change_percentage: token.ath_change_percentage,
+                    atl: token.atl, 
+                    atl_change_percentage: token.atl_change_percentage, 
+                }
+
+                sevenDayDataArray.push(tokenPriceData);
+                token.seven_day_data = sevenDayDataArray;
+                return; 
             }
 
-            let sevenDayDataArray = existingData?.data?.seven_day_data || [];
-
-            // If array has 7 days of data, then it's full so remove the first element 
-            if (sevenDayDataArray.length === 7){
-                sevenDayDataArray.shift(); // Removes the first element 
+            let sevenDayDataArray = existingRecord.data.seven_day_data || [];
+            if (sevenDayDataArray.length === 7) {
+                sevenDayDataArray.shift();
             }
 
-            sevenDayDataArray.push(token);
-
-            const updatedData = {
-                seven_day_data: sevenDayDataArray
-            };
-
-            const record = {
-                symbol: token.symbol, 
-                data: updatedData 
-            };
-
-            // Insert the record into the growth-list table
-            const { data, error } = await supabase
-                .from('growth-list')
-                .insert(record);
-
-            if (error) {
-                console.error('Error upserting token data:', error);
-            } else {
-                console.log('Upserted data:', data);
+            const tokenPriceData: TokenPriceData = {
+                current_price: token.current_price, 
+                market_cap: token.market_cap, 
+                market_cap_rank: token.market_cap_rank, 
+                fully_diluted_valuation: token.fully_diluted_valuation, 
+                total_volume: token.total_volume, 
+                high_24h: token.high_24h, 
+                low_24h: token.low_24h, 
+                price_change_24h: token.price_change_24h, 
+                price_change_percentage_24h: token.price_change_percentage_24h, 
+                market_cap_change_24h: token.market_cap_change_24h, 
+                market_cap_change_percentage_24h: token.market_cap_change_percentage_24h, 
+                circulating_supply: token.circulating_supply, 
+                total_supply: token.total_supply, 
+                max_supply: token.max_supply, 
+                ath: token.ath, 
+                ath_change_percentage: token.ath_change_percentage,
+                atl: token.atl, 
+                atl_change_percentage: token.atl_change_percentage, 
             }
 
+            sevenDayDataArray.push(tokenPriceData);
+            token.seven_day_data = sevenDayDataArray;
+        });
+
+        return tokens;
+
+    } catch (error) {
+        console.error("Error updating data:", error);
+        throw error;
+    }
+}
+
+async function addNewTokens(tokens: Token[]) {
+   
+    try {
+        // Transform the tokens array to match the table structure 
+        const transformedTokens = tokens.map(token => ({
+            symbol: token.symbol,
+            data: {  
+                // Assuming seven_day_data contains Token objects, create a new array with limited properties
+                seven_day_data: token.seven_day_data
+            }
+        }));
+
+        const { data, error } = await supabase
+            .from('growth-list')
+            .insert(transformedTokens);
+
+        if (error) {
+            console.error("Error adding new tokens to growth list:", error);
+            throw error;
         }
 
     } catch (error) {
-        console.log("Error upserting data to db:", error); 
-        throw error; 
+        console.error("Error in the addNewTokens function:", error);
     }
 }
 
 async function clearOldData() {
-    
     const { error } = await supabase
         .from('growth-list')
         .delete()
-        .eq('symbol', '*')
+        .not('symbol', 'is', null);
 
     if (error) {
         console.error('Error clearing old data:', error);
-        throw error; 
+        throw error;
     }
-          
 }
+
 
 // Get top tokens by market cap
 async function getTopTokens(){
 
     try {
-
         const response = await axios.get(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=200&page=1&sparkline=false&price_change_percentage=30d&locale=en&precision=full`);
         const tokens = response.data;
         return tokens; 
