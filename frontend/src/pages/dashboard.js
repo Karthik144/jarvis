@@ -525,29 +525,22 @@ export default function Watchlist() {
     const topTokens = await getTopMomentumScores();
     console.log("Top tokens in three:", topTokens);
 
-    const messages = [
-      {
-        role: "system",
-        content:
-          "You are a crypto researcher that provides detailed reports about tokens. In the report, for each token, provide a summary, potential applications, and new non-price related updates.",
-      },
-    ];
 
     console.log("TOP TOKENS:", topTokens); 
     // Extract the 'symbol' from each object in the topTokens array and join them into a comma-separated string
     const symbols = topTokens.map((token) => token.symbol).join(", ");
     console.log("SYMBOLS:", symbols); 
     // Create the object with the symbols string
-    const tokenReportRequest = {
-      role: "user",
-      content: `Can you give me a report on the following tokens: ${symbols}.`,
-    };
+    // const tokenReportRequest = {
+    //   role: "user",
+    //   content: `Can you give me a report on the following tokens: ${symbols}.`,
+    // };
 
-    // Append the new object to the messages array
-    messages.push(tokenReportRequest);
+    // // Append the new object to the messages array
+    // messages.push(tokenReportRequest);
 
-    console.log("Updated messages:", messages);
-    localStorage.setItem("reportQuery", JSON.stringify(messages));
+    // console.log("Updated messages:", messages);
+    localStorage.setItem("reportQuery", JSON.stringify(symbols));
     router.push("/report");
   };
 

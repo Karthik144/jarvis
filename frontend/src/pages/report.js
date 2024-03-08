@@ -1,52 +1,48 @@
 
-import React, { useEffect, useState } from "react";
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
 import { Box, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Skeleton from "@mui/material/Skeleton";
-import { useChat } from "ai/react";
+import { useCompletion } from "ai/react";
 // const { generateReport } = require("./api/perplexity");
 
 export default function Report() {
   const [reportText, setReportText] = useState("");
-  const { messages, setMessages } = useChat();
-  const [initialLoad, setInitialLoad] = useState(true);
+  const { complete } = useCompletion({
+    api: "/api/completion",
+  });
+
+  const getTokens = async () => {
+    const reportQuery = localStorage.getItem("reportQuery");
+    if (reportQuery) {
+      const reportQueryObj = JSON.parse(reportQuery);
+      console.log("REPORT QUERY OBJ:", reportQueryObj);
+      return reportQueryObj;
+    }
+    return "";
+  };
+
+  const generateReport = useCallback(async () => {
+    const tokenList = await getTokens(); // Retrieve tokens from getTokens
+    if (tokenList) {
+      const requestBody = { tokens: tokenList };
+      const completion = await complete(JSON.stringify(requestBody));
+      if (!completion) throw new Error("Failed to generate report");
+
+      const report = completion;
+      console.log("COMPLETION:", completion); 
+      setReportText(report);
+    } else {
+      console.log("No tokens found");
+    }
+  }, [complete]);
 
   useEffect(() => {
-    if (initialLoad) {
-      const reportQuery = localStorage.getItem("reportQuery");
-
-      if (reportQuery) {
-        console.log("INSIDE REPORT QUERY");
-        const reportQueryObj = JSON.parse(reportQuery);
-        setMessages(reportQueryObj); 
-        console.log("REPORT QUERY OBJ:", reportQueryObj); 
-        console.log("Messages in useEffect:", messages); 
-      }
-
-      // const syntheticEvent = { preventDefault: () => {} };
-      // handleSubmit(syntheticEvent);
-
-      setInitialLoad(false); // Ensure this only runs once
-    }
-  }, [initialLoad]);
-
-  // useEffect(() => {
-  //   const reportQuery = localStorage.getItem("reportQuery");
-
-  //   if (reportQuery) {
-  //     console.log("INSIDE REPORT QUERY");
-  //     const reportQueryObj = JSON.parse(reportQuery);
-  //     fetchReport(reportQueryObj);
-  //   }
-  // }, []);
-
-  async function fetchReport(messages) {
-    console.log("Fetch report called");
-    const report = await generateReport(messages);
-    console.log("REPORT TEXT:", report);
-    setReportText(report);
-  }
+    generateReport(); // Call generateReport once the component is mounted
+  }, [generateReport]); // Dependency array includes generateReport to ensure it's called when the function is available
 
   return (
     <div className="flex min-h-screen flex-col items-start justify-between p-24">
@@ -85,12 +81,7 @@ export default function Report() {
                 />
               </Box>
             )} */}
-            {messages.map((m) => (
-              <div key={m.id}>
-                {m.role === "user" ? "User: " : "AI: "}
-                {m.content}
-              </div>
-            ))}
+            {reportText && <div>{reportText}</div>}
 
             {/* <form onSubmit={handleSubmit}>
               <input
