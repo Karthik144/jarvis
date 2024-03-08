@@ -520,6 +520,35 @@ export default function Watchlist() {
     }
   };
 
+  const handleWorkflowThreeButtonClick = async () => {
+    console.log("Workflow button three was pressed!");
+    const topTokens = await getTopMomentumScores();
+    console.log("Top tokens in three:", topTokens);
+
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are a crypto researcher that provides detailed reports about tokens. In the report, for each token, provide a summary, potential applications, and new non-price related updates.",
+      },
+    ];
+
+    // Extract the 'symbol' from each object in the topTokens array and join them into a comma-separated string
+    const symbols = topTokens.map((token) => token.symbol).join(", ");
+
+    // Create the object with the symbols string
+    const tokenReportRequest = {
+      role: "user",
+      content: `Can you give me a report on the following tokens: ${symbols}.`,
+    };
+
+    // Append the new object to the messages array
+    messages.push(tokenReportRequest);
+
+    console.log("Updated messages:", messages);
+    localStorage.setItem("reportQuery", JSON.stringify(messages));
+    router.push("/report");
+  };
 
 
   return (
@@ -568,9 +597,7 @@ export default function Watchlist() {
 
         {watchlistRowsSelected ? (
           <Stack direction="row" spacing={2}>
-            <DeleteButton onClick={() => handleDelete()}>
-              Delete
-            </DeleteButton>
+            <DeleteButton onClick={() => handleDelete()}>Delete</DeleteButton>
             <AddButton onClick={() => handleOpenModal("signin")}>Add</AddButton>
           </Stack>
         ) : (
@@ -626,7 +653,7 @@ export default function Watchlist() {
         </Box> */}
 
         {/* Box for Quick Tasks */}
-        <Box sx={{ width: "50%" }}>
+        <Box sx={{ width: "100%" }}>
           <Typography
             variant="h2"
             sx={{
@@ -646,6 +673,11 @@ export default function Watchlist() {
               onButtonClick={handleWorkflowTwoButtonClick}
               title={"Compare Watchlist Tokens"}
               type={"Watchlist"}
+            />
+            <QuickAction
+              onButtonClick={handleWorkflowThreeButtonClick}
+              title={"Create Momentum Report"}
+              type={"Momentum List"}
             />
           </Stack>
         </Box>
