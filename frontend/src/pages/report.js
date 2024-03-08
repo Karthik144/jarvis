@@ -1,22 +1,46 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Box, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Skeleton from "@mui/material/Skeleton";
-const { generateReport } = require("./api/perplexity");
+import { useChat } from "ai/react";
+// const { generateReport } = require("./api/perplexity");
 
 export default function Report() {
   const [reportText, setReportText] = useState("");
+  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat();
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    const reportQuery = localStorage.getItem("reportQuery");
+    if (initialLoad) {
+      const reportQuery = localStorage.getItem("reportQuery");
 
-    if (reportQuery) {
-      console.log("INSIDE REPORT QUERY");
-      const reportQueryObj = JSON.parse(reportQuery);
-      fetchReport(reportQueryObj);
+      if (reportQuery) {
+        console.log("INSIDE REPORT QUERY");
+        const reportQueryObj = JSON.parse(reportQuery);
+        setMessages(reportQueryObj); 
+        console.log("REPORT QUERY OBJ:", reportQueryObj); 
+        console.log("Messages in useEffect:", messages); 
+      }
+
+      const syntheticEvent = { preventDefault: () => {} };
+      handleSubmit(syntheticEvent);
+
+      setInitialLoad(false); // Ensure this only runs once
     }
-  }, []);
+  }, [initialLoad, handleInputChange, handleSubmit]);
+
+  // useEffect(() => {
+  //   const reportQuery = localStorage.getItem("reportQuery");
+
+  //   if (reportQuery) {
+  //     console.log("INSIDE REPORT QUERY");
+  //     const reportQueryObj = JSON.parse(reportQuery);
+  //     fetchReport(reportQueryObj);
+  //   }
+  // }, []);
 
   async function fetchReport(messages) {
     console.log("Fetch report called");
