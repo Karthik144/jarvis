@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useEffect, useState } from "react";
 import { Box, Paper } from "@mui/material";
@@ -10,7 +9,7 @@ import { useChat } from "ai/react";
 
 export default function Report() {
   const [reportText, setReportText] = useState("");
-  const { messages, input, handleInputChange, handleSubmit, setMessages } = useChat();
+  const { messages, setMessages } = useChat();
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
@@ -25,12 +24,12 @@ export default function Report() {
         console.log("Messages in useEffect:", messages); 
       }
 
-      const syntheticEvent = { preventDefault: () => {} };
-      handleSubmit(syntheticEvent);
+      // const syntheticEvent = { preventDefault: () => {} };
+      // handleSubmit(syntheticEvent);
 
       setInitialLoad(false); // Ensure this only runs once
     }
-  }, [initialLoad, handleInputChange, handleSubmit]);
+  }, [initialLoad]);
 
   // useEffect(() => {
   //   const reportQuery = localStorage.getItem("reportQuery");
@@ -61,7 +60,7 @@ export default function Report() {
 
         <div style={{ overflow: "auto", maxHeight: "60vh" }}>
           <div>
-            {!reportText ? (
+            {/* {!reportText ? (
               <Box sx={{ width: 1200, marginLeft: "60px", marginTop: "15px" }}>
                 <Skeleton />
                 <Skeleton animation="wave" />
@@ -85,7 +84,21 @@ export default function Report() {
                   dangerouslySetInnerHTML={{ __html: reportText }}
                 />
               </Box>
-            )}
+            )} */}
+            {messages.map((m) => (
+              <div key={m.id}>
+                {m.role === "user" ? "User: " : "AI: "}
+                {m.content}
+              </div>
+            ))}
+
+            {/* <form onSubmit={handleSubmit}>
+              <input
+                value={input}
+                placeholder="Say something..."
+                onChange={handleInputChange}
+              />
+            </form> */}
           </div>
         </div>
       </Grid>

@@ -11,6 +11,7 @@ export async function POST(req) {
   // Extract the `messages` from the body of the request
   const { messages } = await req.json();
 
+  console.log("Messages inside post:", messages); 
   // Request the OpenAI-compatible API for the response based on the prompt
   const response = await perplexity.chat.completions.create({
     model: "pplx-7b-chat",

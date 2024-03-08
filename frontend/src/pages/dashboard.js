@@ -107,7 +107,7 @@ export default function Watchlist() {
       console.log("INSIDE IF STATEMENT"); 
 
       fetchWatchlist();
-      getTopMomentumScores();
+      // await getTopMomentumScores();
     } 
 
   }, [user]);
@@ -533,9 +533,10 @@ export default function Watchlist() {
       },
     ];
 
+    console.log("TOP TOKENS:", topTokens); 
     // Extract the 'symbol' from each object in the topTokens array and join them into a comma-separated string
     const symbols = topTokens.map((token) => token.symbol).join(", ");
-
+    console.log("SYMBOLS:", symbols); 
     // Create the object with the symbols string
     const tokenReportRequest = {
       role: "user",
