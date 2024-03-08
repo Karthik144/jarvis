@@ -39,6 +39,7 @@ interface Token {
 }
 
 interface TokenPriceData {
+    name: string;
     current_price: number;
     market_cap: number;
     market_cap_rank: number;
@@ -57,6 +58,8 @@ interface TokenPriceData {
     ath_change_percentage: number;
     atl: number;
     atl_change_percentage: number;
+    ethereum_address?: string; 
+    arbitrum_one_address?: string; 
 }
 
 interface CoinGeckoToken {
@@ -102,6 +105,7 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
                 const sevenDayDataArray = [];
 
                 const tokenPriceData: TokenPriceData = {
+                    name: token.name, 
                     current_price: token.current_price, 
                     market_cap: token.market_cap, 
                     market_cap_rank: token.market_cap_rank, 
@@ -120,6 +124,8 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
                     ath_change_percentage: token.ath_change_percentage,
                     atl: token.atl, 
                     atl_change_percentage: token.atl_change_percentage, 
+                    ethereum_address: token.ethereum_address,  
+                    arbitrum_one_address: token.arbitrum_one_address, 
                 }
 
                 sevenDayDataArray.push(tokenPriceData);
@@ -133,6 +139,7 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
             }
 
             const tokenPriceData: TokenPriceData = {
+                name: token.name, 
                 current_price: token.current_price, 
                 market_cap: token.market_cap, 
                 market_cap_rank: token.market_cap_rank, 
@@ -151,6 +158,8 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
                 ath_change_percentage: token.ath_change_percentage,
                 atl: token.atl, 
                 atl_change_percentage: token.atl_change_percentage, 
+                ethereum_address: token.ethereum_address,  
+                arbitrum_one_address: token.arbitrum_one_address, 
             }
 
             sevenDayDataArray.push(tokenPriceData);
