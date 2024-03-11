@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import WatchlistTable from "../components/watchlist/WatchlistTable.js";
 import MomentumTable from "../components/watchlist/MomentumTable.js";
+import YieldTable from "../components/watchlist/YieldTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
 import DeleteButton from "../components/watchlist/DeleteButton.js"; 
 import SwitchButton from "../components/watchlist/SwitchButton.js";
@@ -54,14 +55,14 @@ export default function Watchlist() {
   const [user, setUser] = useState(null);
   const [watchlist, setWatchlist] = useState([]);
   const [momentumList, setMomentumList] = useState([]); 
+  const [yieldList, setYieldList] = useState([]); 
   const [rawList, setRawList] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [tokenAdded, setTokenAdded] = useState(false);
   const [selectedRows, setSelectedRows] = useState([]);
   const [watchlistRowsSelected, setWatchlistRowsSelected] = useState(false);
   const [viewMomentumList, setViewMomentumList] = useState(false); 
-
-  // const quickActionFilter = ['Base APY', "30D APY"]; 
+  const [viewYieldList, setViewYieldList] = useState(false); 
 
   const router = useRouter()
 
@@ -265,6 +266,17 @@ export default function Watchlist() {
       return null;
   }
 
+  async function getCachedYieldList() {
+    const cachedData = localStorage.getItem("yieldListData");
+    if (cachedData) {
+      const { timestamp, data } = JSON.parse(cachedData);
+      if (Date.now() - timestamp < cacheDuration) {
+        return data;
+      }
+    }
+    return null;
+  }
+
   async function getMomentumListFromSupabase() {
     let { data: momentumList, error: momentumError } = await supabase
         .from("momentum-list")
@@ -289,6 +301,19 @@ export default function Watchlist() {
     }
 
     return growthList;
+  }
+
+  async function getYieldListFromSupabase() {
+    let { data: yieldList, error: yieldError } = await supabase
+      .from("yield-list")
+      .select("pool_address, pool_bands, pool_data");
+
+    if (!yieldList) {
+        console.error("Error fetching yield list:", yieldList);
+        return null;
+    }
+
+    return yieldList;
   }
   
   async function getMomentumList() {
@@ -325,6 +350,27 @@ export default function Watchlist() {
         }));
     }
     return growthList;
+  }
+
+  async function getYieldList() {
+    const cachedYieldList = await getCachedYieldList(); 
+
+    if (cachedYieldList) {
+      console.log("Returning cached growth list");
+      return cachedYieldList;
+    } else {
+      console.log("Fetching new yield list");
+
+      const yieldList = await getYieldListFromSupabase(); 
+      if (yieldList){
+        localStorage.setItem(
+          "yieldListData", JSON.stringify({
+            timestamp: Date.now(),
+            data: yieldList,
+          }));
+      }
+      return yieldList; 
+    }
   }
 
   async function getMomentumList_complex() {
@@ -380,6 +426,36 @@ export default function Watchlist() {
     setMomentumList(mergedData); 
     console.log('MERGED DATA:', mergedData); 
     // return mergedData;
+  }
+
+  async function getYieldList_complex() {
+    // Get yield list
+    let yieldList = await getYieldList();
+    console.log("YIELD LIST:", yieldList);
+
+    // Create a list of objects to pass over to table
+    let filteredData = yieldList.map((yieldItem, index) => {
+      return {
+        id: index + 1,
+        pool_address: yieldItem.pool_address,
+        symbol: yieldItem.pool_data.symbol,
+        pool_bands: `${yieldItem.pool_bands.lower_band.toFixed(
+          2
+        )}-${yieldItem.pool_bands.upper_band.toFixed(2)}`,
+        apyBase: yieldItem.pool_data.apyBase,
+        apyBase7d: yieldItem.pool_data.apyBase7d,
+        apyMean30d: yieldItem.pool_data.apyMean30d,
+        volumeUsd7d: yieldItem.pool_data.volumeUsd7d,
+        ratio: yieldItem.pool_data.ratio,
+        predictedClass: yieldItem.pool_data.predictions.predictedClass,
+      };
+    });
+
+    // Sort filteredData by ratio in descending order
+    filteredData.sort((a, b) => b.ratio - a.ratio);
+
+    setYieldList(filteredData); 
+
   }
 
   async function returnWatchlist(){
@@ -446,6 +522,16 @@ export default function Watchlist() {
       setViewMomentumList(true); 
     }
 
+  }
+
+  const handleYieldList = async (watchlist) => {
+
+    if (watchlist){
+      setViewYieldList(false); 
+    } else {
+      await getYieldList_complex(); 
+      setViewYieldList(true); 
+    }
   }
 
   const handleSelectionChange = (selectedItems) => {
@@ -587,6 +673,16 @@ export default function Watchlist() {
               View Momentum List
             </SwitchButton>
           )}
+
+          {viewYieldList ? (
+            <SwitchButton onClick={() => handleYieldList(true)}>
+              View Watchlist
+            </SwitchButton>
+          ) : (
+            <SwitchButton onClick={() => handleYieldList(false)}>
+              View Yield List
+            </SwitchButton>
+          )}
         </Stack>
 
         {watchlistRowsSelected ? (
@@ -599,7 +695,9 @@ export default function Watchlist() {
         )}
       </Box>
 
-      {viewMomentumList ? (
+      {viewYieldList ? (
+        <YieldTable yieldList={yieldList} /> 
+      ) : viewMomentumList ? (
         <MomentumTable momentumList={momentumList} />
       ) : (
         <WatchlistTable
