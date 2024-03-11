@@ -18,13 +18,27 @@ export default function Report() {
   const exportToPDF = () => {
     const element = document.getElementById("content-to-export");
     html2pdf(element, {
-      margin: 1,
-      filename: "exported_content.pdf",
+      margin: 0.3,
+      filename: "momentum_report.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
       jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
     });
   };
+
+  const convertMarkdownToHTML = (markdownText) => {
+    // Replace ### headings with <h3>
+    let htmlText = markdownText.replace(/### (.*$)/gim, '<h3>$1</h3>');
+
+    // Replace ## headings with <h2>
+    htmlText = htmlText.replace(/## (.*$)/gim, '<h2>$1</h2>');
+
+    // Replace # headings with <h1>
+    htmlText = htmlText.replace(/# (.*$)/gim, '<h1>$1</h1>');
+
+    return htmlText;
+  };
+
 
   const getTokens = async () => {
     const reportQuery = localStorage.getItem("reportQuery");
@@ -36,68 +50,61 @@ export default function Report() {
     return "";
   };
 
-  // const generateReport = useCallback(async () => {
-  //   const tokenList = await getTokens(); 
-  //   console.log('Tokens inside call back:', tokenList); 
-  //   if (tokenList) {
-  //     const requestBody = { tokens: tokenList };
-  //     console.log("Request Body:", requestBody); 
-  //     const completion = await complete(JSON.stringify(requestBody));
-  //     if (!completion) throw new Error("Failed to generate report");
+  const generateReport = useCallback(async () => {
+    const tokenList = await getTokens();
+    console.log('Tokens inside call back:', tokenList);
+    if (tokenList) {
+      const requestBody = { tokens: tokenList };
+      console.log("Request Body:", requestBody);
+      const completion = await complete(JSON.stringify(requestBody));
+      if (!completion) throw new Error("Failed to generate report");
 
-  //     const report = completion;
-  //     console.log("COMPLETION:", completion); 
-  //     setReportText(report);
-  //   } else {
-  //     console.log("No tokens found");
-  //   }
-  // }, [complete]);
+      // Convert Markdown in the completion text to HTML
+      const reportInHTML = convertMarkdownToHTML(completion);
+      console.log("COMPLETION:", completion);
+      console.log("Converted Report:", reportInHTML);
 
-  // useEffect(() => {
-  //   generateReport(); 
-  // }, [generateReport]); 
+      setReportText(reportInHTML);
+    } else {
+      console.log("No tokens found");
+    }
+  }, [complete]);
+
+  useEffect(() => {
+    generateReport();
+  }, [generateReport]);
 
   return (
-    <div
-      id="content-to-export"
-      className="min-h-screen flex flex-col justify-between p-24"
-    >
-      <Grid container justifyContent="space-between" alignItems="flex-start">
-        <Grid item>
-          <Typography variant="h4" sx={{ pt: "70px", ml: "60px" }}>
-            Tokens with High Momentum
-          </Typography>
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={exportToPDF}
-            sx={{ mt: "70px", mr: "60px", height: "36px" }} // Adjusted height here
-          >
-            Export to PDF
-          </Button>
-        </Grid>
-      </Grid>
+    <div className="min-h-screen flex flex-col justify-between p-24">
+      <div
+        style={{ textAlign: "right", paddingRight: "60px", paddingTop: "30px" }}
+      >
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={exportToPDF}
+          sx={{ height: "36px" }}
+        >
+          Export to PDF
+        </Button>
+      </div>
 
-      <div style={{ overflow: "auto", maxHeight: "60vh" }}>
-        <div>
+      <div id="content-to-export" style={{ padding: "0 60px" }}>
+        {" "}
+        <Typography variant="h4" sx={{ pt: "40px" }}>
+          Tokens with High Momentum
+        </Typography>
+        <div style={{ overflow: "auto", maxHeight: "60vh", marginTop: "20px" }}>
           {!reportText ? (
-            <Box sx={{ width: 1200, ml: "60px", mt: "15px" }}>
+            <Box sx={{ maxWidth: "1200px" }}>
               <Skeleton />
               <Skeleton animation="wave" />
               <Skeleton animation={false} />
             </Box>
           ) : (
-            <Box overflow="auto" pt="20px" pb="20px" maxHeight="500px">
+            <Box pt="20px" pb="20px" sx={{ maxWidth: "1200px" }}>
               <Typography
                 variant="body1"
-                sx={{
-                  textAlign: "left",
-                  ml: "60px",
-                  mt: "15px",
-                  maxWidth: "1200px",
-                }}
                 dangerouslySetInnerHTML={{ __html: reportText }}
               />
             </Box>
@@ -106,4 +113,6 @@ export default function Report() {
       </div>
     </div>
   );
+
+
 }

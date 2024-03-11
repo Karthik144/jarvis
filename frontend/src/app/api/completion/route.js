@@ -15,13 +15,14 @@ export async function POST(req) {
     {
       role: "system",
       content:
-        "You are a crypto researcher that provides detailed reports about tokens. In the report, for each token, provide a summary, potential applications, and new non-price related updates.",
+        "Generate a formal report on the given crypto tokens. For each token, use '# Token Name' as the main heading. Under each token, include three subheadings: '## Summary' for a brief overview, '## Applications' for potential uses, and '## Updates' for recent non-price related developments. Ensure there is appropriate spacing between sections for clarity. Present the information directly, avoiding conversational language, and adhere to the structured format with the specified headings and subheadings for consistency.",
     },
     {
       role: "user",
-      content: `Given the following tokens, generate a detailed report. Tokens: ${tokens}`,
+      content: `Generate a detailed report for the following tokens: ${tokens}`,
     },
   ];
+
 
   console.log("Messages inside post:", messages);
 
