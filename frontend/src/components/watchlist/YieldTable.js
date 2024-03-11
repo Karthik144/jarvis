@@ -54,18 +54,18 @@ export default function YieldTable({ yieldList }) {
     {
       field: "symbol",
       headerName: "Pool",
-      width: 120,
+      width: 130,
     },
     {
       field: "pool_bands",
       headerName: "Bands",
-      width: 130,
+      width: 110,
     },
     {
       field: "apyBase",
       headerName: "Base APY",
       type: "number",
-      width: 130,
+      width: 120,
     },
     {
       field: "apyBase7d",
@@ -89,12 +89,23 @@ export default function YieldTable({ yieldList }) {
       field: "ratio",
       headerName: "Ratio",
       type: "number",
-      width: 120,
+      width: 110,
     },
     {
       field: "predictedClass",
       headerName: "Prediction",
       width: 130,
+    },
+    {
+      field: "chain",
+      headerName: "Chain",
+      width: 130,
+    },
+    {
+      field: "pool_address",
+      headerName: "Address",
+      width: 110,
+      renderCell: renderAddressCell,
     },
   ];
 

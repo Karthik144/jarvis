@@ -5,6 +5,7 @@ import YieldTable from "../components/watchlist/YieldTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
 import DeleteButton from "../components/watchlist/DeleteButton.js"; 
 import SwitchButton from "../components/watchlist/SwitchButton.js";
+import SwitchSelector from "../components/watchlist/SwitchSelector.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
 import Workflow from "../components/workflows/Workflow"; 
@@ -15,41 +16,6 @@ import { supabase } from "../../supabaseClient.js";
 import Snackbar from "@mui/material/Snackbar";
 import { useRouter } from "next/router.js";
 const axios = require("axios");
-
-// export const fetchWatchlist = async () => {
-//     try {
-//       const { data, error } = await supabase
-//         .from("profiles")
-//         .select("watchlist")
-//         .eq("id", user.id)
-//         .single();
-
-//       if (error) {
-//         throw error;
-//       }
-
-//       setRawList(data.watchlist || { coins: [] });
-
-//       const coinsInWatchlist = data.watchlist.coins.length;
-//       console.log("WATCHLIST LENGTH:", coinsInWatchlist);
-
-//       const newWatchlist = [];
-
-//       for (let i = 0; i < coinsInWatchlist; i++) {
-//         // const coinData = await getCoinData(data.watchlist.coins[i].coin_id, i);
-//         const coinData = await getCachedCoinData(
-//           data.watchlist.coins[i].coin_id,
-//           i
-//         );
-//         console.log("COIN DATA:", coinData);
-//         newWatchlist.push(coinData);
-//       }
-//       console.log("NEW WATCHLIST:", newWatchlist);
-//       setWatchlist(newWatchlist);
-//     } catch (error) {
-//       console.error("Error fetching investor profile:", error.message);
-//     }
-//   };
 
 export default function Watchlist() {
   const [user, setUser] = useState(null);
@@ -63,8 +29,27 @@ export default function Watchlist() {
   const [watchlistRowsSelected, setWatchlistRowsSelected] = useState(false);
   const [viewMomentumList, setViewMomentumList] = useState(false); 
   const [viewYieldList, setViewYieldList] = useState(false); 
+  const [selectedValue, setSelectedValue] = useState("watchlist");
 
   const router = useRouter()
+
+
+  const handleChange = (event) => {
+    const value = event.target.value;
+    console.log("handle change called with value:", value);
+    if (value === "momentum") {
+      handleMomentumList(viewMomentumList);
+      setViewYieldList(false);
+    } else if (value === "yield") {
+      handleYieldList(viewYieldList);
+      setViewMomentumList(false);
+    } else {
+      setViewMomentumList(false);
+      setViewYieldList(false);
+    }
+    setSelectedValue(value);
+  };
+
 
   // Set current user
   useEffect(() => {
@@ -437,7 +422,6 @@ export default function Watchlist() {
     let filteredData = yieldList.map((yieldItem, index) => {
       return {
         id: index + 1,
-        pool_address: yieldItem.pool_address,
         symbol: yieldItem.pool_data.symbol,
         pool_bands: `${yieldItem.pool_bands.lower_band.toFixed(
           2
@@ -448,6 +432,8 @@ export default function Watchlist() {
         volumeUsd7d: yieldItem.pool_data.volumeUsd7d,
         ratio: yieldItem.pool_data.ratio,
         predictedClass: yieldItem.pool_data.predictions.predictedClass,
+        chain: yieldItem.pool_data.chain,
+        pool_address: yieldItem.pool_address,
       };
     });
 
@@ -513,24 +499,22 @@ export default function Watchlist() {
     await updateWatchlist(newList);
   }
 
-  const handleMomentumList = async (watchlist) => {
+  const handleMomentumList = async (shouldView) => {
+    console.log("Momentum list called");
+    setViewMomentumList(!shouldView);
 
-    if (watchlist){
-      setViewMomentumList(false); 
-    } else {
+    if (!shouldView) {
+      console.log("!SHOULD VIEW");
       await getMomentumList_complex();
-      setViewMomentumList(true); 
-    }
+    } 
+  };
 
-  }
-
-  const handleYieldList = async (watchlist) => {
-
-    if (watchlist){
-      setViewYieldList(false); 
-    } else {
+  const handleYieldList = async (shouldView) => {
+    console.log("Yield list called"); 
+    setViewYieldList(!shouldView);
+    if (!shouldView){
+      console.log("!SHOULD VIEW"); 
       await getYieldList_complex(); 
-      setViewYieldList(true); 
     }
   }
 
@@ -641,8 +625,18 @@ export default function Watchlist() {
           marginBottom: "20px",
         }}
       >
-        <Stack direction="row" spacing={2}>
-          {viewMomentumList ? (
+        <Stack direction="row" spacing={2} alignItems="center">
+          {viewYieldList ? (
+            <Typography
+              variant="h2"
+              sx={{
+                fontWeight: "500",
+                fontSize: "1.75rem",
+              }}
+            >
+              Yield List
+            </Typography>
+          ) : viewMomentumList ? (
             <Typography
               variant="h2"
               sx={{
@@ -663,26 +657,7 @@ export default function Watchlist() {
               Watchlist
             </Typography>
           )}
-
-          {viewMomentumList ? (
-            <SwitchButton onClick={() => handleMomentumList(true)}>
-              View Watchlist
-            </SwitchButton>
-          ) : (
-            <SwitchButton onClick={() => handleMomentumList(false)}>
-              View Momentum List
-            </SwitchButton>
-          )}
-
-          {viewYieldList ? (
-            <SwitchButton onClick={() => handleYieldList(true)}>
-              View Watchlist
-            </SwitchButton>
-          ) : (
-            <SwitchButton onClick={() => handleYieldList(false)}>
-              View Yield List
-            </SwitchButton>
-          )}
+          <SwitchSelector value={selectedValue} onChange={handleChange} />
         </Stack>
 
         {watchlistRowsSelected ? (
@@ -696,7 +671,7 @@ export default function Watchlist() {
       </Box>
 
       {viewYieldList ? (
-        <YieldTable yieldList={yieldList} /> 
+        <YieldTable yieldList={yieldList} />
       ) : viewMomentumList ? (
         <MomentumTable momentumList={momentumList} />
       ) : (
