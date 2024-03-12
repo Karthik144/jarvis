@@ -4,10 +4,12 @@ import { Box, Paper } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import Typography from "@mui/material/Typography";
 import Skeleton from "@mui/material/Skeleton";
-import html2pdf from "html2pdf.js";
+// import html2pdf from "html2pdf.js";
 import Stack from "@mui/material/Stack";
 import { useCompletion } from "ai/react";
 import Button from "@mui/material/Button";
+import dynamic from "next/dynamic";
+const html2pdf = dynamic(() => import("html2pdf.js"), { ssr: false });
 
 export default function Report() {
   const [reportText, setReportText] = useState("");
