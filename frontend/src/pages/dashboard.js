@@ -3,12 +3,15 @@ import WatchlistTable from "../components/watchlist/WatchlistTable.js";
 import MomentumTable from "../components/watchlist/MomentumTable.js";
 import YieldTable from "../components/watchlist/YieldTable.js";
 import AddButton from "../components/watchlist/AddButton.js"; 
+import Button from "@mui/material/Button";
 import DeleteButton from "../components/watchlist/DeleteButton.js"; 
 import SwitchButton from "../components/watchlist/SwitchButton.js";
 import SwitchSelector from "../components/watchlist/SwitchSelector.js";
 import NewTokenModal from "../components/watchlist/NewTokenModal.js"; 
 import Typography from "@mui/material/Typography";
 import Workflow from "../components/workflows/Workflow"; 
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import QuickAction from "../components/workflows/QuickAction"; 
 import Stack from "@mui/material/Stack";
 import { Box, Paper } from "@mui/material";
@@ -48,6 +51,14 @@ export default function Watchlist() {
       setViewYieldList(false);
     }
     setSelectedValue(value);
+  };
+
+  const handleFilterArbClick = async (event) => {
+    if (event.target.checked){
+      await getMomentumList_complex(true); 
+    } else {
+      await getMomentumList_complex(false); 
+    }
   };
 
 
@@ -358,12 +369,11 @@ export default function Watchlist() {
     }
   }
 
-  async function getMomentumList_complex() {
+  async function getMomentumList_complex(arbitrumFilter) {
 
     // Get momentum list 
     let momentumList = await getMomentumList()
     let growthList = await getGrowthList()
-
 
     // Create a list of objects to pass over to table
     let mergedData = momentumList.map((momentumItem, index) => {
@@ -374,13 +384,16 @@ export default function Watchlist() {
 
       let extractedGrowthData = {};
 
-      if (growthItem && growthItem.data && growthItem.data.seven_day_data) {
-        
+      if (
+        growthItem &&
+        growthItem.data &&
+        growthItem.data.seven_day_data
+      ) {
         const sevenDayData = growthItem.data.seven_day_data;
-        // Get data for most recent element 
+        // Get data for most recent element
         const mostRecentElement = sevenDayData[sevenDayData.length - 1];
 
-        // Extract only the data that's useful to display 
+        // Extract only the data that's useful to display
         extractedGrowthData = {
           name: mostRecentElement.name,
           market_cap: mostRecentElement.market_cap,
@@ -388,11 +401,14 @@ export default function Watchlist() {
           total_supply: mostRecentElement.total_supply,
           total_volume: mostRecentElement.total_volume,
           current_price: mostRecentElement.current_price,
-          price_change_percentage_24h: mostRecentElement.price_change_percentage_24h,
-          market_cap_change_percentage_24h: mostRecentElement.market_cap_change_percentage_24h,
-          price_change_percentage_30d_in_currency: mostRecentElement.price_change_percentage_30d_in_currency,
-          ethereum_address: mostRecentElement.ethereum_address, 
-          arbitrum_one_address: mostRecentElement.arbitrum_one_address, 
+          price_change_percentage_24h:
+            mostRecentElement.price_change_percentage_24h,
+          market_cap_change_percentage_24h:
+            mostRecentElement.market_cap_change_percentage_24h,
+          price_change_percentage_30d_in_currency:
+            mostRecentElement.price_change_percentage_30d_in_currency,
+          ethereum_address: mostRecentElement.ethereum_address,
+          arbitrum_one_address: mostRecentElement.arbitrum_one_address,
         };
       }
 
@@ -407,6 +423,14 @@ export default function Watchlist() {
     mergedData.sort(
       (a, b) => b.momentum_score_current - a.momentum_score_current
     );
+
+    // const arbitrumFilter = true; 
+    if (arbitrumFilter){
+      mergedData = mergedData.filter(
+        (item) =>
+          item.arbitrum_one_address && item.arbitrum_one_address.trim() !== ""
+      );
+    }
     
     setMomentumList(mergedData); 
     console.log('MERGED DATA:', mergedData); 
@@ -658,6 +682,16 @@ export default function Watchlist() {
             </Typography>
           )}
           <SwitchSelector value={selectedValue} onChange={handleChange} />
+
+          {viewMomentumList && (
+            /* <Button variant="contained" onClick={handleFilterArbClick}>
+              Filter ARB
+            </Button> */
+            <FormControlLabel
+              control={<Switch onChange={handleFilterArbClick} />}
+              label="ARB"
+            />
+          )}
         </Stack>
 
         {watchlistRowsSelected ? (
