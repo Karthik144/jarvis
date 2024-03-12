@@ -1,9 +1,11 @@
 import * as React from "react";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, GridFooter, GridFooterContainer } from "@mui/x-data-grid";
 import Button from "@mui/material/Button";
 import { useRouter } from "next/router";
 import IconButton from "@mui/material/IconButton";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
+import { CSVLink } from 'react-csv'; 
 
 export default function YieldTable({ yieldList }) {
   const [selectionModel, setSelectionModel] = React.useState([]);
@@ -49,6 +51,36 @@ export default function YieldTable({ yieldList }) {
       return <span>n/a</span>;
     }
   };
+
+  const convertToCSV = (data) => {
+    const csvRows = [];
+    const headers = Object.keys(data[0]);
+    csvRows.push(headers.join(","));
+
+    for (const row of data) {
+      const values = headers.map((header) => {
+        const escaped = ("" + row[header]).replace(/"/g, '\\"');
+        return `"${escaped}"`;
+      });
+      csvRows.push(values.join(","));
+    }
+
+    return csvRows.join("\n");
+  };
+
+  const downloadCSV = () => {
+    const csvData = convertToCSV(yieldList);
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "yield_data.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
 
   const columns = [
     {
@@ -109,6 +141,21 @@ export default function YieldTable({ yieldList }) {
     },
   ];
 
+  const CustomFooter = () => {
+    return (
+      <GridFooterContainer>
+        <IconButton
+          color="primary"
+          onClick={downloadCSV}
+          aria-label="export to csv"
+        >
+          <FileDownloadOutlinedIcon />
+        </IconButton>
+        <GridFooter />
+      </GridFooterContainer>
+    );
+  };
+
   return (
     <div style={{ height: 450, width: "100%" }}>
       <DataGrid
@@ -122,6 +169,9 @@ export default function YieldTable({ yieldList }) {
         }}
         pageSizeOptions={[5, 10, 15]}
         checkboxSelection
+        components={{
+          Footer: CustomFooter,
+        }}
       />
     </div>
   );
