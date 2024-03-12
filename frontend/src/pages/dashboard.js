@@ -447,9 +447,7 @@ export default function Watchlist() {
       return {
         id: index + 1,
         symbol: yieldItem.pool_data.symbol,
-        pool_bands: `${yieldItem.pool_bands.lower_band.toFixed(
-          2
-        )}-${yieldItem.pool_bands.upper_band.toFixed(2)}`,
+        pool_bands: `${yieldItem.pool_bands.lower_band}-${yieldItem.pool_bands.upper_band}`,
         apyBase: yieldItem.pool_data.apyBase,
         apyBase7d: yieldItem.pool_data.apyBase7d,
         apyMean30d: yieldItem.pool_data.apyMean30d,

@@ -52,6 +52,11 @@ export default function YieldTable({ yieldList }) {
     }
   };
 
+  const renderScrollableCell = (params) => {
+    return (
+      <div style={{ maxWidth: "100px", overflow: "auto" }}>{params.value}</div>
+    );
+  };
   const convertToCSV = (data) => {
     const csvRows = [];
     const headers = Object.keys(data[0]);
@@ -91,6 +96,7 @@ export default function YieldTable({ yieldList }) {
     {
       field: "pool_bands",
       headerName: "Bands",
+      renderCell: renderScrollableCell,
       width: 110,
     },
     {
