@@ -459,8 +459,8 @@ export default function Watchlist() {
       };
     });
 
-    // Sort filteredData by ratio in descending order
-    filteredData.sort((a, b) => b.ratio - a.ratio);
+    // Sort filteredData by ratio in ascending order
+    filteredData.sort((a, b) => a.ratio - b.ratio);
 
     setYieldList(filteredData); 
 
