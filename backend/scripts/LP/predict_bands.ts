@@ -1,12 +1,21 @@
 //NEED TO MAKE NEW MODEL
 //MODEL: 
 // 1. Sort prices ascending
-// 2. upper_band = 75th percentile lower_band = 25th percentile
-export async function predict_bands(historical_prices: number[]) {
-    const ascending_prices = historical_prices.sort((a, b) => { return a - b });
-    let upper_band = ascending_prices[Math.floor((ascending_prices.length - 1) * .75)]
-    let lower_band = ascending_prices[Math.floor((ascending_prices.length - 1) * .25)]
-    
+// 2. S0 = 60D Price Avg; T = 60; sigma = defillama volatility
+// 3. band width from curr price = S0 * sigma
+// 4. add band width from S0
+// 5. subtract 1/5th a std dev. of band width from S0
+
+// determining bands as a function of historical prices, volatility, and time of position(60D)
+
+//Data we have from defillama:
+//  Mu(amt of liquidity in pool being used), ild7 - ilrisk, sigma, outlier(overperformer?), difference(between this pool and average pool), 
+export async function predict_bands(historical_prices: number[], sigma: number) {
+    const T = historical_prices.length
+    const S0 = historical_prices.reduce((acc, val) => acc + val, 0) / T
+    const band_deviation = S0 * sigma 
+    const upper_band = S0 + band_deviation
+    const lower_band = S0 - (band_deviation * .2)
     return { upper_band, lower_band }
 }
 

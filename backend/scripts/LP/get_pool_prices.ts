@@ -1,5 +1,8 @@
 import axios from "axios"
 
+//NOTE ON PRICES:
+//  always quoted in terms of the higher address
+
 const SUBGRAPH_API = 'https://api.thegraph.com/subgraphs/name/messari/uniswap-v3-ethereum'
 
 const GET_BLOCK_NUMBERS_QUERY = (pool_addr: string, start_timestamp: number, end_timestamp: number) => `
@@ -54,7 +57,14 @@ export async function getPoolPrices(days_of_data: number, pool_addr: string[]) {
   return pool_data
 }
 
-// getPoolPrices(60, ["0x948b54A93f5aD1df6B8bFF6Dc249D99CA2EcA052"])
+// async function main() {
+//   const addr = "0x1dF4C6e36d61416813B42fE32724eF11e363EDDc"
+//   const pool_prices = await getPoolPrices(60, [addr])
+//   console.log(pool_prices[addr].reduce((acc, val) => acc + val, 0) / pool_prices[addr].length)
+
+// }
+
+// main()
 
 //types
 interface Snapshot {

@@ -16,15 +16,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 //Gets pool-data + liquidity_bands on ETHEREUM ONLY
 async function main() {
-    const yield_list = await getAllFilteredPools(); 
+    const yield_list = await getAllFilteredPools();
     const filtered_yield_list = yield_list.filter(item => item.ratio !== null && !item.symbol?.includes('USDC') && !item.symbol?.includes('USDT'))
     for (let i = 0; i < filtered_yield_list.length; i++){
         const pool_address = filtered_yield_list[i].pool_address
         const pool_prices = await getPoolPrices(60, [pool_address])//60Days
-        const { upper_band, lower_band } = await predict_bands(pool_prices[pool_address])
+        const { upper_band, lower_band } = await predict_bands(pool_prices[pool_address], filtered_yield_list[i].sigma)
         filtered_yield_list[i]['liquidity_band'] = {upper_band, lower_band};
     }
-
     await update_supabase(filtered_yield_list)
 }
 
@@ -54,6 +53,7 @@ interface Pool {
     symbol?: string;
     pool_address: string;
     liquidity_band: Liquidity_Band
+    sigma: number
 }
 
 interface CoinData{
@@ -110,11 +110,18 @@ async function processChunk(chunk: Pool[]): Promise<Pool[]> {
             //inject pool-address into Pool
             const decimals = await axios.get(`https://coins.llama.fi/prices/current/ethereum:${pool.underlyingTokens[0]},ethereum:${pool.underlyingTokens[1]}`)
             const { coins } = decimals.data;
-            const { decimals: decimals1 } = coins[`ethereum:${pool.underlyingTokens[0]}`] as CoinData;
-            const { decimals: decimals2 } = coins[`ethereum:${pool.underlyingTokens[1]}`] as CoinData;
-            const Token0 = new UniswapToken(ChainId.MAINNET, pool.underlyingTokens[0], decimals1)
-            const Token1 = new UniswapToken(ChainId.MAINNET, pool.underlyingTokens[1], decimals2)
-            const pool_address = UniswapPool.getAddress(Token0, Token1, uniswap_fee_map[pool.poolMeta as keyof typeof uniswap_fee_map])
+            let pool_address: string;
+            if (Object.keys(coins).length == 2) {
+                const { decimals: decimals1 } = coins[`ethereum:${pool.underlyingTokens[0]}`] as CoinData;
+                const { decimals: decimals2 } = coins[`ethereum:${pool.underlyingTokens[1]}`] as CoinData;
+                const Token0 = new UniswapToken(ChainId.MAINNET, pool.underlyingTokens[0], decimals1)
+                const Token1 = new UniswapToken(ChainId.MAINNET, pool.underlyingTokens[1], decimals2)
+                pool_address = UniswapPool.getAddress(Token0, Token1, uniswap_fee_map[pool.poolMeta as keyof typeof uniswap_fee_map])
+            }
+            else {
+                pool_address = ""
+            }
+            
             return { ...pool, difference, ratio, pool_address};
         } else {
             return { ...pool, difference: null, ratio: null };
