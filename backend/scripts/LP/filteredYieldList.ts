@@ -17,7 +17,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 //Gets pool-data + liquidity_bands on ETHEREUM ONLY
 async function main() {
     const yield_list = await getAllFilteredPools();
-    const filtered_yield_list = yield_list.filter(item => item.ratio !== null && !item.symbol?.includes('USDC') && !item.symbol?.includes('USDT'))
+    const filtered_yield_list = yield_list.filter(item => item.ratio !== null && !item.symbol?.includes('USDC') && !item.symbol?.includes('USDT') && !memeTokens.some(token => item.symbol?.includes(token)))
     for (let i = 0; i < filtered_yield_list.length; i++){
         const pool_address = filtered_yield_list[i].pool_address
         const pool_prices = await getPoolPrices(60, [pool_address])//60Days
@@ -29,6 +29,8 @@ async function main() {
 
 
 //Global Constants
+const memeTokens = ['DOGE', 'SHIB', 'BONK', 'CORGIAI', 'PEPE', 'WIF', 'FLOKI', 'MEME', 'BABYDOGE', 'TRUMP', 'COQ', 'PORK', 'ELON', 'SNEK', '$WEN', '$MYRO', 'TOSHI', 'LADYS', 'MOG', 'SAMO', 'WELSH', 'DOG', 'SILLY', 'MOCHI', 'JESUS', 'AIDOGE', 'LEASH', 'KISHU', 'TSUKA', 'OPTI', 'VOLT', 'TURBO', 'WOJAK', 'KIZUNA', 'HUAHUA', 'OMNI', 'BOB', 'SHIA', 'WSM', 'QOM', 'BAD', 'PONKE', 'SNAIL', 'CATE', 'KITTY', 'NPC', 'VINU', 'ANALOS', 'KIMBO', 'BAN', 'HOGE', 'CATGIRL', 'SQUIDGROW', 'POPCAT', 'TAMA', 'POLYDOGE', 'DINO', 'HUSKY', 'PIKA', 'LOAF', 'NFD', 'HIPP', 'DOBO', 'CUMMIES', 'JOE', 'AI', 'DOGEGF', 'ZOOMER', 'SCB', 'MILK', 'EGG', 'KIBA', 'KIBSHI', 'PEPE', 'PSPS', 'CINU', 'TYRANT', 'NOCHILL', 'SMI', 'DACAT', 'PEPES', 'EDOGE', 'FOUR', 'KUMA', 'MONSTA', '4TOKEN', 'SHIBX', 'GOLDEN', 'OKY', '$CRAMER', 'GARBAGE', '$SHARBI', 'RISITA', 'ELMO', 'OGGY', 'DINGO', 'SHIH', 'CAT'];
+
 const uniswap_fee_map = {
     '1%': FeeAmount.HIGH,
     '0.3%': FeeAmount.MEDIUM,
