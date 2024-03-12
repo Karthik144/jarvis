@@ -17,15 +17,20 @@ export default function Report() {
     api: "/api/completion",
   });
 
-  const exportToPDF = () => {
-    const element = document.getElementById("content-to-export");
-    html2pdf(element, {
-      margin: 0.3,
-      filename: "momentum_report.pdf",
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
-    });
+  const exportToPDF = async () => {
+  const element = document.getElementById("content-to-export");
+
+  // Dynamically import the html2pdf function
+  const html2pdfModule = await import("html2pdf.js");
+
+  // Use the default export of the module, which should be the function you want
+  html2pdfModule.default(element, {
+  margin: 0.3,
+  filename: "momentum_report.pdf",
+  image: { type: "jpeg", quality: 0.98 },
+  html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
+  jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+  });
   };
 
   const convertMarkdownToHTML = (markdownText) => {
@@ -40,7 +45,6 @@ export default function Report() {
 
     return htmlText;
   };
-
 
   const getTokens = async () => {
     const reportQuery = localStorage.getItem("reportQuery");
