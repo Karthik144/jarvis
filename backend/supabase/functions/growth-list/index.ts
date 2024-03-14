@@ -52,6 +52,7 @@ interface TokenPriceData {
     low_24h: number;
     price_change_24h: number;
     price_change_percentage_24h: number;
+    price_change_percentage_30d_in_currency: number;
     market_cap_change_24h: number;
     market_cap_change_percentage_24h: number;
     circulating_supply: number;
@@ -120,6 +121,7 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
                     price_change_percentage_24h: token.price_change_percentage_24h, 
                     market_cap_change_24h: token.market_cap_change_24h, 
                     market_cap_change_percentage_24h: token.market_cap_change_percentage_24h, 
+                    price_change_percentage_30d_in_currency: token.price_change_percentage_30d_in_currency, 
                     circulating_supply: token.circulating_supply, 
                     total_supply: token.total_supply, 
                     max_supply: token.max_supply, 
@@ -154,6 +156,7 @@ async function updateData(tokens: Token[]): Promise<Token[]> {
                 price_change_percentage_24h: token.price_change_percentage_24h, 
                 market_cap_change_24h: token.market_cap_change_24h, 
                 market_cap_change_percentage_24h: token.market_cap_change_percentage_24h, 
+                price_change_percentage_30d_in_currency: token.price_change_percentage_30d_in_currency, 
                 circulating_supply: token.circulating_supply, 
                 total_supply: token.total_supply, 
                 max_supply: token.max_supply, 
