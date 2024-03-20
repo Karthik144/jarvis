@@ -53,10 +53,28 @@ export default function YieldTable({ yieldList }) {
   };
 
   const renderScrollableCell = (params) => {
+    const bands = params.value.split("-");
     return (
-      <div style={{ maxWidth: "100px", overflow: "auto" }}>{params.value}</div>
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {bands.map((band, index) => (
+          <div key={index} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <IconButton
+              size="small"
+              onClick={(event) => copyToClipboard(band)}
+            >
+              <ContentCopyIcon fontSize="small" />
+            </IconButton>
+            <div style={{ minWidth: "70px" }}>
+              {index === 0 ? "lower" : "upper"}
+            </div>
+            <div style={{ maxWidth: "100px", overflow: "hidden", textOverflow: "ellipsis" }}>{parseFloat(band).toFixed(4)}...</div>
+          </div>
+        ))}
+      </div>
     );
   };
+
+
   const convertToCSV = (data) => {
     const csvRows = [];
     const headers = Object.keys(data[0]);
@@ -97,7 +115,7 @@ export default function YieldTable({ yieldList }) {
       field: "pool_bands",
       headerName: "Bands",
       renderCell: renderScrollableCell,
-      width: 110,
+      width: 200,
     },
     {
       field: "apyBase",

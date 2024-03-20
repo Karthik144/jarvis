@@ -57,14 +57,15 @@ export async function getPoolPrices(days_of_data: number, pool_addr: string[]) {
   return pool_data
 }
 
-// async function main() {
-//   const addr = "0x1dF4C6e36d61416813B42fE32724eF11e363EDDc"
-//   const pool_prices = await getPoolPrices(60, [addr])
-//   console.log(pool_prices[addr].reduce((acc, val) => acc + val, 0) / pool_prices[addr].length)
+async function main() {
+  const addr = "0x1dF4C6e36d61416813B42fE32724eF11e363EDDc"
+  const pool_prices = await getPoolPrices(60, [addr])
+  console.log(pool_prices)
+  // console.log(pool_prices[addr].reduce((acc, val) => acc + val, 0) / pool_prices[addr].length)
 
-// }
+}
 
-// main()
+main()
 
 //types
 interface Snapshot {

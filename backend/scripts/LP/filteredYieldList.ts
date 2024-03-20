@@ -24,6 +24,7 @@ async function main() {
         const { upper_band, lower_band } = await predict_bands(pool_prices[pool_address], filtered_yield_list[i].sigma)
         filtered_yield_list[i]['liquidity_band'] = {upper_band, lower_band};
     }
+    // console.log(filtered_yield_list);
     await update_supabase(filtered_yield_list)
 }
 
